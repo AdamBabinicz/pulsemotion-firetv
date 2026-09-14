@@ -5,7 +5,7 @@
 
 <div align="center">
 
-<img src="./assets/1.png" alt="PulseMotion TV — AI Pose Coach for Amazon Fire TV" width="100%" />
+<img src="./pubic/assets/1.png" alt="PulseMotion TV — AI Pose Coach for Amazon Fire TV" width="100%" />
 
 # 🏃‍♂️ PulseMotion TV
 
