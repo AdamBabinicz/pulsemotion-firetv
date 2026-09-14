@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pl" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulseMotion TV - AI Fitness & Pose Coach</title>
+    <meta name="description" content="Interactive smart TV and mobile fitness coach with on-device computer vision, voice control, real-time posture correction, rep counting, and audio feedback." />
+    <meta property="og:title" content="PulseMotion TV - AI Fitness & Pose Coach" />
+    <meta property="og:description" content="Interactive smart TV and mobile fitness coach with on-device computer vision, voice control, real-time posture correction, rep counting, and audio feedback." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Google MediaPipe Pose & Camera Utils CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  </head>
+  <body class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

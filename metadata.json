@@ -1,0 +1,6 @@
+{
+  "name": "PulseMotion TV - AI Fitness & Pose Coach",
+  "description": "Interactive smart TV and mobile fitness coach with on-device computer vision, voice control, real-time posture correction, rep counting, and audio feedback.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
