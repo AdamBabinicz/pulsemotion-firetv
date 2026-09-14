@@ -43,6 +43,7 @@
 ---
 
 > ### ⚡ TL;DR
+>
 > **PulseMotion TV** turns any Amazon Fire TV Stick into a hands-free, camera-driven personal trainer.
 > Google **MediaPipe Pose** runs **100% on-device** inside the **Silk Browser**, powered by **WebAssembly SIMD** and **WebGL 2.0** GPU acceleration — delivering a **< 35 ms end-to-end pipeline at 60 FPS**.
 > A **Web Speech Synthesis** voice coach calls out reps in real time, **Web Speech Recognition** lets you navigate by talking, and the **Fire TV remote D-Pad** drives the entire 10-foot UI.
@@ -86,12 +87,14 @@
 <td width="50%" valign="top">
 
 ### 🧠 On-Device AI Pose Engine
+
 Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, executing on the **WebGL 2.0** GPU pipeline. 33 skeletal landmarks tracked per frame, **60 FPS**, no server round-trip.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🔒 100% Private by Design
+
 **Zero cloud video streaming.** No frames, no footage, no biometrics ever transmitted. The camera feed is consumed and discarded inside the browser sandbox.
 
 </td>
@@ -100,12 +103,14 @@ Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, executing on the **W
 <td width="50%" valign="top">
 
 ### 🗣️ Real-Time Voice Coach
+
 **Web Speech Synthesis API** delivers instant, audible rep counts, form cues and encouragement — hands-free, screen-free, phone-free.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🎙️ Voice Command Navigation
+
 **Web Speech Recognition API** lets you switch exercises and start sessions with plain speech — no remote hunting mid-workout.
 
 </td>
@@ -114,12 +119,14 @@ Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, executing on the **W
 <td width="50%" valign="top">
 
 ### 📺 True 10-Foot UI
+
 Overscan-safe layout for **720p / 1080p / 4K UHD**, high-contrast cards, **glowing emerald focus rings** legible from **3+ meters**, **48 px+** focus targets.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🎮 D-Pad Native
+
 Full **Amazon Fire TV remote** navigation — spatial focus engine, hardware keycode dispatch, plus an **on-screen virtual remote** for desktop prototyping.
 
 </td>
@@ -128,12 +135,14 @@ Full **Amazon Fire TV remote** navigation — spatial focus engine, hardware key
 <td width="50%" valign="top">
 
 ### 🌍 Bilingual EN / PL
+
 Instant toggle between **English (US)** and **Polish (PL)** — including the synthesized voice coach and every UI string.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🧪 Synthetic Pose Simulator
+
 A built-in **kinematic playback engine** injects synthetic landmark streams so the entire app can be developed and tested **without a webcam**.
 
 </td>
@@ -144,14 +153,14 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 
 ## 🎯 Why PulseMotion TV Wins the Fire TV Track
 
-| Criterion | How PulseMotion TV Delivers |
-| :--- | :--- |
-| 🥇 **Fire TV Native Experience** | Purpose-built for the 10-foot form factor: overscan-safe, D-Pad-first, remote-native keycodes. |
-| 🥇 **Innovative Use of Device Capabilities** | MediaPipe Pose + WASM SIMD + WebGL 2.0 squeezing **60 FPS** out of an HDMI streaming stick. |
-| 🥇 **Privacy & Trust** | No cloud inference, no accounts, no telemetry — the camera stream never leaves the device. |
-| 🥇 **Accessibility** | WCAG AAA contrast targets, spatial navigation, voice control, **two** languages, synthetic simulator for camera-less testing. |
-| 🥇 **Completeness** | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log. |
-| 🎁 **Bonus: Friction Log (+10%)** | Four deeply documented friction points with root-cause analysis and shipped solutions → [jump to it](#-friction-log--amazon-developer-hackathon). |
+| Criterion                                    | How PulseMotion TV Delivers                                                                                                                       |
+| :------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 🥇 **Fire TV Native Experience**             | Purpose-built for the 10-foot form factor: overscan-safe, D-Pad-first, remote-native keycodes.                                                    |
+| 🥇 **Innovative Use of Device Capabilities** | MediaPipe Pose + WASM SIMD + WebGL 2.0 squeezing **60 FPS** out of an HDMI streaming stick.                                                       |
+| 🥇 **Privacy & Trust**                       | No cloud inference, no accounts, no telemetry — the camera stream never leaves the device.                                                        |
+| 🥇 **Accessibility**                         | WCAG AAA contrast targets, spatial navigation, voice control, **two** languages, synthetic simulator for camera-less testing.                     |
+| 🥇 **Completeness**                          | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log.                                    |
+| 🎁 **Bonus: Friction Log (+10%)**            | Four deeply documented friction points with root-cause analysis and shipped solutions → [jump to it](#-friction-log--amazon-developer-hackathon). |
 
 ---
 
@@ -275,20 +284,20 @@ sequenceDiagram
 
 ## ⚙️ Tech Stack
 
-| Layer | Technology | Version | Role |
-| :--- | :--- | :--- | :--- |
-| **Framework** | [React](https://react.dev/) | `19` | Concurrent rendering, `use` hooks, transitions for the render loop |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) | `5` | Strict mode, exhaustive discriminated unions for the rep FSM |
-| **Build Tool** | [Vite](https://vitejs.dev/) | `6` | Instant HMR, optimized WASM asset pipeline, ES2022 target |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | `v4` | Zero-runtime CSS, 10-foot spacing scale, focus-ring utilities |
-| **AI / Computer Vision** | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe) | Latest | 33-landmark full-body pose estimation |
-| **Compute Acceleration** | [WebAssembly SIMD](https://webassembly.org/) | — | Vectorized inference on the Fire TV Stick's ARM CPU |
-| **Graphics Acceleration** | **WebGL 2.0** | — | GPU-backed inference + skeleton overlay render |
-| **Audible Coach** | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | — | Real-time spoken rep counts and form cues |
-| **Voice Commands** | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | — | Hands-free navigation and session control |
-| **Remote Input** | HTML5 **Spatial Navigation** + Android `KeyEvent` codes | — | D-Pad and media-key handling on Fire TV |
-| **Runtime Target** | **Amazon Silk Browser** on Fire TV OS | — | Deployed runtime for the hackathon track |
-| **Package Manager** | [pnpm](https://pnpm.io/) | `9+` | Fastest installs, content-addressed store, disk-efficient |
+| Layer                     | Technology                                                                                    | Version | Role                                                               |
+| :------------------------ | :-------------------------------------------------------------------------------------------- | :------ | :----------------------------------------------------------------- |
+| **Framework**             | [React](https://react.dev/)                                                                   | `19`    | Concurrent rendering, `use` hooks, transitions for the render loop |
+| **Language**              | [TypeScript](https://www.typescriptlang.org/)                                                 | `5`     | Strict mode, exhaustive discriminated unions for the rep FSM       |
+| **Build Tool**            | [Vite](https://vitejs.dev/)                                                                   | `6`     | Instant HMR, optimized WASM asset pipeline, ES2022 target          |
+| **Styling**               | [Tailwind CSS](https://tailwindcss.com/)                                                      | `v4`    | Zero-runtime CSS, 10-foot spacing scale, focus-ring utilities      |
+| **AI / Computer Vision**  | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe)                     | Latest  | 33-landmark full-body pose estimation                              |
+| **Compute Acceleration**  | [WebAssembly SIMD](https://webassembly.org/)                                                  | —       | Vectorized inference on the Fire TV Stick's ARM CPU                |
+| **Graphics Acceleration** | **WebGL 2.0**                                                                                 | —       | GPU-backed inference + skeleton overlay render                     |
+| **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
+| **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
+| **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
+| **Runtime Target**        | **Amazon Silk Browser** on Fire TV OS                                                         | —       | Deployed runtime for the hackathon track                           |
+| **Package Manager**       | [pnpm](https://pnpm.io/)                                                                      | `9+`    | Fastest installs, content-addressed store, disk-efficient          |
 
 ---
 
@@ -318,29 +327,29 @@ sequenceDiagram
    └──────────────────────────────────────────┘
 ```
 
-| Privacy Guarantee | Implementation |
-| :--- | :--- |
-| 🚫 **No cloud video streaming** | Frames are consumed by the WASM runtime and immediately released — never serialized, never sent. |
-| 🚫 **No external API latency** | All inference is local. The network tab stays silent during a workout. |
-| 🚫 **No accounts, no telemetry** | The app boots fully offline once assets are cached by the Silk Browser. |
-| ✅ **Explicit camera consent** | A clear in-app prompt explains exactly what the camera is used for, in EN and PL. |
-| ✅ **Instant kill switch** | A single D-Pad press stops the camera track (`MediaStreamTrack.stop()`). |
+| Privacy Guarantee                | Implementation                                                                                   |
+| :------------------------------- | :----------------------------------------------------------------------------------------------- |
+| 🚫 **No cloud video streaming**  | Frames are consumed by the WASM runtime and immediately released — never serialized, never sent. |
+| 🚫 **No external API latency**   | All inference is local. The network tab stays silent during a workout.                           |
+| 🚫 **No accounts, no telemetry** | The app boots fully offline once assets are cached by the Silk Browser.                          |
+| ✅ **Explicit camera consent**   | A clear in-app prompt explains exactly what the camera is used for, in EN and PL.                |
+| ✅ **Instant kill switch**       | A single D-Pad press stops the camera track (`MediaStreamTrack.stop()`).                         |
 
 ---
 
 ## 📊 Performance Budget
 
-| Stage | Target Budget | Measured on Fire TV Stick 4K | Status |
-| :--- | ---: | ---: | :---: |
-| Camera capture (`getUserMedia` @ 720p) | `4 ms` | `3.8 ms` | 🟢 |
-| Frame → GPU texture upload | `3 ms` | `3.1 ms` | 🟢 |
-| MediaPipe Pose inference (WASM SIMD + WebGL 2.0) | `20 ms` | `19.4 ms` | 🟢 |
-| Joint-angle solver (33 landmarks, 12 angles) | `2 ms` | `1.6 ms` | 🟢 |
-| Rep FSM + form validation | `1 ms` | `0.7 ms` | 🟢 |
-| React HUD reconciliation (transition-prioritized) | `2 ms` | `1.9 ms` | 🟢 |
-| Speech synthesis enqueue (non-blocking) | `1 ms` | `0.9 ms` | 🟢 |
-| **End-to-end pipeline** | **`< 35 ms`** | **`31.4 ms`** | 🟢 |
-| **Sustained frame rate** | **`60 FPS`** | **`58–60 FPS`** | 🟢 |
+| Stage                                             | Target Budget | Measured on Fire TV Stick 4K | Status |
+| :------------------------------------------------ | ------------: | ---------------------------: | :----: |
+| Camera capture (`getUserMedia` @ 720p)            |        `4 ms` |                     `3.8 ms` |   🟢   |
+| Frame → GPU texture upload                        |        `3 ms` |                     `3.1 ms` |   🟢   |
+| MediaPipe Pose inference (WASM SIMD + WebGL 2.0)  |       `20 ms` |                    `19.4 ms` |   🟢   |
+| Joint-angle solver (33 landmarks, 12 angles)      |        `2 ms` |                     `1.6 ms` |   🟢   |
+| Rep FSM + form validation                         |        `1 ms` |                     `0.7 ms` |   🟢   |
+| React HUD reconciliation (transition-prioritized) |        `2 ms` |                     `1.9 ms` |   🟢   |
+| Speech synthesis enqueue (non-blocking)           |        `1 ms` |                     `0.9 ms` |   🟢   |
+| **End-to-end pipeline**                           | **`< 35 ms`** |                **`31.4 ms`** |   🟢   |
+| **Sustained frame rate**                          |  **`60 FPS`** |              **`58–60 FPS`** |   🟢   |
 
 > 🟢 **Health metric legend:** `≤ budget` · 🟡 `within 15% of budget` · 🔴 `budget exceeded → auto quality downgrade`
 
@@ -350,14 +359,14 @@ sequenceDiagram
 
 Every exercise is a declarative rule set: a **trigger joint angle**, a **rep state machine**, and a **form validator**. All angles are computed with a 3-point **dot product** (`arccos`) over MediaPipe landmarks.
 
-| # | Exercise | Category | Primary Metric | Target Angle / Threshold | Primary Muscle Groups | Voice Coach Cues |
-| :-: | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 🦵 **Deep Squats** | Strength | Knee flexion angle | **≤ 90°** at deepest point | Quadriceps, Glutes, Hamstrings, Core | "Depth achieved — drive up!" |
-| 2 | ⭐ **Jumping Jacks** | Cardio | Arm abduction angle | **> 140°** at full extension | Full-body coordination, Deltoids, Calves | "Keep the rhythm — 20 more!" |
-| 3 | 🏃 **High Knees Sprint** | Cardio | Thigh-to-hip alignment | Knee raised to **hip height**, thigh ∥ torso | Hip Flexors, Core, Quads, Calves | "Faster! Knees to the ceiling!" |
-| 4 | 🧘 **Yoga Tree Pose** | Balance | Center-of-mass stability | **CoM drift < 8%** of frame width | Ankle Stabilizers, Glute Medius, Core | "Hold steady — you've got this." |
-| 5 | 💪 **Lateral Arm Raises** | Mobility / Rehab | Symmetrical shoulder plane | **90°** abduction, L/R symmetry **±5°** | Lateral Deltoids, Trapezius | "Nice and smooth — hold at 90°." |
-| ± | 🧪 **Synthetic Pose Simulator** | Testing | Scripted landmark stream | N/A — deterministic fixture playback | N/A — CI / camera-less dev | — |
+|  #  | Exercise                        | Category         | Primary Metric             | Target Angle / Threshold                     | Primary Muscle Groups                    | Voice Coach Cues                 |
+| :-: | :------------------------------ | :--------------- | :------------------------- | :------------------------------------------- | :--------------------------------------- | :------------------------------- |
+|  1  | 🦵 **Deep Squats**              | Strength         | Knee flexion angle         | **≤ 90°** at deepest point                   | Quadriceps, Glutes, Hamstrings, Core     | "Depth achieved — drive up!"     |
+|  2  | ⭐ **Jumping Jacks**            | Cardio           | Arm abduction angle        | **> 140°** at full extension                 | Full-body coordination, Deltoids, Calves | "Keep the rhythm — 20 more!"     |
+|  3  | 🏃 **High Knees Sprint**        | Cardio           | Thigh-to-hip alignment     | Knee raised to **hip height**, thigh ∥ torso | Hip Flexors, Core, Quads, Calves         | "Faster! Knees to the ceiling!"  |
+|  4  | 🧘 **Yoga Tree Pose**           | Balance          | Center-of-mass stability   | **CoM drift < 8%** of frame width            | Ankle Stabilizers, Glute Medius, Core    | "Hold steady — you've got this." |
+|  5  | 💪 **Lateral Arm Raises**       | Mobility / Rehab | Symmetrical shoulder plane | **90°** abduction, L/R symmetry **±5°**      | Lateral Deltoids, Trapezius              | "Nice and smooth — hold at 90°." |
+|  ±  | 🧪 **Synthetic Pose Simulator** | Testing          | Scripted landmark stream   | N/A — deterministic fixture playback         | N/A — CI / camera-less dev               | —                                |
 
 ### Exercise Rule Details
 
@@ -443,12 +452,12 @@ flowchart LR
     style CAM fill:#1a1a1a,stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5,color:#9ca3af
 ```
 
-| Capability | Benefit |
-| :--- | :--- |
-| 🎥 **Camera-free development** | Build and iterate on a laptop, in CI, or on a headless container. |
+| Capability                         | Benefit                                                                   |
+| :--------------------------------- | :------------------------------------------------------------------------ |
+| 🎥 **Camera-free development**     | Build and iterate on a laptop, in CI, or on a headless container.         |
 | 🔁 **Deterministic rep sequences** | Every fixture produces the exact same rep count — perfect for unit tests. |
-| 🧮 **Golden-file testing** | Assert `expectedReps`, `expectedAngles`, and `expectedCues` per fixture. |
-| 🧑‍💻 **Designer-friendly** | UI/UX work never blocks on a physical webcam or a dark room. |
+| 🧮 **Golden-file testing**         | Assert `expectedReps`, `expectedAngles`, and `expectedCues` per fixture.  |
+| 🧑‍💻 **Designer-friendly**           | UI/UX work never blocks on a physical webcam or a dark room.              |
 
 ```bash
 # Boot the dev server directly into simulator mode
@@ -463,16 +472,16 @@ VITE_POSE_SOURCE=synthetic pnpm dev
 
 ### Design Principles
 
-| Principle | Implementation Detail |
-| :--- | :--- |
-| 📐 **Overscan-safe layout** | All critical content lives inside a **5%** safe-area inset, validated against **720p**, **1080p** and **4K UHD** viewports. |
-| 🔦 **Glowing emerald focus rings** | A `ring-4 ring-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.8)]` treatment — unmistakable from 3+ meters away. |
-| 👆 **48 px+ focus targets** | Minimum interactive size is enforced by a Tailwind spacing token; recommended floor is **64 px** on the 10-foot scale. |
-| 🔤 **Typography at distance** | Base body `text-2xl` / `text-3xl`, headings `text-6xl+`, capped line length for rapid scanning. |
-| 🎛️ **D-Pad-first interaction** | Zero hover states required; every action is reachable by directional focus traversal + `DPAD_CENTER`. |
-| 🖥️ **Virtual Fire TV Remote** | An on-screen widget rendered in the corner of the desktop build that dispatches **native Android keycodes** — prototype the TV UX on a PC/Mac in seconds. |
-| ♿ **WCAG AAA contrast** | Foreground/background pairs are measured at **≥ 7:1**; the emerald focus ring itself exceeds **10:1** against the dark canvas. |
-| 🎬 **Motion with restraint** | Animations use `prefers-reduced-motion` guards and stay under 200 ms so the UI never fights the 60 FPS render loop. |
+| Principle                          | Implementation Detail                                                                                                                                     |
+| :--------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📐 **Overscan-safe layout**        | All critical content lives inside a **5%** safe-area inset, validated against **720p**, **1080p** and **4K UHD** viewports.                               |
+| 🔦 **Glowing emerald focus rings** | A `ring-4 ring-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.8)]` treatment — unmistakable from 3+ meters away.                                          |
+| 👆 **48 px+ focus targets**        | Minimum interactive size is enforced by a Tailwind spacing token; recommended floor is **64 px** on the 10-foot scale.                                    |
+| 🔤 **Typography at distance**      | Base body `text-2xl` / `text-3xl`, headings `text-6xl+`, capped line length for rapid scanning.                                                           |
+| 🎛️ **D-Pad-first interaction**     | Zero hover states required; every action is reachable by directional focus traversal + `DPAD_CENTER`.                                                     |
+| 🖥️ **Virtual Fire TV Remote**      | An on-screen widget rendered in the corner of the desktop build that dispatches **native Android keycodes** — prototype the TV UX on a PC/Mac in seconds. |
+| ♿ **WCAG AAA contrast**           | Foreground/background pairs are measured at **≥ 7:1**; the emerald focus ring itself exceeds **10:1** against the dark canvas.                            |
+| 🎬 **Motion with restraint**       | Animations use `prefers-reduced-motion` guards and stay under 200 ms so the UI never fights the 60 FPS render loop.                                       |
 
 ### Focus Traversal Model
 
@@ -502,18 +511,18 @@ VITE_POSE_SOURCE=synthetic pnpm dev
 
 ## 🌍 Bilingual Experience
 
-| Aspect | English (US) | Polski (PL) |
-| :--- | :--- | :--- |
-| **Locale code** | `en-US` | `pl-PL` |
-| **UI strings** | Full dictionary | Full dictionary |
-| **Voice coach voice** | `en-US` system voice | `pl-PL` system voice |
-| **Voice commands** | "Start workout", "Next exercise" | "Rozpocznij trening", "Następne ćwiczenie" |
-| **Toggle** | `DPAD_CENTER` on the language chip, or the voice command *"Switch to Polish"* | j.w. |
-| **Persisted?** | Yes — localStorage preference | Yes — localStorage preference |
+| Aspect                | English (US)                                                                  | Polski (PL)                                |
+| :-------------------- | :---------------------------------------------------------------------------- | :----------------------------------------- |
+| **Locale code**       | `en-US`                                                                       | `pl-PL`                                    |
+| **UI strings**        | Full dictionary                                                               | Full dictionary                            |
+| **Voice coach voice** | `en-US` system voice                                                          | `pl-PL` system voice                       |
+| **Voice commands**    | "Start workout", "Next exercise"                                              | "Rozpocznij trening", "Następne ćwiczenie" |
+| **Toggle**            | `DPAD_CENTER` on the language chip, or the voice command _"Switch to Polish"_ | j.w.                                       |
+| **Persisted?**        | Yes — localStorage preference                                                 | Yes — localStorage preference              |
 
 ```ts
 // i18n contract — exhaustive, type-safe, no missing keys at compile time
-export type Locale = 'en-US' | 'pl-PL';
+export type Locale = "en-US" | "pl-PL";
 
 export interface WorkoutDictionary {
   startWorkout: string;
@@ -526,17 +535,17 @@ export interface WorkoutDictionary {
 }
 
 export const dictionaries: Record<Locale, WorkoutDictionary> = {
-  'en-US': {
-    startWorkout: 'Start workout',
-    nextExercise: 'Next exercise',
+  "en-US": {
+    startWorkout: "Start workout",
+    nextExercise: "Next exercise",
     repCount: (n) => `Rep ${n}`,
-    formCue: { deeper: 'Go deeper', straighter: 'Keep your back straight' },
+    formCue: { deeper: "Go deeper", straighter: "Keep your back straight" },
   },
-  'pl-PL': {
-    startWorkout: 'Rozpocznij trening',
-    nextExercise: 'Następne ćwiczenie',
+  "pl-PL": {
+    startWorkout: "Rozpocznij trening",
+    nextExercise: "Następne ćwiczenie",
     repCount: (n) => `Powtórzenie ${n}`,
-    formCue: { deeper: 'Zejdź niżej', straighter: 'Trzymaj plecy prosto' },
+    formCue: { deeper: "Zejdź niżej", straighter: "Trzymaj plecy prosto" },
   },
 };
 ```
@@ -545,26 +554,26 @@ export const dictionaries: Record<Locale, WorkoutDictionary> = {
 
 ## 🎮 Remote & Keyboard Mapping
 
-| Fire TV Remote Key | Hardware Key Code (Android `KeyEvent`) | PC / Mac Keyboard Equivalent | App Action |
-| :--- | :--- | :--- | :--- |
-| **D-Pad Up** | `DPAD_UP` (19) | `↑` ArrowUp | Move focus up / increase difficulty |
-| **D-Pad Down** | `DPAD_DOWN` (20) | `↓` ArrowDown | Move focus down / decrease difficulty |
-| **D-Pad Left** | `DPAD_LEFT` (21) | `←` ArrowLeft | Previous exercise / rewind carousel |
-| **D-Pad Right** | `DPAD_RIGHT` (22) | `→` ArrowRight | Next exercise / advance carousel |
-| **Select / OK** | `DPAD_CENTER` (23) | `Enter` / `Space` | Activate focused card / confirm |
-| **Play / Pause** | `MEDIA_PLAY_PAUSE` (85) | `P` | Pause / resume the active workout |
-| **Rewind** | `REWIND` (89) | `R` | Restart the current set / reset counter |
+| Fire TV Remote Key | Hardware Key Code (Android `KeyEvent`) | PC / Mac Keyboard Equivalent | App Action                              |
+| :----------------- | :------------------------------------- | :--------------------------- | :-------------------------------------- |
+| **D-Pad Up**       | `DPAD_UP` (19)                         | `↑` ArrowUp                  | Move focus up / increase difficulty     |
+| **D-Pad Down**     | `DPAD_DOWN` (20)                       | `↓` ArrowDown                | Move focus down / decrease difficulty   |
+| **D-Pad Left**     | `DPAD_LEFT` (21)                       | `←` ArrowLeft                | Previous exercise / rewind carousel     |
+| **D-Pad Right**    | `DPAD_RIGHT` (22)                      | `→` ArrowRight               | Next exercise / advance carousel        |
+| **Select / OK**    | `DPAD_CENTER` (23)                     | `Enter` / `Space`            | Activate focused card / confirm         |
+| **Play / Pause**   | `MEDIA_PLAY_PAUSE` (85)                | `P`                          | Pause / resume the active workout       |
+| **Rewind**         | `REWIND` (89)                          | `R`                          | Restart the current set / reset counter |
 
 ```ts
 // src/navigation/keymap.ts
 export const REMOTE_KEYMAP = {
-  DPAD_UP: 'ArrowUp',
-  DPAD_DOWN: 'ArrowDown',
-  DPAD_LEFT: 'ArrowLeft',
-  DPAD_RIGHT: 'ArrowRight',
-  DPAD_CENTER: 'Enter',
-  MEDIA_PLAY_PAUSE: 'p',
-  REWIND: 'r',
+  DPAD_UP: "ArrowUp",
+  DPAD_DOWN: "ArrowDown",
+  DPAD_LEFT: "ArrowLeft",
+  DPAD_RIGHT: "ArrowRight",
+  DPAD_CENTER: "Enter",
+  MEDIA_PLAY_PAUSE: "p",
+  REWIND: "r",
 } as const;
 
 export type RemoteAction = keyof typeof REMOTE_KEYMAP;
@@ -578,20 +587,20 @@ export type RemoteAction = keyof typeof REMOTE_KEYMAP;
 
 ### 🔴 Friction Point 1 — Low-Power GPU on HDMI Streaming Sticks
 
-| Field | Detail |
-| :--- | :--- |
-| **🔥 Symptom** | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session. |
-| **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived. |
-| **🛠️ Solution** | 1. Forced the **WebGL 2.0 GPU delegate** for MediaPipe instead of the CPU/WASM-only path.<br/>2. Enabled **WASM SIMD** for the post-processing math.<br/>3. Unified inference and overlay into a **single shared `WebGL` context** to eliminate double uploads.<br/>4. Switched to `requestVideoFrameCallback` so we only process genuinely new frames.<br/>5. Added an **adaptive quality governor**: if measured frame time exceeds 20 ms for 30 consecutive frames, input resolution steps `720p → 540p → 480p`, and landmark smoothing is reduced. |
-| **✅ Impact** | **58–60 FPS sustained** over a 20-minute workout session with no thermal throttle. End-to-end pipeline dropped to **31.4 ms**. |
-| **📚 Takeaway** | On streaming sticks, *thermal sustained performance* matters far more than *peak benchmark performance*. Budget for the steady state, not the first 10 seconds. |
+| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🔥 Symptom**    | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session.                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived.                                                                                                                                                                                                                           |
+| **🛠️ Solution**   | 1. Forced the **WebGL 2.0 GPU delegate** for MediaPipe instead of the CPU/WASM-only path.<br/>2. Enabled **WASM SIMD** for the post-processing math.<br/>3. Unified inference and overlay into a **single shared `WebGL` context** to eliminate double uploads.<br/>4. Switched to `requestVideoFrameCallback` so we only process genuinely new frames.<br/>5. Added an **adaptive quality governor**: if measured frame time exceeds 20 ms for 30 consecutive frames, input resolution steps `720p → 540p → 480p`, and landmark smoothing is reduced. |
+| **✅ Impact**     | **58–60 FPS sustained** over a 20-minute workout session with no thermal throttle. End-to-end pipeline dropped to **31.4 ms**.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **📚 Takeaway**   | On streaming sticks, _thermal sustained performance_ matters far more than _peak benchmark performance_. Budget for the steady state, not the first 10 seconds.                                                                                                                                                                                                                                                                                                                                                                                        |
 
 ```ts
 // src/vision/qualityGovernor.ts — the fix that saved 20 FPS
 export const QUALITY_TIERS = [
-  { label: 'ultra', width: 1280, height: 720, smoothing: 0.65 },
-  { label: 'high',  width: 960,  height: 540, smoothing: 0.55 },
-  { label: 'safe',  width: 854,  height: 480, smoothing: 0.40 },
+  { label: "ultra", width: 1280, height: 720, smoothing: 0.65 },
+  { label: "high", width: 960, height: 540, smoothing: 0.55 },
+  { label: "safe", width: 854, height: 480, smoothing: 0.4 },
 ] as const;
 
 export function nextTier(current: number, avgFrameMs: number): number {
@@ -605,13 +614,13 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 ### 🟠 Friction Point 2 — 10-Foot UI vs. Mouse Ergonomics
 
-| Field | Detail |
-| :--- | :--- |
-| **🔥 Symptom** | The first build looked great on a 27-inch monitor but was **unusable on the TV**: buttons vanished into the bezel, the focus indicator was invisible from 3 m, and text was unreadable. |
-| **🔍 Root Cause** | Classic **web ergonomics thinking**: hover states, 32 px click targets, 14 px body text, and layouts that ignored **overscan** — many TVs crop 3–5% of each edge. |
-| **🛠️ Solution** | 1. Introduced a **5% safe-area inset** wrapper, validated against 720p / 1080p / 4K.<br/>2. Enforced a **minimum 48 px** (recommended 64 px) focus target via a shared Tailwind token.<br/>3. Replaced hover with **always-visible glowing emerald focus rings** (`ring-4` + a 40 px emerald `shadow` bloom).<br/>4. Rescaled all typography to the 10-foot scale (`text-2xl` minimum, `text-6xl+` headings).<br/>5. Verified every foreground/background pair at **WCAG AAA (≥ 7:1)**. |
-| **✅ Impact** | Fully legible and navigable from **3+ meters**; zero elements lost to overscan on any tested display. |
-| **📚 Takeaway** | Design the *farthest* viewer, not the closest one. Test on an actual TV with an actual remote — the emulator will lie to you. |
+| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🔥 Symptom**    | The first build looked great on a 27-inch monitor but was **unusable on the TV**: buttons vanished into the bezel, the focus indicator was invisible from 3 m, and text was unreadable.                                                                                                                                                                                                                                                                                                 |
+| **🔍 Root Cause** | Classic **web ergonomics thinking**: hover states, 32 px click targets, 14 px body text, and layouts that ignored **overscan** — many TVs crop 3–5% of each edge.                                                                                                                                                                                                                                                                                                                       |
+| **🛠️ Solution**   | 1. Introduced a **5% safe-area inset** wrapper, validated against 720p / 1080p / 4K.<br/>2. Enforced a **minimum 48 px** (recommended 64 px) focus target via a shared Tailwind token.<br/>3. Replaced hover with **always-visible glowing emerald focus rings** (`ring-4` + a 40 px emerald `shadow` bloom).<br/>4. Rescaled all typography to the 10-foot scale (`text-2xl` minimum, `text-6xl+` headings).<br/>5. Verified every foreground/background pair at **WCAG AAA (≥ 7:1)**. |
+| **✅ Impact**     | Fully legible and navigable from **3+ meters**; zero elements lost to overscan on any tested display.                                                                                                                                                                                                                                                                                                                                                                                   |
+| **📚 Takeaway**   | Design the _farthest_ viewer, not the closest one. Test on an actual TV with an actual remote — the emulator will lie to you.                                                                                                                                                                                                                                                                                                                                                           |
 
 ```html
 <!-- src/ui/SafeArea.tsx — overscan-safe wrapper used by every screen -->
@@ -633,30 +642,30 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 ### 🟡 Friction Point 3 — Hardware Remote Simulation During Prototyping
 
-| Field | Detail |
-| :--- | :--- |
-| **🔥 Symptom** | Every navigation change required a **physical deploy to the Fire TV Stick**, so a 30-second UI tweak cost a 2-minute round trip. Developers could not test D-Pad behaviour on a laptop. |
-| **🔍 Root Cause** | The app listened for **Fire TV–specific keycodes** that a laptop keyboard never emitted, so the whole navigation layer was effectively untestable off-device. |
-| **🛠️ Solution** | 1. Built a **Virtual Fire TV Remote** overlay widget that renders a real D-Pad and media buttons.<br/>2. Each virtual button **dispatches the native Android keycode** (`DPAD_UP`, `DPAD_CENTER`, `MEDIA_PLAY_PAUSE`, …) through a synthetic `KeyboardEvent`.<br/>3. Unified both paths behind a single **`KeyEvent Normalizer`**, so remote and keyboard funnel into one `RemoteAction` union.<br/>4. Added a live keycode HUD that shows the last received code — invaluable during QA. |
-| **✅ Impact** | **~90% reduction** in deploy-test cycles. The entire 10-foot navigation UX is now developed and debugged on a laptop, then verified once on hardware. |
-| **📚 Takeaway** | If a platform input can't be faked, the platform-specific code can't be tested. Build the *simulator first*, then the integration. |
+| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🔥 Symptom**    | Every navigation change required a **physical deploy to the Fire TV Stick**, so a 30-second UI tweak cost a 2-minute round trip. Developers could not test D-Pad behaviour on a laptop.                                                                                                                                                                                                                                                                                                   |
+| **🔍 Root Cause** | The app listened for **Fire TV–specific keycodes** that a laptop keyboard never emitted, so the whole navigation layer was effectively untestable off-device.                                                                                                                                                                                                                                                                                                                             |
+| **🛠️ Solution**   | 1. Built a **Virtual Fire TV Remote** overlay widget that renders a real D-Pad and media buttons.<br/>2. Each virtual button **dispatches the native Android keycode** (`DPAD_UP`, `DPAD_CENTER`, `MEDIA_PLAY_PAUSE`, …) through a synthetic `KeyboardEvent`.<br/>3. Unified both paths behind a single **`KeyEvent Normalizer`**, so remote and keyboard funnel into one `RemoteAction` union.<br/>4. Added a live keycode HUD that shows the last received code — invaluable during QA. |
+| **✅ Impact**     | **~90% reduction** in deploy-test cycles. The entire 10-foot navigation UX is now developed and debugged on a laptop, then verified once on hardware.                                                                                                                                                                                                                                                                                                                                     |
+| **📚 Takeaway**   | If a platform input can't be faked, the platform-specific code can't be tested. Build the _simulator first_, then the integration.                                                                                                                                                                                                                                                                                                                                                        |
 
 ```ts
 // src/dev/VirtualRemote.tsx — dispatches native Android keycodes
 const KEYCODE_MAP: Record<string, string> = {
-  up: 'DPAD_UP',
-  down: 'DPAD_DOWN',
-  left: 'DPAD_LEFT',
-  right: 'DPAD_RIGHT',
-  center: 'DPAD_CENTER',
-  playPause: 'MEDIA_PLAY_PAUSE',
-  rewind: 'REWIND',
+  up: "DPAD_UP",
+  down: "DPAD_DOWN",
+  left: "DPAD_LEFT",
+  right: "DPAD_RIGHT",
+  center: "DPAD_CENTER",
+  playPause: "MEDIA_PLAY_PAUSE",
+  rewind: "REWIND",
 };
 
 export function dispatchRemoteKey(button: keyof typeof KEYCODE_MAP) {
   const code = KEYCODE_MAP[button];
   window.dispatchEvent(
-    new KeyboardEvent('keydown', { key: code, code, bubbles: true })
+    new KeyboardEvent("keydown", { key: code, code, bubbles: true }),
   );
 }
 ```
@@ -665,35 +674,35 @@ export function dispatchRemoteKey(button: keyof typeof KEYCODE_MAP) {
 
 ### 🟢 Friction Point 4 — Living Room Audio Clarity
 
-| Field | Detail |
-| :--- | :--- |
-| **🔥 Symptom** | The voice coach **talked over itself**: rep counts collided with form cues, producing an unintelligible "R-eee-p-kee-p-your-ba-a-ack" garble that drowned out the workout rhythm. |
-| **🔍 Root Cause** | `SpeechSynthesis.speak()` calls were fired **directly from the rep FSM** — a producer capable of emitting several events within a few hundred milliseconds. There was no queue, no priority, and no cancellation of stale utterances. |
-| **🛠️ Solution** | 1. Introduced a **debounced audio queue** with a single-consumer worker loop.<br/>2. Assigned **priority tiers**: `critical` (form safety) > `progress` (rep milestones) > `ambient` (encouragement).<br/>3. **Critical cues pre-empt** lower tiers via `speechSynthesis.cancel()`.<br/>4. Rep milestones are **debounced to at most one utterance per 1.5 s**, and ambient chatter is suppressed entirely during high-intensity intervals.<br/>5. All speech is enqueued **off the render path** so it never blocks a frame. |
-| **✅ Impact** | Speech became consistently intelligible at living-room volume. Frame budget impact: **< 1 ms**. Zero dropped frames attributable to audio. |
-| **📚 Takeaway** | Audio is a **shared, single-threaded resource** — treat it like a scheduler, not a fire-and-forget call. Debounce, prioritize, and cancel aggressively. |
+| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🔥 Symptom**    | The voice coach **talked over itself**: rep counts collided with form cues, producing an unintelligible "R-eee-p-kee-p-your-ba-a-ack" garble that drowned out the workout rhythm.                                                                                                                                                                                                                                                                                                                                             |
+| **🔍 Root Cause** | `SpeechSynthesis.speak()` calls were fired **directly from the rep FSM** — a producer capable of emitting several events within a few hundred milliseconds. There was no queue, no priority, and no cancellation of stale utterances.                                                                                                                                                                                                                                                                                         |
+| **🛠️ Solution**   | 1. Introduced a **debounced audio queue** with a single-consumer worker loop.<br/>2. Assigned **priority tiers**: `critical` (form safety) > `progress` (rep milestones) > `ambient` (encouragement).<br/>3. **Critical cues pre-empt** lower tiers via `speechSynthesis.cancel()`.<br/>4. Rep milestones are **debounced to at most one utterance per 1.5 s**, and ambient chatter is suppressed entirely during high-intensity intervals.<br/>5. All speech is enqueued **off the render path** so it never blocks a frame. |
+| **✅ Impact**     | Speech became consistently intelligible at living-room volume. Frame budget impact: **< 1 ms**. Zero dropped frames attributable to audio.                                                                                                                                                                                                                                                                                                                                                                                    |
+| **📚 Takeaway**   | Audio is a **shared, single-threaded resource** — treat it like a scheduler, not a fire-and-forget call. Debounce, prioritize, and cancel aggressively.                                                                                                                                                                                                                                                                                                                                                                       |
 
 ```ts
 // src/audio/voiceQueue.ts — the debounced, priority-aware voice coach
-type Priority = 'critical' | 'progress' | 'ambient';
+type Priority = "critical" | "progress" | "ambient";
 const RANK: Record<Priority, number> = { critical: 3, progress: 2, ambient: 1 };
 const MILESTONE_DEBOUNCE_MS = 1500;
 
 let queue: { text: string; priority: Priority }[] = [];
 let lastMilestoneAt = 0;
-let lastPriority: Priority = 'ambient';
+let lastPriority: Priority = "ambient";
 
-export function enqueueCue(text: string, priority: Priority, locale = 'en-US') {
+export function enqueueCue(text: string, priority: Priority, locale = "en-US") {
   const now = performance.now();
 
   // Debounce rapid progress chatter — one utterance per 1.5 s
-  if (priority === 'progress') {
+  if (priority === "progress") {
     if (now - lastMilestoneAt < MILESTONE_DEBOUNCE_MS) return;
     lastMilestoneAt = now;
   }
 
   // Suppress ambient encouragement during intense intervals
-  if (priority === 'ambient' && lastPriority === 'critical') return;
+  if (priority === "ambient" && lastPriority === "critical") return;
 
   // Pre-empt lower-priority speech when a critical cue arrives
   if (RANK[priority] > RANK[lastPriority]) {
@@ -723,12 +732,12 @@ function flush(locale: string) {
 
 ### Prerequisites
 
-| Requirement | Version | Notes |
-| :--- | :--- | :--- |
-| **Node.js** | `≥ 20 LTS` | Required by Vite 6 |
-| **pnpm** | `≥ 9` | Fastest, most disk-efficient package manager |
-| **Browser** | Chrome / Edge / Silk | WebGL 2.0 + WASM SIMD support required |
-| **Webcam** | Any 720p USB / built-in | Optional — use the Synthetic Pose Simulator instead |
+| Requirement | Version                 | Notes                                               |
+| :---------- | :---------------------- | :-------------------------------------------------- |
+| **Node.js** | `≥ 20 LTS`              | Required by Vite 6                                  |
+| **pnpm**    | `≥ 9`                   | Fastest, most disk-efficient package manager        |
+| **Browser** | Chrome / Edge / Silk    | WebGL 2.0 + WASM SIMD support required              |
+| **Webcam**  | Any 720p USB / built-in | Optional — use the Synthetic Pose Simulator instead |
 
 ```bash
 # Install pnpm globally if you don't have it yet
@@ -808,29 +817,29 @@ pulsemotion-firetv/
 
 ### 🧭 Where the Layers Live
 
-| Layer | Files | Responsibility |
-| :--- | :--- | :--- |
-| 📺 **10-Foot TV UI** | `src/components/*.tsx` | Exercise carousel with D-Pad focus, MediaPipe camera pipeline, HUD stats, end-of-set summary, virtual remote simulator. |
-| 🧮 **Biomechanical Data** | `src/data/exercises.ts` | Angle thresholds, rep rules and per-exercise instructions for all five movements. |
-| 🌍 **Localization** | `src/data/translations.ts` | Complete EN / PL dictionaries for every UI string and voice cue. |
-| 🗣️ **Audio Coach** | `src/utils/audioCoach.ts` | Web Speech TTS engine wired to the debounced, priority-aware speech queue. |
-| 📐 **Pose Math** | `src/utils/poseMath.ts` | 3-point joint trigonometry via `arccos` dot product over MediaPipe landmarks. |
-| ⚛️ **App Shell** | `src/App.tsx` · `src/main.tsx` | Root state machine, keyboard/remote router and the TV layout frame. |
-| 🎨 **Design Tokens** | `src/index.css` | Tailwind CSS tokens plus the emerald TV focus-ring utilities. |
+| Layer                     | Files                          | Responsibility                                                                                                          |
+| :------------------------ | :----------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| 📺 **10-Foot TV UI**      | `src/components/*.tsx`         | Exercise carousel with D-Pad focus, MediaPipe camera pipeline, HUD stats, end-of-set summary, virtual remote simulator. |
+| 🧮 **Biomechanical Data** | `src/data/exercises.ts`        | Angle thresholds, rep rules and per-exercise instructions for all five movements.                                       |
+| 🌍 **Localization**       | `src/data/translations.ts`     | Complete EN / PL dictionaries for every UI string and voice cue.                                                        |
+| 🗣️ **Audio Coach**        | `src/utils/audioCoach.ts`      | Web Speech TTS engine wired to the debounced, priority-aware speech queue.                                              |
+| 📐 **Pose Math**          | `src/utils/poseMath.ts`        | 3-point joint trigonometry via `arccos` dot product over MediaPipe landmarks.                                           |
+| ⚛️ **App Shell**          | `src/App.tsx` · `src/main.tsx` | Root state machine, keyboard/remote router and the TV layout frame.                                                     |
+| 🎨 **Design Tokens**      | `src/index.css`                | Tailwind CSS tokens plus the emerald TV focus-ring utilities.                                                           |
 
 ---
 
 ## 🛠️ Scripts Reference
 
-| Script | Command | Description |
-| :--- | :--- | :--- |
-| `dev` | `pnpm dev` | Start the Vite dev server with HMR at **http://localhost:3000** |
-| `build` | `pnpm build` | Type-check and emit the optimized production bundle |
-| `preview` | `pnpm preview` | Serve the production build locally for verification |
-| `lint` | `pnpm lint` | Run ESLint across the workspace |
-| `typecheck` | `pnpm typecheck` | Strict TypeScript 5 validation with no emit |
-| `test` | `pnpm test` | Run the Vitest suite (angle solver, FSM, exercises) |
-| `test:sim` | `VITE_POSE_SOURCE=synthetic pnpm test` | Run fixture-driven tests in simulator mode |
+| Script      | Command                                | Description                                                     |
+| :---------- | :------------------------------------- | :-------------------------------------------------------------- |
+| `dev`       | `pnpm dev`                             | Start the Vite dev server with HMR at **http://localhost:3000** |
+| `build`     | `pnpm build`                           | Type-check and emit the optimized production bundle             |
+| `preview`   | `pnpm preview`                         | Serve the production build locally for verification             |
+| `lint`      | `pnpm lint`                            | Run ESLint across the workspace                                 |
+| `typecheck` | `pnpm typecheck`                       | Strict TypeScript 5 validation with no emit                     |
+| `test`      | `pnpm test`                            | Run the Vitest suite (angle solver, FSM, exercises)             |
+| `test:sim`  | `VITE_POSE_SOURCE=synthetic pnpm test` | Run fixture-driven tests in simulator mode                      |
 
 ---
 
@@ -848,12 +857,12 @@ flowchart LR
     style V4 fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#e2e8f0
 ```
 
-| Version | Status | Highlights |
-| :--- | :---: | :--- |
-| **v1.0** | ✅ Shipped | 5 calibrated exercises, MediaPipe Pose 60 FPS, voice coach, EN/PL, D-Pad navigation, synthetic simulator. |
-| **v1.1** | 🚧 Planned | Custom rep targets, rest timers, shareable workout presets. |
-| **v1.2** | 🧭 Explored | Multi-player split-screen pose tracking for household workouts. |
-| **v2.0** | 🔮 Vision | On-device weekly progress index — still zero cloud. |
+| Version  |   Status    | Highlights                                                                                                |
+| :------- | :---------: | :-------------------------------------------------------------------------------------------------------- |
+| **v1.0** | ✅ Shipped  | 5 calibrated exercises, MediaPipe Pose 60 FPS, voice coach, EN/PL, D-Pad navigation, synthetic simulator. |
+| **v1.1** | 🚧 Planned  | Custom rep targets, rest timers, shareable workout presets.                                               |
+| **v1.2** | 🧭 Explored | Multi-player split-screen pose tracking for household workouts.                                           |
+| **v2.0** |  🔮 Vision  | On-device weekly progress index — still zero cloud.                                                       |
 
 ---
 
@@ -917,14 +926,14 @@ SOFTWARE.
 
 ## 🙏 Acknowledgements
 
-| Project | Contribution |
-| :--- | :--- |
-| [Google MediaPipe](https://developers.google.com/mediapipe) | The on-device Pose Solution that makes real-time skeleton tracking possible in a browser. |
-| [Amazon Developer](https://developer.amazon.com/) | The **Fire TV Track** and the Silk Browser runtime. |
-| [React](https://react.dev/) · [Vite](https://vitejs.dev/) · [Tailwind CSS](https://tailwindcss.com/) | The front-end foundation. |
-| [WebAssembly](https://webassembly.org/) | SIMD acceleration on low-power ARM silicon. |
-| [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | Audible coaching and voice command navigation. |
-| [Devpost](https://devpost.com/) | Hosting the Amazon Developer Hackathon. |
+| Project                                                                                              | Contribution                                                                              |
+| :--------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| [Google MediaPipe](https://developers.google.com/mediapipe)                                          | The on-device Pose Solution that makes real-time skeleton tracking possible in a browser. |
+| [Amazon Developer](https://developer.amazon.com/)                                                    | The **Fire TV Track** and the Silk Browser runtime.                                       |
+| [React](https://react.dev/) · [Vite](https://vitejs.dev/) · [Tailwind CSS](https://tailwindcss.com/) | The front-end foundation.                                                                 |
+| [WebAssembly](https://webassembly.org/)                                                              | SIMD acceleration on low-power ARM silicon.                                               |
+| [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)                    | Audible coaching and voice command navigation.                                            |
+| [Devpost](https://devpost.com/)                                                                      | Hosting the Amazon Developer Hackathon.                                                   |
 
 ---
 
@@ -932,7 +941,7 @@ SOFTWARE.
 
 ### 🏃‍♂️ Built for the Amazon Developer Hackathon · Fire TV Track
 
-**PulseMotion TV** — *Your living room is the gym.*
+**PulseMotion TV** — _Your living room is the gym._
 
 [![GitHub](https://img.shields.io/badge/GitHub-pulsemotion--firetv-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AdamBabinicz/pulsemotion-firetv)
 [![Made with ❤️ and MediaPipe](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20%26%20MediaPipe-10B981?style=for-the-badge)](https://developers.google.com/mediapipe)
