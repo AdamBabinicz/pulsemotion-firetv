@@ -1,22 +1,100 @@
 <!doctype html>
-<html lang="pl" class="dark">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PulseMotion TV - AI Fitness & Pose Coach</title>
-    <meta name="description" content="Interactive smart TV and mobile fitness coach with on-device computer vision, voice control, real-time posture correction, rep counting, and audio feedback." />
-    <meta property="og:title" content="PulseMotion TV - AI Fitness & Pose Coach" />
-    <meta property="og:description" content="Interactive smart TV and mobile fitness coach with on-device computer vision, voice control, real-time posture correction, rep counting, and audio feedback." />
+    <title>PulseMotion TV – AI Pose Coach for Amazon Fire TV!</title>
+    <meta
+      name="description"
+      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+    />
+    <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
+
+    <!-- Open Graph (Facebook, LinkedIn, Discord, Slack) -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pulsemotion-firetv.netlify.app/" />
+    <meta property="og:site_name" content="PulseMotion TV" />
+    <meta
+      property="og:title"
+      content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
+    />
+    <meta
+      property="og:description"
+      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+    />
+    <meta
+      property="og:image"
+      content="https://pulsemotion-firetv.netlify.app/assets/1.png"
+    />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="pl_PL" />
+
+    <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
-    
+    <meta
+      name="twitter:url"
+      content="https://pulsemotion-firetv.netlify.app/"
+    />
+    <meta
+      name="twitter:title"
+      content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
+    />
+    <meta
+      name="twitter:description"
+      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+    />
+    <meta
+      name="twitter:image"
+      content="https://pulsemotion-firetv.netlify.app/assets/1.png"
+    />
+
+    <!-- Schema.org JSON-LD Structured Data for Hackathon & Rich Snippets -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PulseMotion TV",
+        "url": "https://pulsemotion-firetv.netlify.app/",
+        "description": "AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home.",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Amazon Fire OS, Android TV, Modern Web Browsers",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Adam Babinicz",
+          "url": "https://github.com/AdamBabinicz/pulsemotion-firetv"
+        },
+        "browserRequirements": "Requires WebGL 2.0 and WebAssembly support",
+        "featureList": [
+          "100% On-device MediaPipe Pose estimation",
+          "60 FPS real-time joint angle calculation",
+          "Hands-free multi-modal voice navigation",
+          "Fire TV remote D-Pad spatial navigation",
+          "Zero cloud video streaming privacy"
+        ]
+      }
+    </script>
+
     <!-- Google MediaPipe Pose & Camera Utils CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"
+      crossorigin="anonymous"
+    ></script>
   </head>
-  <body class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black">
+  <body
+    class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black"
+  >
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

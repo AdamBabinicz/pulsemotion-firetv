@@ -1,0 +1,46 @@
+# PulseMotion TV — AI Pose & Fitness Coach for Amazon Fire TV
+
+> Next-Generation Interactive AI Fitness Coach running 100% on-device on Amazon Fire TV (Silk Browser) & Web. Zero cloud streaming, zero latency, maximum privacy.
+
+- **Production URL**: https://pulsemotion-firetv.netlify.app/
+- **GitHub Repository**: https://github.com/AdamBabinicz/pulsemotion-firetv
+- **License**: MIT
+- **Author**: Adam Babinicz
+- **Track**: Amazon Developer Hackathon (Fire TV Track)
+
+## Core Value Proposition
+
+PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an intelligent personal gym. By executing Google MediaPipe Pose via WebAssembly SIMD and WebGL 2.0 GPU hardware acceleration, the application tracks 33 skeletal body landmarks at sustained 60 FPS without uploading video frames to external servers.
+
+## Key Capabilities
+
+1. **100% On-Device Pose Analysis**:
+   - 33 3D skeletal landmarks computed in real-time (< 35 ms end-to-end latency).
+   - Real-time joint angle calculation using 3-point trigonometric dot products (arccos).
+   - 5 calibrated biomechanical exercises: Deep Squats, Jumping Jacks, High Knees Sprint, Yoga Tree Pose, and Lateral Arm Raises.
+
+2. **Hands-Free Multi-Modal Voice Control**:
+   - Web Speech Recognition API with asymmetric debounce cooldown (3,500 ms for exercise switching, 850 ms for actions).
+   - Live freeze and resume: say "Pause" or "Stop" to freeze the timer, rep counter, and synthetic kinematic simulator in mid-frame; say "Start" to resume.
+   - Hands-free privacy killswitch: say "Stop listening" / "Wyłącz mikrofon" to shut down speech recognition, re-activatable via remote key 'V'.
+
+3. **10-Foot Living Room TV Experience**:
+   - Overscan-safe layout with 5% safe-area padding for 720p, 1080p, and 4K UHD.
+   - High-contrast emerald focus rings (ring-4 ring-emerald-400) visible from 3+ meters.
+   - Full D-Pad spatial navigation mapped to Fire TV remote keycodes (DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, DPAD_CENTER).
+   - On-screen virtual remote simulator for rapid desktop testing.
+
+4. **Synthetic AI Pose Simulator**:
+   - Built-in deterministic kinematic landmark playback engine.
+   - Enables full judging, testing, and UI evaluation without requiring a physical camera.
+
+5. **Audible Voice Coach**:
+   - Web Speech Synthesis API providing spoken rep counts, pace cues, and form correction prompts in real-time.
+   - Fully bilingual (English en-US and Polish pl-PL).
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript 5, Vite 6, Tailwind CSS v4, Lucide React, Motion.
+- **Vision & AI**: Google MediaPipe Pose Solution, WebAssembly (WASM SIMD), WebGL 2.0.
+- **APIs**: Web Speech API (Synthesis & Recognition), MediaDevices (getUserMedia).
+- **Target Platforms**: Amazon Fire TV (Silk Browser), Modern Desktop & Mobile Browsers.

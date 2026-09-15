@@ -1,0 +1,6 @@
+# robots.txt for PulseMotion TV (Amazon Fire TV & Web)
+User-agent: *
+Allow: /
+
+# Sitemap definition
+Sitemap: https://pulsemotion-firetv.netlify.app/sitemap.xml
