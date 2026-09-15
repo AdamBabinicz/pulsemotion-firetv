@@ -1,7 +1,10 @@
 {
-  "name": "react-example",
+  "name": "pulsemotion-firetv",
+  "version": "1.0.0",
+  "description": "Next-Generation Interactive AI Fitness & Pose Coach for Amazon Fire TV & Web",
+  "author": "Adam Babinicz",
+  "license": "MIT",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",

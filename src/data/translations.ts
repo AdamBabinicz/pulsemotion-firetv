@@ -1,7 +1,123 @@
 export type Language = "pl" | "en";
 export type ThemeMode = "dark" | "light";
 
-export const translations = {
+export interface ExerciseTranslation {
+  name: string;
+  category: string;
+  difficulty: string;
+  description: string;
+  cues: string[];
+  muscles: string[];
+}
+
+export interface VoiceCommandHelpItem {
+  cmd: string;
+  desc: string;
+}
+
+export interface TranslationSchema {
+  appTitle: string;
+  appSubtitle: string;
+  privacyBadge: string;
+  tvModeHint: string;
+  cameraActive: string;
+  cameraInactive: string;
+  turnCameraOn: string;
+  turnCameraOff: string;
+  fps: string;
+  hideSkeleton: string;
+  showSkeleton: string;
+  startSimulator: string;
+  stopSimulator: string;
+  studioMode: string;
+  studioModeActive: string;
+  studioModeDesc: string;
+  cameraPromptTitle: string;
+  cameraPromptDesc: string;
+  enableCameraBtn: string;
+  useSimulatorBtn: string;
+  readyPrompt: string;
+  selectExerciseLabel: string;
+  tvCarouselMode: string;
+  repsCounter: string;
+  timeCounter: string;
+  repsUnit: string;
+  secUnit: string;
+  formQualityLabel: string;
+  caloriesLabel: string;
+  caloriesUnit: string;
+  durationLabel: string;
+  setProgress: string;
+  coachFeedbackLabel: string;
+  soundActive: string;
+  soundMuted: string;
+  resetBtn: string;
+  motionPattern: string;
+  properPosture: string;
+  targetAngleCue: string;
+  rulesTitle: string;
+  musclesTitle: string;
+  levelLabel: string;
+  setCompletedTitle: string;
+  setCompletedDescMaster: string;
+  setCompletedDescGood: string;
+  setCompletedDescRetry: string;
+  accuracyScore: string;
+  energyBurned: string;
+  timeSpent: string;
+  safePatternBadge: string;
+  nextExerciseBtn: string;
+  repeatSetBtn: string;
+  remoteTitle: string;
+  hideRemote: string;
+  showRemote: string;
+  remoteNavHint: string;
+  remoteActionHint: string;
+  remoteMuteHint: string;
+  themeLight: string;
+  themeDark: string;
+  // Voice Control
+  voiceControlTitle: string;
+  voiceControlActive: string;
+  voiceControlListening: string;
+  voiceControlOff: string;
+  voiceControlTooltip: string;
+  voiceHintBar: string;
+  voiceMicMutedHint: string;
+  voiceCommandsHelpTitle: string;
+  voiceCommandsList: VoiceCommandHelpItem[];
+  recognizedBadge: string;
+  micPermissionDenied: string;
+  pausedBanner: string;
+  pausedBannerDesc: string;
+  // Mobile Features
+  switchCamera: string;
+  frontCamera: string;
+  backCamera: string;
+  mobileWorkoutMode: string;
+  mobileGuideToggle: string;
+  exercises: {
+    squats: ExerciseTranslation;
+    jumping_jacks: ExerciseTranslation;
+    high_knees: ExerciseTranslation;
+    tree_pose: ExerciseTranslation;
+    arm_raises: ExerciseTranslation;
+  };
+  voice: {
+    greatRep: string;
+    goDeeper: string;
+    kneesOut: string;
+    keepChestUp: string;
+    armsHigh: string;
+    liftKneesHigher: string;
+    holdSteady: string;
+    seriesCompleted: string;
+    startingExercise: string;
+    setReset: string;
+  };
+}
+
+export const translations: Record<Language, TranslationSchema> = {
   pl: {
     appTitle: "PulseMotion TV",
     appSubtitle: "Interaktywny Trener Fitness AI na Fire TV i Web",
@@ -17,18 +133,15 @@ export const translations = {
     showSkeleton: "Pokaż szkielet",
     startSimulator: "Testuj Symulatorem",
     stopSimulator: "Zatrzymaj Symulację",
-    studioMode: "Tryb Studyjny (Zrzut do README)",
-    studioModeActive: "Wizualizacja Studyjna",
-    exportBanner: "Pobierz Baner do README",
-    exportingBanner: "Generowanie...",
-    exportSuccess: "Pobrano gotowy baner!",
-    studioModeDesc:
-      "Wizualizacja z profesjonalną sylwetką bez konieczności włączania kamery",
+    studioMode: "Symulator AI",
+    studioModeActive: "Symulacja AI",
+    studioModeDesc: "Wirtualny ruch bez konieczności używania kamery",
     cameraPromptTitle: "Uruchom Kamerę do Treningu",
     cameraPromptDesc:
       "Aplikacja analizuje Twoją sylwetkę w 100% lokalnie na Twoim laptopie. Wideo nigdy nie opuszcza urządzenia.",
     enableCameraBtn: "Zezwól i Włącz Kamerę",
     useSimulatorBtn: "Włącz Symulację AI",
+    readyPrompt: "Gotowy do startu",
     selectExerciseLabel: "Wybierz Ćwiczenie (Nawiguj lub kliknij)",
     tvCarouselMode: "Tryb Fire TV 10-Foot",
     repsCounter: "Zaliczone Powtórzenia",
@@ -78,26 +191,60 @@ export const translations = {
     voiceControlListening: "Słucham... Powiedz komendę",
     voiceControlOff: "Włącz Sterowanie Głosem",
     voiceControlTooltip:
-      'Steruj treningiem bez dotykania urządzenia: powiedz "następne", "reset", "wycisz"',
+      'Steruj treningiem bez dotykania urządzenia: powiedz np. "symulator", "pajacyki", "pauza", "wycisz"',
+    voiceHintBar:
+      "Spróbuj powiedzieć: „Symulator”, „Pajacyki”, „Bieg”, „Pauza”, „Start”, „Zamknij” lub „Wyłącz mikrofon” (skrót V)",
+    voiceMicMutedHint:
+      "Mikrofon wyłączony dla prywatności. Włącz kliknięciem lub klawiszem V.",
     voiceCommandsHelpTitle: "Dostępne Komendy Głosowe",
     voiceCommandsList: [
-      { cmd: "„Następne” / „Dalej”", desc: "Przejdź do kolejnego ćwiczenia" },
       {
-        cmd: "„Poprzednie” / „Wstecz”",
-        desc: "Wróć do poprzedniego ćwiczenia",
+        cmd: "„Przysiady”, „Pajacyki”, „Bieg”, „Drzewo”, „Wznosy”",
+        desc: "Bezpośredni skok do wybranego ćwiczenia",
       },
-      { cmd: "„Reset” / „Od nowa”", desc: "Zresetuj licznik i powtórz serię" },
-      { cmd: "„Wycisz” / „Włącz dźwięk”", desc: "Przełącz głos trenera AI" },
-      { cmd: "„Motyw”", desc: "Przełącz tryb jasny / ciemny" },
-      { cmd: "„Język”", desc: "Przełącz język PL / EN" },
       {
-        cmd: "„Symulacja” / „Test”",
-        desc: "Uruchom automatyczny symulator AI",
+        cmd: "„Symulator” / „Demo”",
+        desc: "Włącz automatyczną symulację ruchu AI bez kamery",
+      },
+      {
+        cmd: "„Pauza” / „Stop”",
+        desc: "Wstrzymaj ćwiczenie i licznik (mikrofon dalej czuwa)",
+      },
+      {
+        cmd: "„Start” / „Wznów” / „Ćwiczymy”",
+        desc: "Wznów trening lub zacznij nową serię",
+      },
+      {
+        cmd: "„Zamknij” / „Wróć”",
+        desc: "Zamknij okno podsumowania ukończonej serii",
+      },
+      {
+        cmd: "„Powtórz serię” / „Jeszcze raz”",
+        desc: "Powtórz właśnie ukończoną serię",
+      },
+      {
+        cmd: "„Następne” / „Poprzednie”",
+        desc: "Przewiń listę ćwiczeń",
+      },
+      {
+        cmd: "„Reset” / „Od nowa”",
+        desc: "Zresetuj licznik powtórzeń",
+      },
+      {
+        cmd: "„Wycisz” / „Włącz dźwięk”",
+        desc: "Wycisz lub odcisz głos trenera",
+      },
+      {
+        cmd: "„Wyłącz mikrofon”",
+        desc: "Zatrzymaj odsłuch głosu (wznowienie klawiszem V)",
       },
     ],
     recognizedBadge: "Rozpoznano komendę",
     micPermissionDenied:
       "Dostęp do mikrofonu został zablokowany w przeglądarce.",
+    pausedBanner: "Trening Wstrzymany (Pauza)",
+    pausedBannerDesc:
+      "Powiedz „Start” lub naciśnij Spację/Enter, aby wznowić trening.",
     // Mobile Features
     switchCamera: "Obróć Kamerę",
     frontCamera: "Przednia",
@@ -209,18 +356,15 @@ export const translations = {
     showSkeleton: "Show Skeleton",
     startSimulator: "Test with AI Simulator",
     stopSimulator: "Stop Simulator",
-    studioMode: "Studio Mode (README Hero)",
-    studioModeActive: "Studio Presentation",
-    exportBanner: "Download README Banner",
-    exportingBanner: "Exporting...",
-    exportSuccess: "Banner exported successfully!",
-    studioModeDesc:
-      "Studio-grade presentation with biometric skeleton — perfect for README and hackathon review",
+    studioMode: "AI Simulator",
+    studioModeActive: "AI Simulation",
+    studioModeDesc: "Test workouts with virtual movement without camera",
     cameraPromptTitle: "Enable Camera for Real-Time Coaching",
     cameraPromptDesc:
       "Your posture is computed 100% locally on your device. Video frames are processed in-browser and never uploaded.",
     enableCameraBtn: "Allow & Start Camera",
     useSimulatorBtn: "Start Motion Simulation",
+    readyPrompt: "Ready to start",
     selectExerciseLabel: "Select Exercise (Navigate or Click)",
     tvCarouselMode: "Fire TV 10-Foot Mode",
     repsCounter: "Completed Reps",
@@ -270,19 +414,59 @@ export const translations = {
     voiceControlListening: "Listening... Say a command",
     voiceControlOff: "Enable Voice Control",
     voiceControlTooltip:
-      'Hands-free workout control: say "next", "reset", "mute"',
+      'Hands-free workout control: say "simulator", "squats", "pause", "mute"',
+    voiceHintBar:
+      'Try saying: "Simulator", "Squats", "High Knees", "Pause", "Resume", "Close" or "Stop listening" (key V)',
+    voiceMicMutedHint:
+      "Microphone off for privacy. Turn on by clicking or pressing V key.",
     voiceCommandsHelpTitle: "Supported Voice Commands",
     voiceCommandsList: [
-      { cmd: '"Next" / "Forward"', desc: "Go to the next exercise" },
-      { cmd: '"Prev" / "Back"', desc: "Go to previous exercise" },
-      { cmd: '"Reset" / "Restart"', desc: "Reset rep counter and restart set" },
-      { cmd: '"Mute" / "Unmute"', desc: "Toggle AI coach speech" },
-      { cmd: '"Theme"', desc: "Toggle Light / Dark theme" },
-      { cmd: '"Language" / "Polish"', desc: "Switch language PL / EN" },
-      { cmd: '"Demo" / "Simulator"', desc: "Toggle AI motion simulator" },
+      {
+        cmd: '"Squats", "Jumping Jacks", "High Knees", "Tree Pose", "Arm Raises"',
+        desc: "Jump straight to any exercise hands-free",
+      },
+      {
+        cmd: '"Simulator" / "Demo"',
+        desc: "Launch virtual AI biomechanical motion without camera",
+      },
+      {
+        cmd: '"Pause" / "Stop"',
+        desc: "Freeze set and timer (voice remains ready)",
+      },
+      {
+        cmd: '"Start" / "Resume" / "Begin"',
+        desc: "Resume workout or start new set",
+      },
+      {
+        cmd: '"Close" / "Back"',
+        desc: "Dismiss completed set summary modal",
+      },
+      {
+        cmd: '"Repeat set" / "Again"',
+        desc: "Instantly repeat the finished exercise set",
+      },
+      {
+        cmd: '"Next" / "Prev"',
+        desc: "Navigate through workout library",
+      },
+      {
+        cmd: '"Reset" / "Start over"',
+        desc: "Reset current rep count to zero",
+      },
+      {
+        cmd: '"Mute" / "Unmute"',
+        desc: "Toggle voice coach speech volume",
+      },
+      {
+        cmd: '"Stop listening"',
+        desc: "Turn off microphone (press V to turn back on)",
+      },
     ],
     recognizedBadge: "Command recognized",
     micPermissionDenied: "Microphone permission was denied in browser.",
+    pausedBanner: "Workout Paused",
+    pausedBannerDesc:
+      'Say "Resume" / "Start" or press Space/Enter to continue.',
     // Mobile Features
     switchCamera: "Switch Camera",
     frontCamera: "Front",

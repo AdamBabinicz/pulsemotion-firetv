@@ -9,8 +9,8 @@ import {
   EyeOff,
   Sparkles,
   SwitchCamera,
-  Download,
-  CheckCircle2,
+  Activity,
+  PauseCircle,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
 
@@ -21,10 +21,12 @@ interface PoseCameraProps {
   exerciseId: string;
   lang: Language;
   theme: ThemeMode;
-  externalDemoTrigger?: boolean;
+  externalDemoTrigger?: boolean | number;
+  onDemoModeChange?: (isActive: boolean) => void;
+  isWorkoutCompleted?: boolean;
+  isPaused?: boolean;
 }
 
-// MediaPipe global declarations from window script tags
 declare global {
   interface Window {
     Pose: any;
@@ -36,16 +38,33 @@ declare global {
 function getBiomechanicalLandmarks(
   exerciseId: string,
   progress: number,
+  isResting: boolean = false,
 ): Landmark[] {
   const synthetic: Landmark[] = Array(33)
     .fill(0)
     .map(() => ({ x: 0.5, y: 0.5, visibility: 0.95 }));
 
+  // Upright resting posture when set is finished
+  if (isResting) {
+    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
+    synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
+    synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
+    synthetic[13] = { x: 0.4, y: 0.44, visibility: 0.99 };
+    synthetic[14] = { x: 0.6, y: 0.44, visibility: 0.99 };
+    synthetic[15] = { x: 0.41, y: 0.58, visibility: 0.99 };
+    synthetic[16] = { x: 0.59, y: 0.58, visibility: 0.99 };
+    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
+    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
+    synthetic[25] = { x: 0.45, y: 0.7, visibility: 0.99 };
+    synthetic[26] = { x: 0.55, y: 0.7, visibility: 0.99 };
+    synthetic[27] = { x: 0.45, y: 0.88, visibility: 0.99 };
+    synthetic[28] = { x: 0.55, y: 0.88, visibility: 0.99 };
+    return synthetic;
+  }
+
   if (exerciseId === "squats") {
-    // Smooth squat cycle: 0 = standing, 1 = deep 90 deg squat
     const cycle = (1 - Math.cos(progress)) / 2;
 
-    // Head & face
     synthetic[0] = { x: 0.5, y: 0.22 + cycle * 0.13, visibility: 0.99 };
     synthetic[1] = { x: 0.49, y: 0.21 + cycle * 0.13, visibility: 0.99 };
     synthetic[2] = { x: 0.485, y: 0.21 + cycle * 0.13, visibility: 0.99 };
@@ -58,11 +77,9 @@ function getBiomechanicalLandmarks(
     synthetic[9] = { x: 0.49, y: 0.25 + cycle * 0.13, visibility: 0.99 };
     synthetic[10] = { x: 0.51, y: 0.25 + cycle * 0.13, visibility: 0.99 };
 
-    // Shoulders
     synthetic[11] = { x: 0.42, y: 0.32 + cycle * 0.14, visibility: 0.99 };
     synthetic[12] = { x: 0.58, y: 0.32 + cycle * 0.14, visibility: 0.99 };
 
-    // Arms extend forward during squat for natural counterbalance
     synthetic[13] = {
       x: 0.38 - cycle * 0.03,
       y: 0.42 + cycle * 0.05,
@@ -75,18 +92,10 @@ function getBiomechanicalLandmarks(
     };
     synthetic[15] = { x: 0.39, y: 0.42 - cycle * 0.02, visibility: 0.99 };
     synthetic[16] = { x: 0.61, y: 0.42 - cycle * 0.02, visibility: 0.99 };
-    synthetic[17] = { x: 0.38, y: 0.42, visibility: 0.95 };
-    synthetic[18] = { x: 0.62, y: 0.42, visibility: 0.95 };
-    synthetic[19] = { x: 0.37, y: 0.42, visibility: 0.95 };
-    synthetic[20] = { x: 0.63, y: 0.42, visibility: 0.95 };
-    synthetic[21] = { x: 0.39, y: 0.41, visibility: 0.95 };
-    synthetic[22] = { x: 0.61, y: 0.41, visibility: 0.95 };
 
-    // Hips drop down and back
     synthetic[23] = { x: 0.44, y: 0.52 + cycle * 0.18, visibility: 0.99 };
     synthetic[24] = { x: 0.56, y: 0.52 + cycle * 0.18, visibility: 0.99 };
 
-    // Knees track outward and forward: knee angle reaches ~88° at full depth
     synthetic[25] = {
       x: 0.43 - cycle * 0.05,
       y: 0.7 - cycle * 0.01,
@@ -98,13 +107,8 @@ function getBiomechanicalLandmarks(
       visibility: 0.99,
     };
 
-    // Feet stay planted
     synthetic[27] = { x: 0.43, y: 0.88, visibility: 0.99 };
     synthetic[28] = { x: 0.57, y: 0.88, visibility: 0.99 };
-    synthetic[29] = { x: 0.42, y: 0.9, visibility: 0.99 };
-    synthetic[30] = { x: 0.58, y: 0.9, visibility: 0.99 };
-    synthetic[31] = { x: 0.41, y: 0.91, visibility: 0.99 };
-    synthetic[32] = { x: 0.59, y: 0.91, visibility: 0.99 };
   } else if (exerciseId === "jumping_jacks") {
     const cycle = (1 - Math.cos(progress)) / 2;
     synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
@@ -148,56 +152,66 @@ function getBiomechanicalLandmarks(
     synthetic[16] = { x: 0.59, y: 0.45, visibility: 0.99 };
     synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
     synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.45, y: 0.7 - cycleL * 0.2, visibility: 0.99 };
-    synthetic[26] = { x: 0.55, y: 0.7 - cycleR * 0.2, visibility: 0.99 };
-    synthetic[27] = { x: 0.45, y: 0.88 - cycleL * 0.25, visibility: 0.99 };
-    synthetic[28] = { x: 0.55, y: 0.88 - cycleR * 0.25, visibility: 0.99 };
+    synthetic[25] = { x: 0.45, y: 0.7 - cycleL * 0.22, visibility: 0.99 };
+    synthetic[26] = { x: 0.55, y: 0.7 - cycleR * 0.22, visibility: 0.99 };
+    synthetic[27] = { x: 0.45, y: 0.88 - cycleL * 0.26, visibility: 0.99 };
+    synthetic[28] = { x: 0.55, y: 0.88 - cycleR * 0.26, visibility: 0.99 };
   } else if (exerciseId === "tree_pose") {
-    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
-    synthetic[11] = { x: 0.44, y: 0.3, visibility: 0.99 };
-    synthetic[12] = { x: 0.56, y: 0.3, visibility: 0.99 };
-    synthetic[13] = { x: 0.41, y: 0.38, visibility: 0.99 };
-    synthetic[14] = { x: 0.59, y: 0.38, visibility: 0.99 };
-    synthetic[15] = { x: 0.48, y: 0.36, visibility: 0.99 };
-    synthetic[16] = { x: 0.52, y: 0.36, visibility: 0.99 };
-    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
-    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[26] = { x: 0.55, y: 0.7, visibility: 0.99 };
-    synthetic[28] = { x: 0.55, y: 0.88, visibility: 0.99 };
-    synthetic[25] = { x: 0.38, y: 0.65, visibility: 0.99 };
-    synthetic[27] = { x: 0.52, y: 0.67, visibility: 0.99 };
+    const breath = Math.sin(progress * 0.5) * 0.008;
+
+    synthetic[0] = { x: 0.5, y: 0.2 + breath, visibility: 0.99 };
+    synthetic[11] = { x: 0.44, y: 0.3 + breath, visibility: 0.99 };
+    synthetic[12] = { x: 0.56, y: 0.3 + breath, visibility: 0.99 };
+    synthetic[13] = { x: 0.45, y: 0.38 + breath, visibility: 0.99 };
+    synthetic[14] = { x: 0.55, y: 0.38 + breath, visibility: 0.99 };
+    synthetic[15] = { x: 0.49, y: 0.35 + breath, visibility: 0.99 };
+    synthetic[16] = { x: 0.51, y: 0.35 + breath, visibility: 0.99 };
+    synthetic[23] = { x: 0.46, y: 0.5 + breath, visibility: 0.99 };
+    synthetic[24] = { x: 0.54, y: 0.5 + breath, visibility: 0.99 };
+    synthetic[26] = { x: 0.54, y: 0.7, visibility: 0.99 };
+    synthetic[28] = { x: 0.54, y: 0.88, visibility: 0.99 };
+    synthetic[30] = { x: 0.55, y: 0.9, visibility: 0.99 };
+    synthetic[32] = { x: 0.56, y: 0.91, visibility: 0.99 };
+    synthetic[25] = { x: 0.37, y: 0.63, visibility: 0.99 };
+    synthetic[27] = { x: 0.51, y: 0.66, visibility: 0.99 };
+    synthetic[29] = { x: 0.52, y: 0.67, visibility: 0.99 };
+    synthetic[31] = { x: 0.53, y: 0.68, visibility: 0.99 };
   } else {
-    // Arm raises
+    // LATERAL ARM RAISES - PERFECT 90-DEGREE FORM
     const cycle = (1 - Math.cos(progress)) / 2;
+
     synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
     synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
     synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
+
     synthetic[13] = {
-      x: 0.37 - cycle * 0.08,
-      y: 0.42 - cycle * 0.22,
+      x: 0.41 - cycle * 0.14,
+      y: 0.45 - cycle * 0.145,
       visibility: 0.99,
     };
     synthetic[14] = {
-      x: 0.63 + cycle * 0.08,
-      y: 0.42 - cycle * 0.22,
+      x: 0.59 + cycle * 0.14,
+      y: 0.45 - cycle * 0.145,
       visibility: 0.99,
     };
+
     synthetic[15] = {
-      x: 0.35 - cycle * 0.12,
-      y: 0.52 - cycle * 0.4,
+      x: 0.4 - cycle * 0.25,
+      y: 0.58 - cycle * 0.265,
       visibility: 0.99,
     };
     synthetic[16] = {
-      x: 0.65 + cycle * 0.12,
-      y: 0.52 - cycle * 0.4,
+      x: 0.6 + cycle * 0.25,
+      y: 0.58 - cycle * 0.265,
       visibility: 0.99,
     };
+
     synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
     synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.44, y: 0.7, visibility: 0.99 };
-    synthetic[26] = { x: 0.56, y: 0.7, visibility: 0.99 };
-    synthetic[27] = { x: 0.44, y: 0.88, visibility: 0.99 };
-    synthetic[28] = { x: 0.56, y: 0.88, visibility: 0.99 };
+    synthetic[25] = { x: 0.45, y: 0.7, visibility: 0.99 };
+    synthetic[26] = { x: 0.55, y: 0.7, visibility: 0.99 };
+    synthetic[27] = { x: 0.45, y: 0.88, visibility: 0.99 };
+    synthetic[28] = { x: 0.55, y: 0.88, visibility: 0.99 };
   }
 
   return synthetic;
@@ -211,6 +225,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   lang,
   theme,
   externalDemoTrigger,
+  onDemoModeChange,
+  isWorkoutCompleted = false,
+  isPaused = false,
 }) => {
   const t = translations[lang];
   const isDark = theme === "dark";
@@ -218,13 +235,72 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [hasCameraError, setHasCameraError] = useState<boolean>(false);
   const [showSkeleton, setShowSkeleton] = useState<boolean>(true);
   const [fps, setFps] = useState<number>(0);
   const [demoMode, setDemoMode] = useState<boolean>(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
-  const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [exportSuccessToast, setExportSuccessToast] = useState<boolean>(false);
+
+  const showSkeletonRef = useRef<boolean>(showSkeleton);
+  const demoModeRef = useRef<boolean>(demoMode);
+  const exerciseIdRef = useRef<string>(exerciseId);
+  const formQualityRef = useRef<FormQuality>(formQuality);
+  const currentAngleRef = useRef<number>(currentAngle);
+  const isDarkRef = useRef<boolean>(isDark);
+  const prevExternalDemoRef = useRef<boolean | number | undefined>(
+    externalDemoTrigger,
+  );
+  const onPoseDetectedRef = useRef(onPoseDetected);
+  const onDemoModeChangeRef = useRef(onDemoModeChange);
+  const simulationProgressRef = useRef<number>(0);
+  const isWorkoutCompletedRef = useRef<boolean>(isWorkoutCompleted);
+  const isPausedRef = useRef<boolean>(isPaused);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  useEffect(() => {
+    onPoseDetectedRef.current = onPoseDetected;
+  }, [onPoseDetected]);
+
+  useEffect(() => {
+    onDemoModeChangeRef.current = onDemoModeChange;
+  }, [onDemoModeChange]);
+
+  useEffect(() => {
+    showSkeletonRef.current = showSkeleton;
+    if (!showSkeleton && canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  }, [showSkeleton]);
+
+  useEffect(() => {
+    demoModeRef.current = demoMode;
+    if (onDemoModeChangeRef.current) {
+      onDemoModeChangeRef.current(demoMode);
+    }
+  }, [demoMode]);
+
+  useEffect(() => {
+    exerciseIdRef.current = exerciseId;
+    simulationProgressRef.current = 0;
+  }, [exerciseId]);
+
+  useEffect(() => {
+    formQualityRef.current = formQuality;
+  }, [formQuality]);
+
+  useEffect(() => {
+    currentAngleRef.current = currentAngle;
+  }, [currentAngle]);
+
+  useEffect(() => {
+    isDarkRef.current = isDark;
+  }, [isDark]);
 
   const poseInstanceRef = useRef<any>(null);
   const cameraInstanceRef = useRef<any>(null);
@@ -232,24 +308,19 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   const lastFpsCheckRef = useRef<number>(Date.now());
   const simulationFrameRef = useRef<number | null>(null);
 
-  // Determine skeleton line color based on real-time exercise form
-  const getJointColor = useCallback(
-    (quality: FormQuality) => {
-      switch (quality) {
-        case "perfect":
-          return "#10B981"; // Emerald-500
-        case "needs_correction":
-          return "#EF4444"; // Red-500
-        case "good":
-          return "#0284C7"; // Sky-600 in light / bright in dark
-        default:
-          return isDark ? "#9CA3AF" : "#4B5563";
-      }
-    },
-    [isDark],
-  );
+  const getJointColor = useCallback((quality: FormQuality) => {
+    switch (quality) {
+      case "perfect":
+        return "#10B981";
+      case "needs_correction":
+        return "#EF4444";
+      case "good":
+        return "#0284C7";
+      default:
+        return isDarkRef.current ? "#9CA3AF" : "#4B5563";
+    }
+  }, []);
 
-  // Draw full skeleton and angle annotations on canvas
   const drawPose = useCallback(
     (landmarks: Landmark[], width: number, height: number) => {
       const canvas = canvasRef.current;
@@ -259,11 +330,12 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      if (!showSkeleton || !landmarks || landmarks.length < 33) return;
+      if (!showSkeletonRef.current || !landmarks || landmarks.length < 33) {
+        return;
+      }
 
-      const jointColor = getJointColor(formQuality);
+      const jointColor = getJointColor(formQualityRef.current);
 
-      // 1. Draw Skeleton Bones
       ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.strokeStyle = jointColor;
@@ -281,22 +353,20 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           (end.visibility === undefined || end.visibility > 0.4)
         ) {
           ctx.beginPath();
-          // Horizontal mirror coordinate for natural mirror-like TV view
           ctx.moveTo((1 - start.x) * width, start.y * height);
           ctx.lineTo((1 - end.x) * width, end.y * height);
           ctx.stroke();
         }
       }
 
-      ctx.shadowBlur = 0; // Reset shadow
+      ctx.shadowBlur = 0;
 
-      // 2. Draw Landmark Joint Dots
       for (let i = 0; i < landmarks.length; i++) {
         const lm = landmarks[i];
-        if (!lm || (lm.visibility !== undefined && lm.visibility < 0.4))
+        if (!lm || (lm.visibility !== undefined && lm.visibility < 0.4)) {
           continue;
+        }
 
-        // Skip dense facial points except nose/eyes to keep TV view clean
         if (i > 0 && i < 11) continue;
 
         const x = (1 - lm.x) * width;
@@ -311,143 +381,108 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         ctx.stroke();
       }
 
-      // 3. Draw On-Joint Angle Badge for active exercise
-      let targetJointIndex = POSE_LANDMARKS.RIGHT_KNEE;
-      if (exerciseId === "arm_raises")
-        targetJointIndex = POSE_LANDMARKS.RIGHT_SHOULDER;
-      else if (exerciseId === "high_knees")
-        targetJointIndex = POSE_LANDMARKS.LEFT_KNEE;
+      if (!isWorkoutCompletedRef.current) {
+        let targetJointIndex = POSE_LANDMARKS.RIGHT_KNEE;
+        if (exerciseIdRef.current === "arm_raises") {
+          targetJointIndex = POSE_LANDMARKS.RIGHT_SHOULDER;
+        } else if (exerciseIdRef.current === "high_knees") {
+          targetJointIndex = POSE_LANDMARKS.LEFT_KNEE;
+        }
 
-      const targetLm = landmarks[targetJointIndex];
-      if (
-        targetLm &&
-        (targetLm.visibility === undefined || targetLm.visibility > 0.4)
-      ) {
-        const x = (1 - targetLm.x) * width + 25;
-        const y = targetLm.y * height;
+        const targetLm = landmarks[targetJointIndex];
+        if (
+          targetLm &&
+          (targetLm.visibility === undefined || targetLm.visibility > 0.4)
+        ) {
+          const x = (1 - targetLm.x) * width + 25;
+          const y = targetLm.y * height;
 
-        // Background pill for angle badge
-        ctx.fillStyle = isDark
-          ? "rgba(10, 10, 10, 0.88)"
-          : "rgba(255, 255, 255, 0.92)";
-        ctx.strokeStyle = jointColor;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(x - 6, y - 18, 76, 28, 6);
-        ctx.fill();
-        ctx.stroke();
+          ctx.fillStyle = isDarkRef.current
+            ? "rgba(10, 10, 10, 0.88)"
+            : "rgba(255, 255, 255, 0.92)";
+          ctx.strokeStyle = jointColor;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(x - 6, y - 18, 76, 28, 6);
+          ctx.fill();
+          ctx.stroke();
 
-        // Text
-        ctx.fillStyle = isDark ? "#F5F5F5" : "#111827";
-        ctx.font = "bold 13px system-ui, sans-serif";
-        ctx.fillText(`${currentAngle}°`, x + 6, y);
+          ctx.fillStyle = isDarkRef.current ? "#F5F5F5" : "#111827";
+          ctx.font = "bold 13px system-ui, sans-serif";
+          ctx.fillText(`${currentAngleRef.current}°`, x + 6, y);
+        }
       }
     },
-    [
-      currentAngle,
-      exerciseId,
-      formQuality,
-      getJointColor,
-      isDark,
-      showSkeleton,
-    ],
+    [getJointColor],
   );
 
-  // Initialize MediaPipe Pose Model
-  useEffect(() => {
-    let isMounted = true;
+  const stopSimulation = useCallback(() => {
+    demoModeRef.current = false;
+    setDemoMode(false);
+    if (simulationFrameRef.current) {
+      cancelAnimationFrame(simulationFrameRef.current);
+      simulationFrameRef.current = null;
+    }
+  }, []);
 
-    async function initMediaPipe() {
-      if (typeof window === "undefined") return;
+  // Coordinated AI Biomechanical Simulator
+  const startSimulation = useCallback(() => {
+    demoModeRef.current = true;
+    setDemoMode(true);
 
-      // Poll until MediaPipe script is loaded from CDN
-      let retries = 0;
-      while ((!window.Pose || !window.Camera) && retries < 25) {
-        await new Promise((res) => setTimeout(res, 200));
-        retries++;
-      }
+    if (simulationFrameRef.current) {
+      cancelAnimationFrame(simulationFrameRef.current);
+      simulationFrameRef.current = null;
+    }
 
-      if (!window.Pose) {
-        setCameraError(
-          lang === "pl"
-            ? "Ładowanie modelu AI z sieci..."
-            : "AI Vision model loading...",
-        );
+    const simulateLoop = () => {
+      if (!demoModeRef.current) return;
+
+      // If paused, maintain current frame without advancing animation progress or counting reps
+      if (isPausedRef.current) {
+        simulationFrameRef.current = requestAnimationFrame(simulateLoop);
         return;
       }
 
-      try {
-        const pose = new window.Pose({
-          locateFile: (file: string) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-        });
-
-        pose.setOptions({
-          modelComplexity: 1,
-          smoothLandmarks: true,
-          enableSegmentation: false,
-          minDetectionConfidence: 0.55,
-          minTrackingConfidence: 0.55,
-        });
-
-        pose.onResults((results: any) => {
-          if (!isMounted) return;
-
-          // Track FPS
-          frameCountRef.current++;
-          const now = Date.now();
-          if (now - lastFpsCheckRef.current >= 1000) {
-            setFps(frameCountRef.current);
-            frameCountRef.current = 0;
-            lastFpsCheckRef.current = now;
-          }
-
-          if (results.poseLandmarks) {
-            onPoseDetected(results.poseLandmarks);
-            const canvas = canvasRef.current;
-            if (canvas) {
-              drawPose(results.poseLandmarks, canvas.width, canvas.height);
-            }
-          }
-        });
-
-        poseInstanceRef.current = pose;
-
-        // Start user camera stream
-        startCamera();
-      } catch (err: any) {
-        if (isMounted) {
-          setCameraError(err?.message || "Błąd inicjalizacji kamery");
+      if (isWorkoutCompletedRef.current) {
+        const restingLandmarks = getBiomechanicalLandmarks(
+          exerciseIdRef.current,
+          0,
+          true,
+        );
+        if (canvasRef.current) {
+          drawPose(
+            restingLandmarks,
+            canvasRef.current.width,
+            canvasRef.current.height,
+          );
         }
+        stopSimulation();
+        return;
       }
-    }
 
-    initMediaPipe();
-
-    return () => {
-      isMounted = false;
-      stopCamera();
-      if (poseInstanceRef.current) {
-        poseInstanceRef.current.close();
+      // Cadence for natural coaching tempo
+      let cadenceStep = 0.021; // ~3.0 seconds per rep (Squats, Arm Raises)
+      if (exerciseIdRef.current === "jumping_jacks") {
+        cadenceStep = 0.028; // ~2.4s per rep
+      } else if (exerciseIdRef.current === "high_knees") {
+        cadenceStep = 0.016; // ~2.5s per knee cycle
+      } else if (exerciseIdRef.current === "tree_pose") {
+        cadenceStep = 0.025; // Gentle breath oscillation
       }
-      if (simulationFrameRef.current) {
-        cancelAnimationFrame(simulationFrameRef.current);
-      }
-    };
-  }, []);
 
-  // Realistic AI Biomechanical Simulator
-  const startSimulation = useCallback(() => {
-    setDemoMode(true);
-    let progress = 0;
-    const simulateLoop = () => {
-      progress += 0.038;
+      simulationProgressRef.current += cadenceStep;
+
       const syntheticLandmarks = getBiomechanicalLandmarks(
-        exerciseId,
-        progress,
+        exerciseIdRef.current,
+        simulationProgressRef.current,
+        false,
       );
 
-      onPoseDetected(syntheticLandmarks);
+      if (onPoseDetectedRef.current) {
+        onPoseDetectedRef.current(syntheticLandmarks);
+      }
+
       if (canvasRef.current) {
         drawPose(
           syntheticLandmarks,
@@ -458,229 +493,68 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       simulationFrameRef.current = requestAnimationFrame(simulateLoop);
     };
+
     simulationFrameRef.current = requestAnimationFrame(simulateLoop);
-  }, [drawPose, exerciseId, onPoseDetected]);
+  }, [drawPose, stopSimulation]);
 
-  const stopSimulation = useCallback(() => {
-    setDemoMode(false);
-    if (simulationFrameRef.current) {
-      cancelAnimationFrame(simulationFrameRef.current);
-      simulationFrameRef.current = null;
-    }
-  }, []);
-
-  // Export High-Resolution 1920x1080 Banner for GitHub README
-  const exportBannerImage = useCallback(async () => {
-    setIsExporting(true);
-    try {
-      const offscreen = document.createElement("canvas");
-      offscreen.width = 1920;
-      offscreen.height = 1080;
-      const ctx = offscreen.getContext("2d");
-      if (!ctx) return;
-
-      // 1. Draw studio athlete image
-      const bgImg = new Image();
-      bgImg.crossOrigin = "anonymous";
-      bgImg.src = "/assets/studio_squat_athlete.jpg";
-      await new Promise((resolve) => {
-        bgImg.onload = resolve;
-        bgImg.onerror = resolve;
-      });
-
-      if (bgImg.complete && bgImg.naturalWidth > 0) {
-        ctx.drawImage(bgImg, 0, 0, 1920, 1080);
-      } else {
-        const grad = ctx.createLinearGradient(0, 0, 1920, 1080);
-        grad.addColorStop(0, "#090D16");
-        grad.addColorStop(1, "#05070B");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 1920, 1080);
+  useEffect(() => {
+    isWorkoutCompletedRef.current = isWorkoutCompleted;
+    if (isWorkoutCompleted) {
+      if (demoModeRef.current) {
+        stopSimulation();
       }
-
-      // 2. Cinematic studio vignette
-      const vig = ctx.createRadialGradient(960, 540, 200, 960, 540, 1100);
-      vig.addColorStop(0, "rgba(0,0,0,0.1)");
-      vig.addColorStop(1, "rgba(0,0,0,0.7)");
-      ctx.fillStyle = vig;
-      ctx.fillRect(0, 0, 1920, 1080);
-
-      // 3. Draw authentic MediaPipe skeleton at deep squat (cycle = 1)
-      const landmarks = getBiomechanicalLandmarks("squats", Math.PI);
-      const jointColor = "#10B981";
-
-      ctx.lineWidth = 6;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = jointColor;
-      ctx.shadowColor = jointColor;
-      ctx.shadowBlur = 18;
-
-      for (const [startIdx, endIdx] of POSE_CONNECTIONS) {
-        const s = landmarks[startIdx];
-        const e = landmarks[endIdx];
-        if (s && e) {
-          ctx.beginPath();
-          ctx.moveTo((1 - s.x) * 1920, s.y * 1080);
-          ctx.lineTo((1 - e.x) * 1920, e.y * 1080);
-          ctx.stroke();
-        }
-      }
-
-      ctx.shadowBlur = 0;
-      for (let i = 0; i < landmarks.length; i++) {
-        if (i > 0 && i < 11) continue;
-        const lm = landmarks[i];
-        if (!lm) continue;
-        const x = (1 - lm.x) * 1920;
-        const y = lm.y * 1080;
-        ctx.beginPath();
-        ctx.arc(x, y, 9, 0, Math.PI * 2);
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fill();
-        ctx.lineWidth = 3.5;
-        ctx.strokeStyle = jointColor;
-        ctx.stroke();
-      }
-
-      // 4. Angle Callout at knee
-      const kneeLm = landmarks[POSE_LANDMARKS.RIGHT_KNEE];
-      if (kneeLm) {
-        const bx = (1 - kneeLm.x) * 1920 + 35;
-        const by = kneeLm.y * 1080 - 20;
-        ctx.fillStyle = "rgba(10, 15, 25, 0.92)";
-        ctx.strokeStyle = "#10B981";
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.roundRect(bx, by, 185, 56, 12);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = "#10B981";
-        ctx.font = "bold 28px system-ui, sans-serif";
-        ctx.fillText("89°", bx + 16, by + 38);
-
-        ctx.fillStyle = "#E5E7EB";
-        ctx.font = "700 13px system-ui, sans-serif";
-        ctx.fillText(
-          lang === "pl" ? "KĄT KOLANA" : "KNEE ANGLE",
-          bx + 74,
-          by + 26,
-        );
-        ctx.fillStyle = "#34D399";
-        ctx.font = "bold 12px system-ui, sans-serif";
-        ctx.fillText(
-          lang === "pl" ? "PEŁNY PRZYSIAD" : "PERFECT DEPTH",
-          bx + 74,
-          by + 44,
-        );
-      }
-
-      // 5. Header Branding Overlay
-      ctx.fillStyle = "rgba(10, 10, 15, 0.88)";
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(48, 48, 600, 84, 16);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "900 28px system-ui, sans-serif";
-      ctx.fillText("PulseMotion TV", 72, 92);
-
-      ctx.fillStyle = "#10B981";
-      ctx.font = "700 12px system-ui, sans-serif";
-      ctx.fillText("ON-DEVICE AI VISION • AMAZON FIRE TV & SILK", 72, 114);
-
-      // 6. Bottom HUD stats bar
-      ctx.fillStyle = "rgba(10, 15, 25, 0.92)";
-      ctx.strokeStyle = "rgba(16, 185, 129, 0.35)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(48, 960, 1824, 76, 16);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#9CA3AF";
-      ctx.font = "600 14px system-ui, sans-serif";
-      ctx.fillText(lang === "pl" ? "ĆWICZENIE:" : "EXERCISE:", 76, 1005);
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "bold 16px system-ui, sans-serif";
-      ctx.fillText(
-        lang === "pl" ? "PRZYSIADY SIŁOWE (SQUATS)" : "BODYWEIGHT SQUATS",
-        165,
-        1005,
+      const restingLandmarks = getBiomechanicalLandmarks(
+        exerciseIdRef.current,
+        0,
+        true,
       );
-
-      ctx.fillStyle = "#9CA3AF";
-      ctx.fillText(lang === "pl" ? "POWTÓRZENIA:" : "REPS:", 470, 1005);
-      ctx.fillStyle = "#34D399";
-      ctx.font = "bold 20px system-ui, sans-serif";
-      ctx.fillText("12 / 15", 585, 1005);
-
-      ctx.fillStyle = "#9CA3AF";
-      ctx.font = "600 14px system-ui, sans-serif";
-      ctx.fillText(lang === "pl" ? "CELNOŚĆ:" : "ACCURACY:", 730, 1005);
-      ctx.fillStyle = "#10B981";
-      ctx.font = "bold 18px system-ui, sans-serif";
-      ctx.fillText("98% (MISTRZOWSKA)", 815, 1005);
-
-      ctx.fillStyle = "#9CA3AF";
-      ctx.font = "600 14px system-ui, sans-serif";
-      ctx.fillText(lang === "pl" ? "PRYWATNOŚĆ:" : "PRIVACY:", 1120, 1005);
-      ctx.fillStyle = "#60A5FA";
-      ctx.font = "bold 15px system-ui, sans-serif";
-      ctx.fillText("100% LOCAL COMPUTER VISION (0 CLOUD STREAMS)", 1235, 1005);
-
-      // Trigger download
-      const dataUrl = offscreen.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = "pulsemotion-banner.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      setExportSuccessToast(true);
-      setTimeout(() => setExportSuccessToast(false), 4500);
-    } catch (err) {
-      console.error("Banner export failed", err);
-    } finally {
-      setIsExporting(false);
+      if (canvasRef.current) {
+        drawPose(
+          restingLandmarks,
+          canvasRef.current.width,
+          canvasRef.current.height,
+        );
+      }
     }
-  }, [lang]);
+  }, [isWorkoutCompleted, drawPose, stopSimulation]);
 
   const toggleDemoSimulator = useCallback(() => {
-    if (demoMode) {
+    if (demoModeRef.current) {
       stopSimulation();
     } else {
       startSimulation();
     }
-  }, [demoMode, startSimulation, stopSimulation]);
+  }, [startSimulation, stopSimulation]);
 
-  // Listen to external demo trigger (e.g. from Voice Commander)
+  // Robust External Trigger Handler (handles boolean, timestamp, or explicit request)
   useEffect(() => {
-    if (externalDemoTrigger !== undefined && externalDemoTrigger !== demoMode) {
-      if (externalDemoTrigger) {
+    if (
+      externalDemoTrigger !== undefined &&
+      externalDemoTrigger !== prevExternalDemoRef.current
+    ) {
+      prevExternalDemoRef.current = externalDemoTrigger;
+
+      // If external trigger is true or a non-zero timestamp, activate simulator
+      if (
+        externalDemoTrigger === true ||
+        (typeof externalDemoTrigger === "number" && externalDemoTrigger > 0)
+      ) {
         startSimulation();
-      } else {
+      } else if (externalDemoTrigger === false) {
         stopSimulation();
       }
     }
-  }, [externalDemoTrigger, demoMode, startSimulation, stopSimulation]);
+  }, [externalDemoTrigger, startSimulation, stopSimulation]);
 
   const startCamera = async (
     targetFacingMode: "user" | "environment" = facingMode,
   ) => {
-    setCameraError(null);
+    setHasCameraError(false);
     if (!videoRef.current) return;
 
     try {
-      // 1. Stop any existing camera tracks first
       stopCamera();
 
-      // 2. Direct getUserMedia - works reliably across all browsers, laptops, and mobile devices
-      // Use permissive video constraints to avoid OverconstrainedError on varied webcams
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode: targetFacingMode,
@@ -693,12 +567,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       let stream: MediaStream | null = null;
       try {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (firstErr) {
-        // Fallback to basic unconstrained video if resolution or facingMode failed
-        console.warn(
-          "Constrained camera failed, falling back to basic video:",
-          firstErr,
-        );
+      } catch {
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false,
@@ -706,7 +575,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       }
 
       if (!stream || !videoRef.current) {
-        throw new Error("No video stream available");
+        throw new Error("Camera stream unavailable");
       }
 
       const video = videoRef.current;
@@ -715,7 +584,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       video.setAttribute("webkit-playsinline", "true");
       video.muted = true;
 
-      // Wait until metadata loads to safely play
       await new Promise<void>((resolve) => {
         if (video.readyState >= 2) {
           resolve();
@@ -726,9 +594,8 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       await video.play();
       setCameraActive(true);
-      setCameraError(null);
+      setHasCameraError(false);
 
-      // 3. Start processing frames with MediaPipe Pose if loaded
       let isProcessingFrame = false;
       const processFrame = async () => {
         if (
@@ -736,14 +603,16 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           !videoRef.current.paused &&
           !videoRef.current.ended &&
           poseInstanceRef.current &&
-          !demoMode
+          !demoModeRef.current &&
+          !isWorkoutCompletedRef.current &&
+          !isPausedRef.current
         ) {
           if (!isProcessingFrame) {
             isProcessingFrame = true;
             try {
               await poseInstanceRef.current.send({ image: videoRef.current });
-            } catch (err) {
-              // Frame dropped or pose busy
+            } catch {
+              // Dropped frame
             } finally {
               isProcessingFrame = false;
             }
@@ -755,17 +624,8 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       };
 
       cameraInstanceRef.current = requestAnimationFrame(processFrame);
-    } catch (err: any) {
-      console.warn("Physical camera unavailable or denied:", err);
-      const errMsg =
-        err?.name === "NotAllowedError" || err?.name === "PermissionDeniedError"
-          ? lang === "pl"
-            ? "Dostęp do kamery został zablokowany w przeglądarce. Kliknij ikonę kłódki/kamery przy pasku adresu i zezwól na dostęp."
-            : "Camera permission was denied in browser settings."
-          : lang === "pl"
-            ? "Nie udało się uzyskać obrazu z kamery. Upewnij się, że inna aplikacja jej nie blokuje."
-            : "Could not access camera stream.";
-      setCameraError(errMsg);
+    } catch {
+      setHasCameraError(true);
       setCameraActive(false);
     }
   };
@@ -797,29 +657,110 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setCameraActive(false);
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initMediaPipe() {
+      if (typeof window === "undefined") return;
+
+      let retries = 0;
+      while ((!window.Pose || !window.Camera) && retries < 25) {
+        await new Promise((res) => setTimeout(res, 200));
+        retries++;
+      }
+
+      if (!window.Pose) {
+        setHasCameraError(true);
+        return;
+      }
+
+      try {
+        const pose = new window.Pose({
+          locateFile: (file: string) =>
+            `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+        });
+
+        pose.setOptions({
+          modelComplexity: 1,
+          smoothLandmarks: true,
+          enableSegmentation: false,
+          minDetectionConfidence: 0.55,
+          minTrackingConfidence: 0.55,
+        });
+
+        pose.onResults((results: any) => {
+          if (!isMounted) return;
+          if (demoModeRef.current) return;
+          if (isPausedRef.current) return;
+
+          frameCountRef.current++;
+          const now = Date.now();
+          if (now - lastFpsCheckRef.current >= 1000) {
+            setFps(frameCountRef.current);
+            frameCountRef.current = 0;
+            lastFpsCheckRef.current = now;
+          }
+
+          if (results.poseLandmarks) {
+            if (onPoseDetectedRef.current) {
+              onPoseDetectedRef.current(results.poseLandmarks);
+            }
+            const canvas = canvasRef.current;
+            if (canvas) {
+              drawPose(results.poseLandmarks, canvas.width, canvas.height);
+            }
+          }
+        });
+
+        poseInstanceRef.current = pose;
+        startCamera();
+      } catch {
+        if (isMounted) {
+          setHasCameraError(true);
+        }
+      }
+    }
+
+    initMediaPipe();
+
+    return () => {
+      isMounted = false;
+      stopCamera();
+      if (poseInstanceRef.current) {
+        poseInstanceRef.current.close();
+      }
+      if (simulationFrameRef.current) {
+        cancelAnimationFrame(simulationFrameRef.current);
+      }
+    };
+  }, [drawPose]);
+
   return (
     <div
+      id="pose-camera-container"
       className={`relative w-full aspect-video max-h-[540px] rounded-2xl overflow-hidden border flex items-center justify-center shadow-2xl transition-colors ${
         isDark
           ? "bg-neutral-900 border-neutral-800"
           : "bg-neutral-100 border-neutral-200"
       }`}
     >
-      {/* Studio Athlete Presentation Background (when demoMode is active or camera is off) */}
       {demoMode && (
-        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-          <img
-            src="/assets/studio_squat_athlete.jpg"
-            alt="Studio Athletic Model"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center filter brightness-90 contrast-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50 pointer-events-none" />
+        <div
+          id="demo-mode-background"
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden bg-neutral-950 flex flex-col items-center justify-center z-0"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 via-neutral-900/60 to-black pointer-events-none" />
+          <div className="w-32 h-32 rounded-full border border-emerald-500/20 animate-ping absolute opacity-20 pointer-events-none" />
+          <div className="w-64 h-64 rounded-full border border-emerald-500/10 absolute opacity-30 pointer-events-none" />
+          <div className="absolute bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 text-xs font-mono">
+            <Activity className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{isPaused ? "Pauza Symulacji" : t.studioMode}</span>
+          </div>
         </div>
       )}
 
-      {/* Hidden processing video stream */}
       <video
+        id="camera-video-stream"
         ref={videoRef}
         playsInline
         muted
@@ -830,17 +771,30 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         }`}
       />
 
-      {/* Real-time skeleton canvas overlay */}
       <canvas
+        id="pose-canvas-overlay"
         ref={canvasRef}
         width={1280}
         height={720}
         className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
       />
 
-      {/* Top Status Badges */}
-      <div className="absolute top-4 left-4 flex items-center gap-2 z-20">
+      {/* Visual Overlay indicator when paused inside canvas */}
+      {isPaused && (
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-20">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-black/80 border border-amber-500/50 text-amber-400 font-bold text-sm shadow-xl animate-pulse">
+            <PauseCircle className="w-5 h-5 text-amber-400" />
+            <span>Pauza</span>
+          </div>
+        </div>
+      )}
+
+      <div
+        id="camera-status-badges"
+        className="absolute top-4 left-4 flex items-center gap-2 z-20"
+      >
         <div
+          id="badge-camera-status"
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${
             cameraActive && !demoMode
               ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
@@ -858,40 +812,36 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
 
         {demoMode && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm animate-pulse">
+          <div
+            id="badge-simulator-active"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${
+              isPaused
+                ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse"
+            }`}
+          >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            {t.studioModeActive}
+            {isPaused ? "Symulator: Pauza" : t.studioModeActive}
           </div>
         )}
 
         {fps > 0 && !demoMode && (
-          <div className="px-2.5 py-1.5 rounded-full text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700">
+          <div
+            id="badge-camera-fps"
+            className="px-2.5 py-1.5 rounded-full text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700"
+          >
             {fps} {t.fps}
           </div>
         )}
       </div>
 
-      {/* Top Right Controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-        {/* Export Banner for README button */}
-        <button
-          id="btn-export-banner"
-          onClick={exportBannerImage}
-          disabled={isExporting}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400 backdrop-blur-md transition-all shadow-md shadow-emerald-600/20 active:scale-95"
-          title={t.exportBanner}
-        >
-          <Download
-            className={`w-3.5 h-3.5 ${isExporting ? "animate-bounce" : ""}`}
-          />
-          <span className="hidden md:inline">
-            {isExporting ? t.exportingBanner : t.exportBanner}
-          </span>
-        </button>
-
-        {/* Turn Camera On / Off button */}
+      <div
+        id="camera-control-buttons"
+        className="absolute top-4 right-4 flex items-center gap-2 z-20"
+      >
         <button
           id="btn-toggle-camera-power"
+          type="button"
           onClick={() => {
             if (cameraActive) {
               stopCamera();
@@ -918,6 +868,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
         <button
           id="btn-flip-camera"
+          type="button"
           onClick={toggleFacingMode}
           className="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
           title={t.switchCamera}
@@ -930,7 +881,8 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
         <button
           id="btn-toggle-skeleton"
-          onClick={() => setShowSkeleton(!showSkeleton)}
+          type="button"
+          onClick={() => setShowSkeleton((prev) => !prev)}
           className="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors"
           title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
         >
@@ -943,6 +895,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
         <button
           id="btn-toggle-demo"
+          type="button"
           onClick={toggleDemoSimulator}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all ${
             demoMode
@@ -956,22 +909,16 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </button>
       </div>
 
-      {/* Export Success Toast notification */}
-      {exportSuccessToast && (
-        <div className="absolute bottom-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-2xl border border-emerald-400 animate-in fade-in slide-in-from-bottom-2">
-          <CheckCircle2 className="w-4 h-4 text-white" />
-          <span>{t.exportSuccess}</span>
-        </div>
-      )}
-
-      {/* Center Camera Perms / Inactive Notice */}
       {!cameraActive && !demoMode && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-neutral-950/85 backdrop-blur-sm text-center">
+        <div
+          id="camera-inactive-overlay"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-neutral-950/85 backdrop-blur-sm text-center"
+        >
           <div className="w-14 h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-4">
             <Camera className="w-7 h-7" />
           </div>
           <h3 className="text-lg font-bold text-white mb-2">
-            {cameraError ? cameraError : t.cameraPromptTitle}
+            {hasCameraError ? t.cameraInactive : t.cameraPromptTitle}
           </h3>
           <p className="text-neutral-300 text-sm max-w-md mb-6 leading-relaxed">
             {t.cameraPromptDesc}
@@ -979,6 +926,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               id="btn-retry-camera"
+              type="button"
               onClick={() => startCamera()}
               className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
@@ -987,19 +935,12 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             </button>
             <button
               id="btn-launch-demo"
+              type="button"
               onClick={toggleDemoSimulator}
               className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm border border-indigo-400 transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
               {t.studioMode}
-            </button>
-            <button
-              id="btn-export-direct"
-              onClick={exportBannerImage}
-              className="flex items-center gap-2 px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-xl text-sm border border-neutral-700 transition-all active:scale-95"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-              {t.exportBanner}
             </button>
           </div>
         </div>
