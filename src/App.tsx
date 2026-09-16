@@ -17,6 +17,13 @@ import { TvRemoteOverlay } from "./components/TvRemoteOverlay";
 import { VoiceControlBadge } from "./components/VoiceControlBadge";
 import { voiceCommander, VoiceCommandEvent } from "./utils/voiceCommander";
 import { Language, ThemeMode, translations } from "./data/translations";
+
+// Komponenty prawne, cookies i stopka
+import { Footer } from "./components/Footer";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
+import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
+import { TermsModal } from "./components/TermsModal";
+
 import {
   Tv,
   Maximize2,
@@ -74,6 +81,12 @@ export default function App() {
   const [externalDemoTrigger, setExternalDemoTrigger] = useState<
     number | boolean
   >(false);
+
+  // Stany otwarcia modali prawnych i cookies
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState<boolean>(false);
+  const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
+  const [isCookieSettingsOpen, setIsCookieSettingsOpen] =
+    useState<boolean>(false);
 
   const trackerRef = useRef<ExerciseTracker>(
     new ExerciseTracker(currentExercise.id, language),
@@ -430,7 +443,6 @@ export default function App() {
         case "start_demo":
           setIsCompleted(false);
           setIsPaused(false);
-          // Always pass Date.now() timestamp so PoseCamera registers a fresh trigger
           setExternalDemoTrigger(Date.now());
           audioCoach.speak(
             language === "pl" ? "Włączono symulator" : "Simulator active",
@@ -552,7 +564,11 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isCompleted) {
+        if (isPrivacyOpen || isTermsOpen || isCookieSettingsOpen) {
+          setIsPrivacyOpen(false);
+          setIsTermsOpen(false);
+          setIsCookieSettingsOpen(false);
+        } else if (isCompleted) {
           setIsCompleted(false);
         } else {
           setIsPaused((prev) => !prev);
@@ -586,6 +602,9 @@ export default function App() {
     handleToggleVoice,
     isCompleted,
     isPaused,
+    isPrivacyOpen,
+    isTermsOpen,
+    isCookieSettingsOpen,
   ]);
 
   const isDark = theme === "dark";
@@ -593,7 +612,7 @@ export default function App() {
   return (
     <div
       id="app-root-container"
-      className={`min-h-screen w-full flex flex-col font-sans transition-colors duration-300 ${
+      className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col font-sans transition-colors duration-300 ${
         isDark
           ? "bg-neutral-950 text-neutral-100"
           : "bg-neutral-50 text-neutral-900"
@@ -602,38 +621,38 @@ export default function App() {
       {/* Top TV Navigation Bar */}
       <header
         id="app-header"
-        className={`w-full border-b sticky top-0 z-30 px-4 sm:px-8 py-3 flex items-center justify-between transition-colors ${
+        className={`w-full max-w-full overflow-hidden border-b sticky top-0 z-30 px-3 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between transition-colors ${
           isDark
             ? "border-neutral-800/80 bg-neutral-900/80 backdrop-blur-xl"
             : "border-neutral-200/80 bg-white/85 backdrop-blur-xl shadow-sm"
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-neutral-950 shadow-md shadow-emerald-500/20">
-            <Activity className="w-5 h-5 font-bold" />
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-neutral-950 shadow-md shadow-emerald-500/20 shrink-0">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 font-bold" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <span
-                className={`text-lg font-black tracking-tight ${isDark ? "text-white" : "text-neutral-950"}`}
+                className={`text-base sm:text-lg font-black tracking-tight truncate ${isDark ? "text-white" : "text-neutral-950"}`}
               >
                 {t.appTitle}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                 {t.appSubtitle}
               </span>
             </div>
             <span
-              className={`text-xs flex items-center gap-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}
+              className={`text-[11px] sm:text-xs flex items-center gap-1 truncate ${isDark ? "text-neutral-400" : "text-neutral-500"}`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              {t.privacyBadge}
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span className="truncate">{t.privacyBadge}</span>
             </span>
           </div>
         </div>
 
         {/* Right Status / Toggles / Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           <div
             id="hint-tv-navigation"
             className={`hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${
@@ -658,7 +677,7 @@ export default function App() {
             id="btn-toggle-lang"
             type="button"
             onClick={handleToggleLanguage}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border font-bold text-xs transition-all focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
+            className={`flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border font-bold text-xs transition-all focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
               isDark
                 ? "bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border-neutral-700"
                 : "bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border-neutral-300"
@@ -667,7 +686,7 @@ export default function App() {
               language === "pl" ? "Switch to English" : "Przełącz na Polski"
             }
           >
-            <Languages className="w-4 h-4 text-emerald-500" />
+            <Languages className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
             <span>{language.toUpperCase()}</span>
           </button>
 
@@ -683,9 +702,9 @@ export default function App() {
             title={isDark ? t.themeLight : t.themeDark}
           >
             {isDark ? (
-              <Sun className="w-4 h-4" />
+              <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <Moon className="w-4 h-4" />
+              <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
 
@@ -709,25 +728,25 @@ export default function App() {
         </div>
       </header>
 
-      {/* Voice Prompt Hint Bar for Amazon Hackathon Demo */}
+      {/* Voice Prompt Hint Bar */}
       <div
         id="voice-quick-hint-bar"
-        className={`w-full border-b px-4 sm:px-8 py-2 flex items-center justify-between text-xs transition-colors ${
+        className={`w-full max-w-full overflow-hidden border-b px-3 sm:px-8 py-2 flex items-center justify-between text-xs transition-colors ${
           isDark
             ? "bg-neutral-900/50 border-neutral-800/60 text-neutral-400"
             : "bg-emerald-50/50 border-emerald-100 text-emerald-900"
         }`}
       >
-        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+        <div className="flex items-center gap-2 overflow-hidden truncate">
           <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-            {isVoiceListening ? "Alexa & Fire TV Ready:" : "Sterowanie głosem:"}
+          <span className="font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+            {isVoiceListening ? "Voice Ready:" : "Głos:"}
           </span>
-          <span className="opacity-90">
+          <span className="truncate opacity-90">
             {isVoiceListening ? t.voiceHintBar : t.voiceMicMutedHint}
           </span>
         </div>
-        <div className="hidden md:flex items-center gap-2 shrink-0">
+        <div className="hidden md:flex items-center gap-2 shrink-0 ml-2">
           <button
             onClick={handleToggleVoice}
             className="flex items-center gap-1 text-[11px] font-bold text-emerald-500 hover:underline"
@@ -751,22 +770,22 @@ export default function App() {
       {isPaused && (
         <div
           id="workout-paused-banner"
-          className="w-full bg-amber-500/20 border-b border-amber-500/40 px-4 sm:px-8 py-2.5 flex items-center justify-between animate-pulse"
+          className="w-full max-w-full bg-amber-500/20 border-b border-amber-500/40 px-3 sm:px-8 py-2.5 flex items-center justify-between animate-pulse overflow-hidden"
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 truncate">
             <PauseCircle className="w-5 h-5 text-amber-500 shrink-0" />
-            <div>
+            <div className="truncate">
               <span className="font-bold text-sm text-amber-500">
                 {t.pausedBanner}
               </span>
-              <span className="hidden sm:inline-block ml-2 text-xs text-amber-400/90">
+              <span className="hidden sm:inline-block ml-2 text-xs text-amber-400/90 truncate">
                 {t.pausedBannerDesc}
               </span>
             </div>
           </div>
           <button
             onClick={() => setIsPaused(false)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow transition-colors shrink-0"
           >
             <PlayCircle className="w-3.5 h-3.5" />
             <span>Wznów (Start)</span>
@@ -777,7 +796,7 @@ export default function App() {
       {/* Main TV / Mobile Dashboard Canvas */}
       <main
         id="app-main-content"
-        className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6"
+        className="flex-1 w-full max-w-7xl mx-auto px-3 py-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 overflow-x-hidden"
       >
         <ExerciseSelector
           currentExercise={currentExercise}
@@ -797,8 +816,8 @@ export default function App() {
         />
 
         {/* Split Screen Stage */}
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 items-stretch min-h-[440px] sm:min-h-[500px]">
-          <div className="order-1 lg:order-2 lg:col-span-7 h-full min-h-[360px] sm:min-h-[420px]">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 items-stretch min-h-[440px] sm:min-h-[500px] w-full max-w-full overflow-hidden">
+          <div className="order-1 lg:order-2 lg:col-span-7 h-full min-h-[360px] sm:min-h-[420px] w-full max-w-full overflow-hidden">
             <PoseCamera
               onPoseDetected={handlePoseDetected}
               formQuality={metrics.formQuality}
@@ -817,7 +836,7 @@ export default function App() {
             />
           </div>
 
-          <div className="order-2 lg:order-1 lg:col-span-5 h-full">
+          <div className="order-2 lg:order-1 lg:col-span-5 h-full w-full max-w-full overflow-hidden">
             <VirtualCoachGuide
               exercise={currentExercise}
               stage={metrics.stage}
@@ -828,6 +847,16 @@ export default function App() {
         </div>
       </main>
 
+      {/* Stopka aplikacji z przekazanym theme={theme} */}
+      <Footer
+        t={t}
+        theme={theme}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenTerms={() => setIsTermsOpen(true)}
+        onOpenCookieSettings={() => setIsCookieSettingsOpen(true)}
+      />
+
+      {/* Nakładka pilota Fire TV */}
       <TvRemoteOverlay
         onPrev={handlePrevExercise}
         onNext={handleNextExercise}
@@ -850,6 +879,29 @@ export default function App() {
           theme={theme}
         />
       )}
+
+      {/* Banner i modale prawne & cookies z przekazanym theme={theme} */}
+      <CookieConsentBanner
+        t={t}
+        theme={theme}
+        isSettingsOpen={isCookieSettingsOpen}
+        onCloseSettings={() => setIsCookieSettingsOpen(false)}
+        onOpenSettings={() => setIsCookieSettingsOpen(true)}
+      />
+
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        t={t}
+        theme={theme}
+      />
+
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+        t={t}
+        theme={theme}
+      />
     </div>
   );
 }

@@ -96,6 +96,57 @@ export interface TranslationSchema {
   backCamera: string;
   mobileWorkoutMode: string;
   mobileGuideToggle: string;
+  // Legal, Cookies & Footer (New)
+  cookieBanner: {
+    title: string;
+    description: string;
+    acceptAll: string;
+    necessaryOnly: string;
+    settings: string;
+  };
+  cookieModal: {
+    title: string;
+    subtitle: string;
+    necessaryTitle: string;
+    necessaryDesc: string;
+    analyticsTitle: string;
+    analyticsDesc: string;
+    alwaysActive: string;
+    savePreferences: string;
+    close: string;
+  };
+  privacyPolicyModal: {
+    title: string;
+    lastUpdated: string;
+    section1Title: string;
+    section1Text: string;
+    section2Title: string;
+    section2Text: string;
+    section3Title: string;
+    section3Text: string;
+    section4Title: string;
+    section4Text: string;
+    closeBtn: string;
+  };
+  termsModal: {
+    title: string;
+    lastUpdated: string;
+    disclaimerTitle: string;
+    disclaimerText: string;
+    rulesTitle: string;
+    rulesText: string;
+    liabilityTitle: string;
+    liabilityText: string;
+    closeBtn: string;
+  };
+  footer: {
+    author: string;
+    rights: string;
+    builtFor: string;
+    privacyLink: string;
+    termsLink: string;
+    cookieSettingsLink: string;
+  };
   exercises: {
     squats: ExerciseTranslation;
     jumping_jacks: ExerciseTranslation;
@@ -251,6 +302,67 @@ export const translations: Record<Language, TranslationSchema> = {
     backCamera: "Tylna",
     mobileWorkoutMode: "Tryb Mobilny",
     mobileGuideToggle: "Wskazówki ćwiczenia",
+    // Legal, Cookies & Footer
+    cookieBanner: {
+      title: "Prywatność i Pliki Cookies",
+      description:
+        "Używamy niezbędnych danych lokalnych (np. język, motyw) oraz opcjonalnych ciasteczek analitycznych Google (GTM/GA4) w celu poprawy działania aplikacji. Przetwarzanie wideo z kamery odbywa się w 100% lokalnie na Twoim urządzeniu.",
+      acceptAll: "Zaakceptuj wszystkie",
+      necessaryOnly: "Tylko niezbędne",
+      settings: "Dostosuj",
+    },
+    cookieModal: {
+      title: "Centrum Preferencji Cookies",
+      subtitle: "Wybierz, na jakie pliki cookies i technologie wyrażasz zgodę.",
+      necessaryTitle: "Niezbędne pliki techniczne",
+      necessaryDesc:
+        "Wymagane do działania aplikacji, zapisu preferencji języka, wybranego motywu oraz stanu sesji treningowej.",
+      analyticsTitle: "Pliki analityczne (Google Tag Manager / GA4)",
+      analyticsDesc:
+        "Pomagają nam anonimowo mierzyć ruch i stabilność aplikacji. Nie rejestrują żadnych danych z kamery ani mikrofonu.",
+      alwaysActive: "Zawsze aktywne",
+      savePreferences: "Zapisz preferencje",
+      close: "Zamknij",
+    },
+    privacyPolicyModal: {
+      title: "Polityka Prywatności PulseMotion TV",
+      lastUpdated: "Ostatnia aktualizacja: Wrzesień 2026",
+      section1Title: "1. 100% Lokalne Przetwarzanie Kamery (Zero-Cloud Vision)",
+      section1Text:
+        "PulseMotion TV wykorzystuje model Google MediaPipe działający wyłącznie w Twojej przeglądarce za pośrednictwem technologii WebAssembly i WebGL. Klatki wideo z kamery są analizowane w czasie rzeczywistym w pamięci RAM Twojego urządzenia i natychmiast usuwane. Żadne zdjęcia, wideo ani punkty biometryczne nigdy nie są przesyłane do serwerów zewnętrznych ani chmury.",
+      section2Title: "2. Mikrofon i Sterowanie Głosem",
+      section2Text:
+        "Dostęp do mikrofonu jest opcjonalny i służy wyłącznie do rozpoznawania komend nawigacyjnych treningu za pośrednictwem Web Speech API. Dźwięk nie jest nagrywany na stałe ani archiwizowany. W każdej chwili możesz wyłączyć mikrofon komendą głosową lub klawiszem V.",
+      section3Title: "3. Pamięć Lokalna (Local Storage) i Analityka",
+      section3Text:
+        "Aplikacja przechowuje w pamięci lokalnej przeglądarki jedynie ustawienia języka, motywu i preferencji cookies. W przypadku wyrażenia zgody, anonimowe statystyki użytkowania mogą być gromadzone przez Google Analytics bez profilowania osobowego.",
+      section4Title: "4. Kontakt i Prawa Użytkownika",
+      section4Text:
+        "Aplikacja została stworzona w celach edukacyjnych i demonstracyjnych w ramach Amazon Developer Hackathon. Wszelkie pytania dotyczące kodu i prywatności można kierować poprzez oficjalne repozytorium GitHub projektu.",
+      closeBtn: "Rozumiem i zamykam",
+    },
+    termsModal: {
+      title: "Regulamin i Zastrzeżenie Medyczne",
+      lastUpdated: "Ostatnia aktualizacja: Wrzesień 2026",
+      disclaimerTitle: "1. Ważne Zastrzeżenie Medyczne (Health Disclaimer)",
+      disclaimerText:
+        "PulseMotion TV jest aplikacją demonstracyjną i edukacyjną AI, a nie certyfikowanym wyrobem medycznym. Wykrywanie kątów stawów i techniki ćwiczeń nie zastępuje profesjonalnej diagnozy medycznej, trenera personalnego ani fizjoterapeuty. Przed rozpoczęciem każdego programu treningowego skonsultuj się z lekarzem, zwłaszcza jeśli cierpisz na schorzenia układu krążenia lub aparatu ruchu.",
+      rulesTitle: "2. Warunki Korzystania",
+      rulesText:
+        "Użytkownik zobowiązuje się do korzystania z aplikacji w bezpiecznym otoczeniu domowym, wolnym od przeszkód fizycznych. Ćwiczenia wykonujesz na własną odpowiedzialność, dostosowując intensywność do swojego samopoczucia.",
+      liabilityTitle: "3. Ograniczenie Odpowiedzialności i Licencja",
+      liabilityText:
+        "Oprogramowanie jest udostępniane na licencji Open Source MIT „tak jak jest” (AS IS), bez jakichkolwiek gwarancji. Twórca nie ponosi odpowiedzialności za ewentualne kontuzje lub urazy wynikłe z nieprawidłowego wykonywania ćwiczeń.",
+      closeBtn: "Akceptuję regulamin",
+    },
+    footer: {
+      author: "Twórca: Adam Babinicz",
+      rights: "Wszelkie prawa zastrzeżone.",
+      builtFor: "Zbudowano na Amazon Developer Hackathon (Fire TV Track)",
+      privacyLink: "Polityka Prywatności",
+      termsLink: "Regulamin i Zdrowie",
+      cookieSettingsLink: "Ustawienia Cookies",
+    },
     // Exercises
     exercises: {
       squats: {
@@ -473,6 +585,67 @@ export const translations: Record<Language, TranslationSchema> = {
     backCamera: "Rear",
     mobileWorkoutMode: "Mobile Mode",
     mobileGuideToggle: "Exercise Guide",
+    // Legal, Cookies & Footer
+    cookieBanner: {
+      title: "Privacy & Cookie Preferences",
+      description:
+        "We use essential local state (e.g. language, theme) and optional Google Analytics (GTM/GA4) cookies to improve application performance. All camera video processing occurs 100% on your local device.",
+      acceptAll: "Accept all",
+      necessaryOnly: "Essential only",
+      settings: "Customize",
+    },
+    cookieModal: {
+      title: "Cookie Preferences Center",
+      subtitle: "Select which cookies and technologies you consent to.",
+      necessaryTitle: "Essential technical storage",
+      necessaryDesc:
+        "Required for core application functionality, saving language, theme, and active workout state.",
+      analyticsTitle: "Analytics (Google Tag Manager / GA4)",
+      analyticsDesc:
+        "Helps us measure anonymous traffic and platform stability. Zero video or microphone data is ever tracked.",
+      alwaysActive: "Always active",
+      savePreferences: "Save preferences",
+      close: "Close",
+    },
+    privacyPolicyModal: {
+      title: "PulseMotion TV Privacy Policy",
+      lastUpdated: "Last updated: September 2026",
+      section1Title: "1. 100% On-Device Camera Processing (Zero-Cloud Vision)",
+      section1Text:
+        "PulseMotion TV runs Google MediaPipe Pose entirely inside your client browser using WebAssembly SIMD and WebGL acceleration. Camera video frames are analyzed frame-by-frame in volatile RAM and immediately discarded. No video, photography, or biometric coordinates are ever transmitted to external cloud servers.",
+      section2Title: "2. Microphone & Hands-Free Voice Control",
+      section2Text:
+        "Microphone access is strictly optional and used exclusively for real-time workout voice commands via the browser Web Speech API. Audio is never recorded, saved, or uploaded. You can disable the microphone at any time by voice command or by pressing the V key.",
+      section3Title: "3. Local Storage & Anonymous Telemetry",
+      section3Text:
+        "The app stores only UI preferences (language, theme, cookie consent) in localStorage. If consented, anonymous performance telemetry is recorded via Google Analytics without personal profiling.",
+      section4Title: "4. Contact & Developer Rights",
+      section4Text:
+        "This project was created as an open-source demonstration for the Amazon Developer Hackathon (Fire TV Track). Inquiries can be submitted directly via the official GitHub repository.",
+      closeBtn: "Acknowledge & Close",
+    },
+    termsModal: {
+      title: "Terms of Service & Health Disclaimer",
+      lastUpdated: "Last updated: September 2026",
+      disclaimerTitle: "1. Critical Health & Medical Disclaimer",
+      disclaimerText:
+        "PulseMotion TV is an AI-powered fitness demonstration tool, not a certified medical or clinical device. Posture angle calculations and repetition counting do not replace medical advice, physical therapy, or professional coaching. Consult a healthcare professional before beginning any exercise routine, particularly if you have pre-existing cardiovascular or joint conditions.",
+      rulesTitle: "2. Conditions of Use",
+      rulesText:
+        "Users agree to maintain a safe, obstacle-free workout environment with sufficient clearance. You perform exercises at your own risk and discretion, matching workout intensity to your personal fitness level.",
+      liabilityTitle: "3. Limitation of Liability & MIT License",
+      liabilityText:
+        "The software is provided AS IS under the MIT Open Source License, without warranty of any kind. The author disclaims any liability for injuries or damages arising from exercise participation.",
+      closeBtn: "I Accept the Terms",
+    },
+    footer: {
+      author: "Author: Adam Babinicz",
+      rights: "All rights reserved.",
+      builtFor: "Built for Amazon Developer Hackathon (Fire TV Track)",
+      privacyLink: "Privacy Policy",
+      termsLink: "Terms & Health Disclaimer",
+      cookieSettingsLink: "Cookie Settings",
+    },
     exercises: {
       squats: {
         name: "Power Squats",
