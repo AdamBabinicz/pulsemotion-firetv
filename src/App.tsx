@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ScrollToTopButton } from "./components/ScrollToTopButton";
 import { EXERCISES } from "./data/exercises";
 import {
   ExerciseDefinition,
@@ -939,6 +940,7 @@ export default function App() {
         t={t}
         theme={theme}
       />
+      <ScrollToTopButton lang={language} theme={theme} />
     </div>
   );
 }
