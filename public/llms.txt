@@ -2,11 +2,13 @@
 
 > Next-Generation Interactive AI Fitness Coach running 100% on-device on Amazon Fire TV (Silk Browser) & Web. Zero cloud streaming, zero latency, maximum privacy.
 
-- **Production URL**: https://pulsemotion-firetv.netlify.app/
-- **GitHub Repository**: https://github.com/AdamBabinicz/pulsemotion-firetv
-- **License**: MIT
-- **Author**: Adam Babinicz
-- **Track**: Amazon Developer Hackathon (Fire TV Track)
+## Canonical Resources
+
+- [Live Application Preview](https://pulsemotion-firetv.netlify.app/): Official production deployment of PulseMotion TV running on-device computer vision and speech synthesis.
+- [GitHub Source Repository](https://github.com/AdamBabinicz/pulsemotion-firetv): Open-source repository containing TypeScript codebase, biomechanical classifiers, and build configuration.
+- [Project Documentation](https://github.com/AdamBabinicz/pulsemotion-firetv#readme): Comprehensive guide covering Fire TV Silk Browser setup, remote control keycodes, and WebAssembly SIMD acceleration.
+- [MIT License](https://github.com/AdamBabinicz/pulsemotion-firetv/blob/main/LICENSE): Permissive open-source license governing usage, distribution, and commercial rights.
+- [Privacy Policy & On-Device Processing](https://pulsemotion-firetv.netlify.app/#privacy): Detailed privacy commitment confirming zero camera video streaming, local-only landmark analysis, and complete data sovereignty.
 
 ## Core Value Proposition
 
@@ -26,7 +28,7 @@ PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an i
 
 3. **10-Foot Living Room TV Experience**:
    - Overscan-safe layout with 5% safe-area padding for 720p, 1080p, and 4K UHD.
-   - High-contrast emerald focus rings (ring-4 ring-emerald-400) visible from 3+ meters.
+   - High-contrast emerald focus rings (`ring-4 ring-emerald-400`) visible from 3+ meters.
    - Full D-Pad spatial navigation mapped to Fire TV remote keycodes (DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT, DPAD_CENTER).
    - On-screen virtual remote simulator for rapid desktop testing.
 
@@ -36,11 +38,13 @@ PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an i
 
 5. **Audible Voice Coach**:
    - Web Speech Synthesis API providing spoken rep counts, pace cues, and form correction prompts in real-time.
-   - Fully bilingual (English en-US and Polish pl-PL).
+   - Fully bilingual (English `en-US` and Polish `pl-PL`).
 
-## Tech Stack
+## Tech Stack & Architecture
 
-- **Frontend**: React 19, TypeScript 5, Vite 6, Tailwind CSS v4, Lucide React, Motion.
-- **Vision & AI**: Google MediaPipe Pose Solution, WebAssembly (WASM SIMD), WebGL 2.0.
-- **APIs**: Web Speech API (Synthesis & Recognition), MediaDevices (getUserMedia).
-- **Target Platforms**: Amazon Fire TV (Silk Browser), Modern Desktop & Mobile Browsers.
+- [React 19 & TypeScript](https://react.dev/): Modern frontend core with strict typing and functional component hierarchy.
+- [Vite 6 Build System](https://vitejs.dev/): Ultra-fast modern web application bundling with automated asset optimization.
+- [Tailwind CSS v4](https://tailwindcss.com/): Responsive utility styling tailored for 10-foot TV overscan and mobile devices.
+- [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe/solutions/vision/pose_landmarker): High-performance on-device pose estimation executing via WASM SIMD and WebGL 2.0.
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API): Native browser voice command recognition and real-time audio coach synthesis.
+- [Lucide React](https://lucide.dev/): Lightweight, accessible SVG iconography.
