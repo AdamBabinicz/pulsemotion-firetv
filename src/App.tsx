@@ -332,9 +332,10 @@ export default function App() {
     });
   }, [handleSelectExercise]);
 
-  // Close summary modal
+  // Close summary modal safely with pause guard
   const handleCloseModal = useCallback(() => {
     setIsCompleted(false);
+    setIsPaused(true);
   }, []);
 
   // Voice Command Dispatcher with ref to avoid stale closures
@@ -361,9 +362,7 @@ export default function App() {
 
         case "close_modal":
           setIsCompleted(false);
-          audioCoach.speak(
-            language === "pl" ? "Powrót do treningu" : "Back to workout",
-          );
+          setIsPaused(true);
           break;
 
         case "repeat_set":
@@ -451,7 +450,10 @@ export default function App() {
           );
           break;
         case "start":
-          if (isCompleted) {
+          if (
+            isCompleted ||
+            currentRepsRef.current >= currentExercise.targetRepsOrSeconds
+          ) {
             handleNextExercise();
           } else if (isPausedRef.current) {
             setIsPaused(false);
@@ -496,6 +498,7 @@ export default function App() {
       handleToggleLanguage,
       isCompleted,
       language,
+      currentExercise.targetRepsOrSeconds,
     ],
   );
 
@@ -565,6 +568,7 @@ export default function App() {
           setIsCookieSettingsOpen(false);
         } else if (isCompleted) {
           setIsCompleted(false);
+          setIsPaused(true);
         } else {
           setIsPaused((prev) => !prev);
         }
@@ -801,12 +805,26 @@ export default function App() {
             </div>
           </div>
           <button
-            onClick={() => setIsPaused(false)}
+            onClick={() => {
+              if (
+                currentRepsRef.current >= currentExercise.targetRepsOrSeconds
+              ) {
+                handleNextExercise();
+              } else {
+                setIsPaused(false);
+              }
+            }}
             className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow transition-colors shrink-0"
           >
             <PlayCircle className="w-3.5 h-3.5" />
             <span>
-              {language === "pl" ? "Wznów (Start)" : "Resume (Start)"}
+              {currentRepsRef.current >= currentExercise.targetRepsOrSeconds
+                ? language === "pl"
+                  ? "Kolejne ćwiczenie"
+                  : "Next Exercise"
+                : language === "pl"
+                  ? "Wznów (Start)"
+                  : "Resume (Start)"}
             </span>
           </button>
         </div>

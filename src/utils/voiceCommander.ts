@@ -262,17 +262,17 @@ class VoiceCommander {
         action = "stop_listening";
       }
 
-      // 2. ZAMYKANIE MODALA / POWRÓT DO PODGLĄDU ĆWICZENIA
+      // 2. ZAMYKANIE MODALA / POWRÓT DO PODGLĄDU ĆWICZENIA (wyeliminowano kolizję ze słowem lektora "powrót")
       else if (
-        clean.includes("zamknij") ||
+        clean === "zamknij" ||
         clean.includes("zamknij okno") ||
         clean.includes("zamknij modal") ||
-        clean.includes("wróć") ||
-        clean.includes("powrót") ||
-        clean.includes("podgląd") ||
-        clean.includes("anuluj") ||
-        clean.includes("ukryj") ||
-        clean.includes("wyjdź")
+        clean.includes("zamknij podsumowanie") ||
+        clean.includes("zamknij") ||
+        clean === "wróć" ||
+        clean.includes("wróć do ćwiczeń") ||
+        clean.includes("zamknij wynik") ||
+        clean.includes("wyjdź z podsumowania")
       ) {
         action = "close_modal";
       }
@@ -440,10 +440,12 @@ class VoiceCommander {
       ) {
         action = "stop_listening";
       } else if (
-        clean.includes("close") ||
+        clean === "close" ||
+        clean.includes("close modal") ||
+        clean.includes("close summary") ||
         clean.includes("dismiss") ||
         clean.includes("exit") ||
-        clean.includes("back")
+        clean === "back"
       ) {
         action = "close_modal";
       } else if (
@@ -540,11 +542,15 @@ class VoiceCommander {
 
     if (action) {
       const now = Date.now();
+      // Wydłużony asymetryczny cooldown:
+      // Ćwiczenia: 3500ms, Akcje modala (zamknij / powtórz): 2500ms, Pozostałe: 1800ms / 850ms
       const minInterval = this.isExerciseAction(action)
         ? 3500
-        : this.lastTriggeredAction === action
-          ? 1800
-          : 850;
+        : action === "close_modal" || action === "repeat_set"
+          ? 2500
+          : this.lastTriggeredAction === action
+            ? 1800
+            : 850;
 
       if (
         this.lastTriggeredAction === action &&
