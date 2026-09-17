@@ -18,4 +18,20 @@
     overflow-x: hidden;
     min-height: 100vh;
   }
+
+  /* Wymuszenie kursora wskaźnika (rączki) dla wszystkich interaktywnych elementów */
+  button,
+  a,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+
+  /* Odpowiedni kursor dla elementów nieaktywnych / zablokowanych */
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed;
+  }
 }
