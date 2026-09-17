@@ -39,6 +39,8 @@ import {
   Sparkles,
   PauseCircle,
   PlayCircle,
+  Smartphone,
+  SmartphoneCharging,
 } from "lucide-react";
 
 export default function App() {
@@ -83,6 +85,12 @@ export default function App() {
     number | boolean
   >(false);
 
+  // Stan Screen Wake Lock (Nie wygaszaj ekranu)
+  const [isWakeLockActive, setIsWakeLockActive] = useState<boolean>(false);
+  const [isWakeLockSupported, setIsWakeLockSupported] = useState<boolean>(true);
+  const wakeLockSentinelRef = useRef<any>(null);
+  const shouldKeepAwakeRef = useRef<boolean>(false);
+
   // Stany otwarcia modali prawnych i cookies
   const [isPrivacyOpen, setIsPrivacyOpen] = useState<boolean>(false);
   const [isTermsOpen, setIsTermsOpen] = useState<boolean>(false);
@@ -97,6 +105,13 @@ export default function App() {
   const isPausedRef = useRef<boolean>(false);
   const currentRepsRef = useRef<number>(0);
   const voiceTimeoutRef = useRef<number | null>(null);
+
+  // Sprawdzenie dostępności Screen Wake Lock API w przeglądarce
+  useEffect(() => {
+    if (typeof window !== "undefined" && !("wakeLock" in navigator)) {
+      setIsWakeLockSupported(false);
+    }
+  }, []);
 
   // Sync HTML class for dark/light mode
   useEffect(() => {
@@ -136,6 +151,104 @@ export default function App() {
   useEffect(() => {
     isPausedRef.current = isPaused;
   }, [isPaused]);
+
+  // Żądanie blokady wygaszania ekranu (Screen Wake Lock)
+  const requestWakeLock = useCallback(
+    async (showFeedback = true) => {
+      if (typeof window === "undefined" || !("wakeLock" in navigator)) {
+        setIsWakeLockSupported(false);
+        return false;
+      }
+      try {
+        if (wakeLockSentinelRef.current) {
+          try {
+            await wakeLockSentinelRef.current.release();
+          } catch {}
+          wakeLockSentinelRef.current = null;
+        }
+
+        const sentinel = await (navigator as any).wakeLock.request("screen");
+        wakeLockSentinelRef.current = sentinel;
+        setIsWakeLockActive(true);
+        shouldKeepAwakeRef.current = true;
+
+        sentinel.addEventListener("release", () => {
+          wakeLockSentinelRef.current = null;
+          if (!shouldKeepAwakeRef.current) {
+            setIsWakeLockActive(false);
+          }
+        });
+
+        if (showFeedback) {
+          audioCoach.speak(
+            language === "pl"
+              ? "Blokada wygaszania ekranu włączona"
+              : "Screen wake lock activated",
+          );
+        }
+        return true;
+      } catch (err) {
+        console.warn("Wake Lock request failed:", err);
+        setIsWakeLockActive(false);
+        shouldKeepAwakeRef.current = false;
+        return false;
+      }
+    },
+    [language],
+  );
+
+  // Zwolnienie blokady wygaszania ekranu
+  const releaseWakeLock = useCallback(
+    async (showFeedback = true) => {
+      shouldKeepAwakeRef.current = false;
+      if (wakeLockSentinelRef.current) {
+        try {
+          await wakeLockSentinelRef.current.release();
+        } catch {}
+        wakeLockSentinelRef.current = null;
+      }
+      setIsWakeLockActive(false);
+      if (showFeedback) {
+        audioCoach.speak(
+          language === "pl"
+            ? "Wygaszanie ekranu przywrócone"
+            : "Screen sleep restored",
+        );
+      }
+    },
+    [language],
+  );
+
+  // Przełącznik Wake Lock
+  const handleToggleWakeLock = useCallback(async () => {
+    if (isWakeLockActive) {
+      await releaseWakeLock(true);
+    } else {
+      await requestWakeLock(true);
+    }
+  }, [isWakeLockActive, releaseWakeLock, requestWakeLock]);
+
+  // Automatyczne wznawianie blokady ekranu po powrocie do karty/aplikacji (ważne na telefonach!)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (
+        document.visibilityState === "visible" &&
+        shouldKeepAwakeRef.current
+      ) {
+        await requestWakeLock(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (wakeLockSentinelRef.current) {
+        try {
+          wakeLockSentinelRef.current.release();
+        } catch {}
+      }
+    };
+  }, [requestWakeLock]);
 
   // Toggle Language Handler
   const handleToggleLanguage = useCallback(() => {
@@ -589,6 +702,8 @@ export default function App() {
         handleToggleMute();
       } else if (e.key.toLowerCase() === "v") {
         handleToggleVoice();
+      } else if (e.key.toLowerCase() === "w") {
+        handleToggleWakeLock();
       }
     };
 
@@ -600,6 +715,7 @@ export default function App() {
     handleResetSet,
     handleToggleMute,
     handleToggleVoice,
+    handleToggleWakeLock,
     isCompleted,
     isPaused,
     isPrivacyOpen,
@@ -672,6 +788,48 @@ export default function App() {
             lang={language}
             theme={theme}
           />
+
+          {/* Przycisk: Nie wygaszaj ekranu (Screen Wake Lock dla smartfona) */}
+          <button
+            id="btn-toggle-wakelock"
+            type="button"
+            onClick={handleToggleWakeLock}
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border font-bold text-xs transition-all focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
+              isWakeLockActive
+                ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-sm shadow-amber-500/10"
+                : isDark
+                  ? "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700"
+                  : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-300"
+            }`}
+            title={
+              !isWakeLockSupported
+                ? language === "pl"
+                  ? "Przeglądarka nie obsługuje blokady wygaszania ekranu"
+                  : "Browser does not support Screen Wake Lock"
+                : isWakeLockActive
+                  ? language === "pl"
+                    ? "Ekran stale włączony (Kliknij, aby wyłączyć)"
+                    : "Screen kept awake (Click to disable)"
+                  : language === "pl"
+                    ? "Nie wygaszaj ekranu (Zalecane na smartfonie)"
+                    : "Keep screen awake (Recommended for mobile)"
+            }
+          >
+            {isWakeLockActive ? (
+              <SmartphoneCharging className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 animate-pulse" />
+            ) : (
+              <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400" />
+            )}
+            <span className="hidden xs:inline sm:inline">
+              {isWakeLockActive
+                ? language === "pl"
+                  ? "Ekran: WŁ."
+                  : "Awake: ON"
+                : language === "pl"
+                  ? "Nie wygaszaj"
+                  : "Keep Awake"}
+            </span>
+          </button>
 
           <button
             id="btn-toggle-lang"
@@ -851,6 +1009,8 @@ export default function App() {
           onResetSet={handleResetSet}
           lang={language}
           theme={theme}
+          isWakeLockActive={isWakeLockActive}
+          onToggleWakeLock={handleToggleWakeLock}
         />
 
         {/* Split Screen Stage — compact on mobile, side-by-side on desktop */}

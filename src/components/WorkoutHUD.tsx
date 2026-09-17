@@ -9,6 +9,8 @@ import {
   Volume2,
   VolumeX,
   RotateCcw,
+  Smartphone,
+  SmartphoneCharging,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
 
@@ -20,6 +22,8 @@ interface WorkoutHUDProps {
   onResetSet: () => void;
   lang: Language;
   theme: ThemeMode;
+  isWakeLockActive?: boolean;
+  onToggleWakeLock?: () => void;
 }
 
 // Map progress percent to standard Tailwind width classes (no inline-styles)
@@ -63,6 +67,8 @@ export const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
   onResetSet,
   lang,
   theme,
+  isWakeLockActive = false,
+  onToggleWakeLock,
 }) => {
   const t = translations[lang];
   const isDark = theme === "dark";
@@ -264,6 +270,46 @@ export const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Przycisk: Nie wygaszaj ekranu (Screen Wake Lock dla smartfona) */}
+          {onToggleWakeLock && (
+            <button
+              id="btn-toggle-wake-lock"
+              type="button"
+              onClick={onToggleWakeLock}
+              className={`min-h-[40px] sm:min-h-[44px] min-w-[40px] sm:min-w-[44px] p-2 sm:px-3 sm:py-2.5 rounded-xl border font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
+                isWakeLockActive
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/10"
+                  : isDark
+                    ? "bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border-neutral-700"
+                    : "bg-neutral-100 hover:bg-neutral-200 text-neutral-600 border-neutral-300"
+              }`}
+              title={
+                isWakeLockActive
+                  ? lang === "pl"
+                    ? "Ekran stale włączony (Kliknij, aby wyłączyć)"
+                    : "Screen kept awake (Click to disable)"
+                  : lang === "pl"
+                    ? "Nie wygaszaj ekranu (Zablokuj usypianie telefonu)"
+                    : "Keep screen awake (Prevent phone from sleeping)"
+              }
+            >
+              {isWakeLockActive ? (
+                <SmartphoneCharging className="w-4 h-4 text-amber-500 animate-pulse" />
+              ) : (
+                <Smartphone className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">
+                {isWakeLockActive
+                  ? lang === "pl"
+                    ? "Ekran czuwa"
+                    : "Screen awake"
+                  : lang === "pl"
+                    ? "Nie wygaszaj"
+                    : "Keep awake"}
+              </span>
+            </button>
+          )}
+
           <button
             id="btn-toggle-sound"
             type="button"
