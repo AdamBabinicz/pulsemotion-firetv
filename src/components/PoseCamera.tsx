@@ -232,6 +232,16 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   const t = translations[lang];
   const isDark = theme === "dark";
 
+  // Dynamic localization labels without hardcoding strings
+  const pauseLabel =
+    (t as any).pause ||
+    (t as any).paused ||
+    (lang === "pl" ? "Pauza" : "Pause");
+  const simPausedLabel =
+    (t as any).simPaused ||
+    (t as any).simulationPaused ||
+    `${pauseLabel}: ${t.studioMode}`;
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
@@ -738,7 +748,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   return (
     <div
       id="pose-camera-container"
-      className={`relative w-full aspect-video max-h-[540px] rounded-2xl overflow-hidden border flex items-center justify-center shadow-2xl transition-colors ${
+      className={`relative w-full aspect-[4/3] sm:aspect-video min-h-[300px] sm:min-h-[360px] md:min-h-[420px] max-h-[560px] rounded-2xl overflow-hidden border flex items-center justify-center shadow-2xl transition-colors ${
         isDark
           ? "bg-neutral-900 border-neutral-800"
           : "bg-neutral-100 border-neutral-200"
@@ -752,9 +762,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 via-neutral-900/60 to-black pointer-events-none" />
           <div className="w-32 h-32 rounded-full border border-emerald-500/20 animate-ping absolute opacity-20 pointer-events-none" />
           <div className="w-64 h-64 rounded-full border border-emerald-500/10 absolute opacity-30 pointer-events-none" />
-          <div className="absolute bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 text-xs font-mono">
+          <div className="absolute bottom-6 sm:bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 text-xs font-mono">
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isPaused ? "Pauza Symulacji" : t.studioMode}</span>
+            <span>{isPaused ? simPausedLabel : t.studioMode}</span>
           </div>
         </div>
       )}
@@ -784,129 +794,139 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-20">
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-black/80 border border-amber-500/50 text-amber-400 font-bold text-sm shadow-xl animate-pulse">
             <PauseCircle className="w-5 h-5 text-amber-400" />
-            <span>Pauza</span>
+            <span>{pauseLabel}</span>
           </div>
         </div>
       )}
 
+      {/* Responsive unified top bar preventing element overlapping on mobile */}
       <div
-        id="camera-status-badges"
-        className="absolute top-4 left-4 flex items-center gap-2 z-20"
+        id="camera-overlay-top-bar"
+        className="absolute top-2.5 inset-x-2.5 sm:top-4 sm:inset-x-4 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 z-20 pointer-events-none"
       >
+        {/* Left: Status Badges */}
         <div
-          id="badge-camera-status"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${
-            cameraActive && !demoMode
-              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-              : "bg-amber-500/20 text-amber-300 border-amber-500/30"
-          }`}
+          id="camera-status-badges"
+          className="flex items-center flex-wrap gap-1.5 pointer-events-auto"
         >
-          <span
-            className={`w-2 h-2 rounded-full ${
+          <div
+            id="badge-camera-status"
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md border ${
               cameraActive && !demoMode
-                ? "bg-emerald-400 animate-pulse"
-                : "bg-amber-400"
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
             }`}
-          />
-          {cameraActive && !demoMode ? t.cameraActive : t.cameraInactive}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                cameraActive && !demoMode
+                  ? "bg-emerald-400 animate-pulse"
+                  : "bg-amber-400"
+              }`}
+            />
+            <span>
+              {cameraActive && !demoMode ? t.cameraActive : t.cameraInactive}
+            </span>
+          </div>
+
+          {demoMode && (
+            <div
+              id="badge-simulator-active"
+              className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold border shadow-sm ${
+                isPaused
+                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse"
+              }`}
+            >
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
+              <span>{isPaused ? simPausedLabel : t.studioModeActive}</span>
+            </div>
+          )}
+
+          {fps > 0 && !demoMode && (
+            <div
+              id="badge-camera-fps"
+              className="px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700"
+            >
+              {fps} {t.fps}
+            </div>
+          )}
         </div>
 
-        {demoMode && (
-          <div
-            id="badge-simulator-active"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${
-              isPaused
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse"
+        {/* Right: Camera and Simulator Controls */}
+        <div
+          id="camera-control-buttons"
+          className="flex items-center flex-wrap gap-1 sm:gap-2 pointer-events-auto"
+        >
+          <button
+            id="btn-toggle-camera-power"
+            type="button"
+            onClick={() => {
+              if (cameraActive) {
+                stopCamera();
+              } else {
+                startCamera();
+              }
+            }}
+            className={`p-2 sm:p-2.5 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1.5 ${
+              cameraActive && !demoMode
+                ? "bg-emerald-600/80 hover:bg-emerald-500 text-white border-emerald-400"
+                : "bg-black/60 hover:bg-black/80 text-neutral-300 border-neutral-700"
             }`}
+            title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            {isPaused ? "Symulator: Pauza" : t.studioModeActive}
-          </div>
-        )}
+            {cameraActive && !demoMode ? (
+              <Camera className="w-4 h-4 text-white" />
+            ) : (
+              <CameraOff className="w-4 h-4 text-amber-400" />
+            )}
+            <span className="text-xs font-semibold hidden md:inline">
+              {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
+            </span>
+          </button>
 
-        {fps > 0 && !demoMode && (
-          <div
-            id="badge-camera-fps"
-            className="px-2.5 py-1.5 rounded-full text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700"
+          <button
+            id="btn-flip-camera"
+            type="button"
+            onClick={toggleFacingMode}
+            className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
+            title={t.switchCamera}
           >
-            {fps} {t.fps}
-          </div>
-        )}
-      </div>
+            <SwitchCamera className="w-4 h-4 text-sky-400" />
+            <span className="text-[10px] font-mono hidden md:inline">
+              {facingMode === "user" ? t.frontCamera : t.backCamera}
+            </span>
+          </button>
 
-      <div
-        id="camera-control-buttons"
-        className="absolute top-4 right-4 flex items-center gap-2 z-20"
-      >
-        <button
-          id="btn-toggle-camera-power"
-          type="button"
-          onClick={() => {
-            if (cameraActive) {
-              stopCamera();
-            } else {
-              startCamera();
-            }
-          }}
-          className={`p-2.5 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1.5 ${
-            cameraActive && !demoMode
-              ? "bg-emerald-600/80 hover:bg-emerald-500 text-white border-emerald-400"
-              : "bg-black/60 hover:bg-black/80 text-neutral-300 border-neutral-700"
-          }`}
-          title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
-        >
-          {cameraActive && !demoMode ? (
-            <Camera className="w-4 h-4 text-white" />
-          ) : (
-            <CameraOff className="w-4 h-4 text-amber-400" />
-          )}
-          <span className="text-xs font-semibold hidden sm:inline">
-            {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
-          </span>
-        </button>
+          <button
+            id="btn-toggle-skeleton"
+            type="button"
+            onClick={() => setShowSkeleton((prev) => !prev)}
+            className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors"
+            title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
+          >
+            {showSkeleton ? (
+              <Eye className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <EyeOff className="w-4 h-4 text-neutral-400" />
+            )}
+          </button>
 
-        <button
-          id="btn-flip-camera"
-          type="button"
-          onClick={toggleFacingMode}
-          className="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
-          title={t.switchCamera}
-        >
-          <SwitchCamera className="w-4 h-4 text-sky-400" />
-          <span className="text-[10px] font-mono hidden sm:inline">
-            {facingMode === "user" ? t.frontCamera : t.backCamera}
-          </span>
-        </button>
-
-        <button
-          id="btn-toggle-skeleton"
-          type="button"
-          onClick={() => setShowSkeleton((prev) => !prev)}
-          className="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors"
-          title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
-        >
-          {showSkeleton ? (
-            <Eye className="w-4 h-4 text-emerald-400" />
-          ) : (
-            <EyeOff className="w-4 h-4 text-neutral-400" />
-          )}
-        </button>
-
-        <button
-          id="btn-toggle-demo"
-          type="button"
-          onClick={toggleDemoSimulator}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all ${
-            demoMode
-              ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30"
-              : "bg-black/60 hover:bg-black/80 text-neutral-200 border-neutral-700"
-          }`}
-          title={t.studioModeDesc}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          {demoMode ? t.stopSimulator : t.studioMode}
-        </button>
+          <button
+            id="btn-toggle-demo"
+            type="button"
+            onClick={toggleDemoSimulator}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all ${
+              demoMode
+                ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30"
+                : "bg-black/60 hover:bg-black/80 text-neutral-200 border-neutral-700"
+            }`}
+            title={t.studioModeDesc}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{demoMode ? t.stopSimulator : t.studioMode}</span>
+          </button>
+        </div>
       </div>
 
       {!cameraActive && !demoMode && (
@@ -914,33 +934,33 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           id="camera-inactive-overlay"
           className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-neutral-950/85 backdrop-blur-sm text-center"
         >
-          <div className="w-14 h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-4">
-            <Camera className="w-7 h-7" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-3 sm:mb-4">
+            <Camera className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">
+          <h3 className="text-base sm:text-lg font-bold text-white mb-2">
             {hasCameraError ? t.cameraInactive : t.cameraPromptTitle}
           </h3>
-          <p className="text-neutral-300 text-sm max-w-md mb-6 leading-relaxed">
+          <p className="text-neutral-300 text-xs sm:text-sm max-w-md mb-5 sm:mb-6 leading-relaxed">
             {t.cameraPromptDesc}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
             <button
               id="btn-retry-camera"
               type="button"
               onClick={() => startCamera()}
-              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
               <RefreshCw className="w-4 h-4" />
-              {t.enableCameraBtn}
+              <span>{t.enableCameraBtn}</span>
             </button>
             <button
               id="btn-launch-demo"
               type="button"
               onClick={toggleDemoSimulator}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-sm border border-indigo-400 transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
+              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border border-indigo-400 transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
-              {t.studioMode}
+              <span>{t.studioMode}</span>
             </button>
           </div>
         </div>

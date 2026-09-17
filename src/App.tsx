@@ -349,7 +349,6 @@ export default function App() {
       }, 3000);
 
       switch (event.action) {
-        // Direct Microphone Shutdown via Voice
         case "stop_listening":
           voiceCommander.stop();
           setIsVoiceListening(false);
@@ -360,7 +359,6 @@ export default function App() {
           );
           break;
 
-        // Direct Modal Control via Voice
         case "close_modal":
           setIsCompleted(false);
           audioCoach.speak(
@@ -372,7 +370,6 @@ export default function App() {
           handleResetSet();
           break;
 
-        // Direct Exercise Selection via Voice (Always closes modal if open)
         case "exercise_squats": {
           setIsCompleted(false);
           const ex = EXERCISES.find((e) => e.id === "squats");
@@ -404,7 +401,6 @@ export default function App() {
           break;
         }
 
-        // Navigation
         case "next":
           handleNextExercise();
           audioCoach.speak(
@@ -503,7 +499,6 @@ export default function App() {
     ],
   );
 
-  // Keep a ref to the latest handleVoiceAction to ensure voiceCommander always uses current state
   const voiceActionRef = useRef(handleVoiceAction);
   useEffect(() => {
     voiceActionRef.current = handleVoiceAction;
@@ -621,7 +616,7 @@ export default function App() {
       {/* Top TV Navigation Bar */}
       <header
         id="app-header"
-        className={`w-full max-w-full overflow-hidden border-b sticky top-0 z-30 px-3 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between transition-colors ${
+        className={`w-full max-w-full overflow-hidden border-b sticky top-0 z-30 px-3 sm:px-8 py-2 sm:py-3 flex items-center justify-between transition-colors ${
           isDark
             ? "border-neutral-800/80 bg-neutral-900/80 backdrop-blur-xl"
             : "border-neutral-200/80 bg-white/85 backdrop-blur-xl shadow-sm"
@@ -717,7 +712,15 @@ export default function App() {
                 ? "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700"
                 : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-300"
             }`}
-            title={isFullscreen ? "Wyłącz pełny ekran" : "Pełny ekran TV"}
+            title={
+              isFullscreen
+                ? language === "pl"
+                  ? "Wyłącz pełny ekran"
+                  : "Exit Fullscreen"
+                : language === "pl"
+                  ? "Pełny ekran TV"
+                  : "TV Fullscreen"
+            }
           >
             {isFullscreen ? (
               <Minimize2 className="w-4 h-4" />
@@ -740,7 +743,13 @@ export default function App() {
         <div className="flex items-center gap-2 overflow-hidden truncate">
           <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
           <span className="font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
-            {isVoiceListening ? "Voice Ready:" : "Głos:"}
+            {isVoiceListening
+              ? language === "pl"
+                ? "Głos gotowy:"
+                : "Voice Ready:"
+              : language === "pl"
+                ? "Głos:"
+                : "Voice:"}
           </span>
           <span className="truncate opacity-90">
             {isVoiceListening ? t.voiceHintBar : t.voiceMicMutedHint}
@@ -754,12 +763,20 @@ export default function App() {
             {isVoiceListening ? (
               <>
                 <Mic className="w-3 h-3 text-rose-500 animate-pulse" />
-                <span>Odsłuch aktywny (klawisz V)</span>
+                <span>
+                  {language === "pl"
+                    ? "Odsłuch aktywny (klawisz V)"
+                    : "Voice Active (Key V)"}
+                </span>
               </>
             ) : (
               <>
                 <MicOff className="w-3 h-3" />
-                <span>Włącz odsłuch (klawisz V)</span>
+                <span>
+                  {language === "pl"
+                    ? "Włącz odsłuch (klawisz V)"
+                    : "Enable Voice (Key V)"}
+                </span>
               </>
             )}
           </button>
@@ -788,7 +805,9 @@ export default function App() {
             className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow transition-colors shrink-0"
           >
             <PlayCircle className="w-3.5 h-3.5" />
-            <span>Wznów (Start)</span>
+            <span>
+              {language === "pl" ? "Wznów (Start)" : "Resume (Start)"}
+            </span>
           </button>
         </div>
       )}
@@ -796,7 +815,7 @@ export default function App() {
       {/* Main TV / Mobile Dashboard Canvas */}
       <main
         id="app-main-content"
-        className="flex-1 w-full max-w-7xl mx-auto px-3 py-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 overflow-x-hidden"
+        className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 flex flex-col gap-3 sm:gap-6 overflow-x-hidden"
       >
         <ExerciseSelector
           currentExercise={currentExercise}
@@ -815,9 +834,9 @@ export default function App() {
           theme={theme}
         />
 
-        {/* Split Screen Stage */}
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 items-stretch min-h-[440px] sm:min-h-[500px] w-full max-w-full overflow-hidden">
-          <div className="order-1 lg:order-2 lg:col-span-7 h-full min-h-[360px] sm:min-h-[420px] w-full max-w-full overflow-hidden">
+        {/* Split Screen Stage — compact on mobile, side-by-side on desktop */}
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-6 items-stretch w-full max-w-full">
+          <div className="order-1 lg:order-2 lg:col-span-7 w-full max-w-full flex flex-col">
             <PoseCamera
               onPoseDetected={handlePoseDetected}
               formQuality={metrics.formQuality}
@@ -836,7 +855,7 @@ export default function App() {
             />
           </div>
 
-          <div className="order-2 lg:order-1 lg:col-span-5 h-full w-full max-w-full overflow-hidden">
+          <div className="order-2 lg:order-1 lg:col-span-5 w-full max-w-full flex flex-col">
             <VirtualCoachGuide
               exercise={currentExercise}
               stage={metrics.stage}
