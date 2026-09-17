@@ -10,29 +10,86 @@ interface VirtualCoachGuideProps {
   theme: ThemeMode;
 }
 
-// Map machine stages to human-readable Polish and English descriptions
+// Map machine & human stages bi-directionally between Polish and English
 function formatStageName(stage: string, lang: Language): string {
-  const normalized = (stage || "").toUpperCase().trim();
+  if (!stage) {
+    return lang === "pl" ? "Pozycja stojąca" : "Standing Position";
+  }
 
-  const stageTranslations: Record<string, { pl: string; en: string }> = {
+  const raw = stage
+    .toUpperCase()
+    .trim()
+    .replace(/[\s_-]+/g, "_");
+
+  const stageMap: Record<string, { pl: string; en: string }> = {
     RIGHT_UP: { pl: "Prawe kolano w górze", en: "Right Knee Up" },
     LEFT_UP: { pl: "Lewe kolano w górze", en: "Left Knee Up" },
-    STANDING: { pl: "Pozycja wyprostowana", en: "Standing Upright" },
-    DOWN: { pl: "Dół (pełne ugięcie)", en: "Down (Full Flex)" },
+    STANDING: { pl: "Pozycja stojąca", en: "Standing Position" },
+    STANIE: { pl: "Pozycja stojąca", en: "Standing Position" },
+    POZYCJA_STOJACA: { pl: "Pozycja stojąca", en: "Standing Position" },
+    STANDING_POSTURE: { pl: "Pozycja stojąca", en: "Standing Position" },
+    DOWN: { pl: "Dół (ugięcie)", en: "Down (Flexion)" },
+    DOL: { pl: "Dół (ugięcie)", en: "Down (Flexion)" },
     UP: { pl: "Góra (wyprost)", en: "Up (Extension)" },
+    GORA: { pl: "Góra (wyprost)", en: "Up (Extension)" },
     BOTTOM: { pl: "Głęboki przysiad", en: "Deep Squat" },
     HOLD: { pl: "Utrzymanie pozycji", en: "Hold & Balance" },
     BALANCING: { pl: "Utrzymanie równowagi", en: "Balancing" },
+    ROWNOWAGA: { pl: "Utrzymanie równowagi", en: "Balancing" },
     PEAK: { pl: "Szczyt wznosu", en: "Peak Elevation" },
+    SZCZYT: { pl: "Szczyt wznosu", en: "Peak Elevation" },
     RAISED: { pl: "Ramiona uniesione", en: "Arms Raised" },
+    WZNOS: { pl: "Ramiona uniesione", en: "Arms Raised" },
     READY: { pl: "Gotowy do startu", en: "Ready to Start" },
+    GOTOWY: { pl: "Gotowy do startu", en: "Ready to Start" },
+    OPEN: { pl: "Rozkrok i ramiona w górze", en: "Arms & Legs Open" },
+    CLOSED: { pl: "Pozycja zwarta", en: "Starting Position" },
   };
 
-  if (stageTranslations[normalized]) {
-    return stageTranslations[normalized][lang];
+  if (stageMap[raw]) {
+    return stageMap[raw][lang];
   }
 
   return stage;
+}
+
+// Biomechanically accurate target angle descriptions per exercise
+function getTargetAngleLabel(exerciseId: string, lang: Language): string {
+  switch (exerciseId) {
+    case "squats":
+      return lang === "pl"
+        ? "Kluczowy kąt kolan: ≤ 90° (głęboki przysiad)"
+        : "Target knee angle: ≤ 90° (deep squat)";
+    case "jumping_jacks":
+      return lang === "pl"
+        ? "Odwiedzenie ramion: > 140° (pełny zakres)"
+        : "Arm abduction angle: > 140° (full extension)";
+    case "high_knees":
+      return lang === "pl"
+        ? "Wysokość kolan: poziom bioder (kąt ~90°)"
+        : "Knee lift height: hip level (~90°)";
+    case "tree_pose":
+      return lang === "pl"
+        ? "Stabilność środka ciężkości (odchylenie < 8%)"
+        : "Center-of-mass stability (drift < 8%)";
+    case "arm_raises":
+      return lang === "pl"
+        ? "Wznos ramion: kąt 90° (symetria ±5°)"
+        : "Lateral abduction: 90° (±5° symmetry)";
+    default:
+      return lang === "pl"
+        ? "Kluczowy kąt docelowy: 90° (lub pełny wyprost)"
+        : "Target joint angle: 90° (or full extension)";
+  }
+}
+
+function getCategoryLabel(category: string, lang: Language): string {
+  const cat = (category || "").toLowerCase();
+  if (cat === "strength") return lang === "pl" ? "SIŁA" : "STRENGTH";
+  if (cat === "cardio") return "CARDIO";
+  if (cat === "balance") return lang === "pl" ? "RÓWNOWAGA" : "BALANCE";
+  if (cat === "mobility") return lang === "pl" ? "MOBILNOŚĆ" : "MOBILITY";
+  return category.toUpperCase();
 }
 
 export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
@@ -48,15 +105,17 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
 
   const exerciseName: string = exTrans?.name || exercise.name;
   const exerciseDesc: string = exTrans?.description || exercise.description;
-  const cuesList: string[] = exTrans?.cues || [];
+  const cuesList: string[] = exTrans?.cues || (exercise as any).cues || [];
   const musclesList: string[] =
     exTrans?.muscles || exercise.targetMuscles || [];
   const formattedStage = formatStageName(stage, lang);
+  const targetAngleText = getTargetAngleLabel(exercise.id, lang);
+  const categoryBadge = getCategoryLabel(exercise.category, lang);
 
   return (
     <div
       id="virtual-coach-guide"
-      className={`h-full rounded-2xl border p-5 flex flex-col justify-between transition-colors shadow-sm ${
+      className={`h-full rounded-2xl border p-4 sm:p-5 flex flex-col justify-between transition-colors shadow-sm ${
         isDark
           ? "bg-neutral-900 border-neutral-800 text-neutral-100"
           : "bg-white border-neutral-200 text-neutral-900"
@@ -66,7 +125,7 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
         {/* Category & Difficulty Badge */}
         <div className="flex items-center justify-between mb-3">
           <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-            {exercise.category.toUpperCase()}
+            {categoryBadge}
           </span>
           <span
             className={`text-xs font-medium ${isDark ? "text-neutral-400" : "text-neutral-500"}`}
@@ -90,7 +149,7 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
         {/* Motion Reference & Animated Stick Guide */}
         <div
           id="stickman-guide-canvas"
-          className={`relative rounded-xl border p-4 mb-4 flex flex-col items-center justify-center overflow-hidden ${
+          className={`relative rounded-xl border p-3 sm:p-4 mb-4 flex flex-col items-center justify-center overflow-hidden ${
             isDark
               ? "bg-neutral-950 border-neutral-800"
               : "bg-neutral-50 border-neutral-200"
@@ -107,7 +166,7 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
           </div>
 
           {/* Biomechanical Silhouette Graphic */}
-          <div className="h-32 w-full flex items-center justify-center relative py-2">
+          <div className="h-28 sm:h-32 w-full flex items-center justify-center relative py-2">
             <svg viewBox="0 0 100 120" className="h-full drop-shadow-md">
               {/* Head */}
               <circle
@@ -346,10 +405,8 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
             </svg>
           </div>
 
-          <span className="text-[11px] font-medium text-neutral-400 mt-1">
-            {lang === "pl"
-              ? "Kluczowy kąt docelowy: 90° (lub pełny wyprost)"
-              : "Target joint angle: 90° (or full extension)"}
+          <span className="text-[11px] font-medium text-neutral-400 mt-1 text-center">
+            {targetAngleText}
           </span>
         </div>
 
