@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
-import { setTvFocus, handleModalFocusTrap } from "../utils/tvNavigation";
+import { setTvFocus } from "../utils/tvNavigation";
 
 interface WorkoutSummaryModalProps {
   exercise: ExerciseDefinition;
@@ -82,30 +82,8 @@ export const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({
       }
     }, 50);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Obsługa klawisza Wstecz / Escape na pilocie Fire TV
-      if (
-        e.key === "Escape" ||
-        e.key === "GoBack" ||
-        (e as any).keyCode === 10009
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (onClose) onClose();
-        return;
-      }
-
-      // Focus Trap - Tab / Shift+Tab nie mogą opuścić modala
-      if (e.key === "Tab" && modalCardRef.current) {
-        handleModalFocusTrap(e, modalCardRef.current);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown, true);
-
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("keydown", handleKeyDown, true);
       if (
         previouslyFocusedElement &&
         typeof previouslyFocusedElement.focus === "function"
@@ -113,7 +91,7 @@ export const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({
         setTvFocus(previouslyFocusedElement);
       }
     };
-  }, [onClose]);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

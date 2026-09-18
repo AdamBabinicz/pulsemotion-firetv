@@ -21,9 +21,11 @@ import { Language, ThemeMode, translations } from "./data/translations";
 import {
   findNextSpatialElement,
   getFocusableElements,
+  getTvActionFromEvent,
   getTvDirectionFromEvent,
   handleModalFocusTrap,
   setTvFocus,
+  TvActionKey,
   TvDirection,
 } from "./utils/tvNavigation";
 
@@ -704,18 +706,12 @@ export default function App() {
         return;
       }
 
-      const keyCode = (e as any).keyCode;
+      const tvAction = getTvActionFromEvent(e);
 
-      // 1. Fire TV Remote BACK button (Escape / Backspace / BrowserBack / KeyCode 4 or 27)
+      // 1. Fire TV Remote BACK button (Escape / Backspace / BrowserBack / KeyCode 4, 27, 10009)
       // Amazon Fire TV Guidelines: Back button MUST navigate back in navigation hierarchy:
       // Modals -> Summary -> Fullscreen -> Active Workout to Pause -> Exit/Root
-      if (
-        e.key === "Escape" ||
-        e.key === "Backspace" ||
-        e.key === "BrowserBack" ||
-        keyCode === 27 ||
-        keyCode === 4
-      ) {
+      if (tvAction === TvActionKey.BACK) {
         if (isPrivacyOpen || isTermsOpen || isCookieSettingsOpen) {
           e.preventDefault();
           setIsPrivacyOpen(false);
@@ -757,7 +753,7 @@ export default function App() {
       // 179 & 85 = KEYCODE_MEDIA_PLAY_PAUSE (toggle)
       // 126 = KEYCODE_MEDIA_PLAY (play)
       // 127 = KEYCODE_MEDIA_PAUSE / 86 = KEYCODE_MEDIA_STOP (pause/stop)
-      if (e.key === "MediaPlayPause" || keyCode === 179 || keyCode === 85) {
+      if (tvAction === TvActionKey.PLAY_PAUSE) {
         e.preventDefault();
         if (
           isCompleted ||
@@ -770,22 +766,19 @@ export default function App() {
         return;
       }
 
-      if (e.key === "MediaPlay" || keyCode === 126) {
+      if (tvAction === TvActionKey.PLAY) {
         e.preventDefault();
         setIsPaused(false);
         return;
       }
 
-      if (
-        e.key === "MediaPause" ||
-        e.key === "MediaStop" ||
-        keyCode === 127 ||
-        keyCode === 86
-      ) {
+      if (tvAction === TvActionKey.PAUSE) {
         e.preventDefault();
         setIsPaused(true);
         return;
       }
+
+      const keyCode = (e as any).keyCode;
 
       if (
         e.key === "MediaTrackNext" ||
@@ -850,13 +843,7 @@ export default function App() {
       }
 
       // 5. Enter / Space / Fire TV Center Select button
-      if (
-        e.key === " " ||
-        e.key === "Enter" ||
-        keyCode === 13 ||
-        keyCode === 66 ||
-        keyCode === 23
-      ) {
+      if (tvAction === TvActionKey.SELECT) {
         const activeElement = document.activeElement as HTMLElement | null;
         if (
           activeElement &&

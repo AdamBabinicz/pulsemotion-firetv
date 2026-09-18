@@ -14,12 +14,14 @@ export enum TvActionKey {
   SELECT = "SELECT",
   BACK = "BACK",
   PLAY_PAUSE = "PLAY_PAUSE",
+  PLAY = "PLAY",
+  PAUSE = "PAUSE",
 }
 
 /**
- * Standardowe kody klawiszy Fire TV Silk Browser & WebView
+ * Standardowe mapowanie nazw klawiszy (KeyboardEvent.key) na kierunki i akcje Fire TV
  */
-export const TV_KEY_MAP = {
+export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
   // Kierunki D-pad
   ArrowUp: TvDirection.UP,
   Up: TvDirection.UP,
@@ -39,49 +41,79 @@ export const TV_KEY_MAP = {
   Esc: TvActionKey.BACK,
   Backspace: TvActionKey.BACK,
   BrowserBack: TvActionKey.BACK,
+  GoBack: TvActionKey.BACK,
 
-  // Klawisze multimedialne pilota Fire TV
+  // Klawisze multimedialne pilota Fire TV / Android
   MediaPlayPause: TvActionKey.PLAY_PAUSE,
-  MediaPlay: TvActionKey.PLAY_PAUSE,
-  MediaPause: TvActionKey.PLAY_PAUSE,
+  MediaPlay: TvActionKey.PLAY,
+  MediaPause: TvActionKey.PAUSE,
+  MediaStop: TvActionKey.PAUSE,
+} as const;
+
+/**
+ * Numeryczne kody klawiszy (KeyboardEvent.keyCode / Android KeyEvent) dla Fire TV / WebView
+ */
+export const TV_KEYCODE_MAP: Record<number, TvDirection | TvActionKey> = {
+  // D-pad
+  38: TvDirection.UP, // ArrowUp
+  19: TvDirection.UP, // Android KEYCODE_DPAD_UP
+  40: TvDirection.DOWN, // ArrowDown
+  20: TvDirection.DOWN, // Android KEYCODE_DPAD_DOWN
+  37: TvDirection.LEFT, // ArrowLeft
+  21: TvDirection.LEFT, // Android KEYCODE_DPAD_LEFT
+  39: TvDirection.RIGHT, // ArrowRight
+  22: TvDirection.RIGHT, // Android KEYCODE_DPAD_RIGHT
+
+  // Select / Center
+  13: TvActionKey.SELECT, // Enter
+  66: TvActionKey.SELECT, // Android KEYCODE_ENTER
+  23: TvActionKey.SELECT, // Android KEYCODE_DPAD_CENTER
+
+  // Back
+  27: TvActionKey.BACK, // Escape
+  4: TvActionKey.BACK, // Android KEYCODE_BACK
+  10009: TvActionKey.BACK, // Smart TV Return
+
+  // Media
+  179: TvActionKey.PLAY_PAUSE, // Fire TV Play/Pause
+  85: TvActionKey.PLAY_PAUSE, // Android KEYCODE_MEDIA_PLAY_PAUSE
+  126: TvActionKey.PLAY, // Android KEYCODE_MEDIA_PLAY
+  127: TvActionKey.PAUSE, // Android KEYCODE_MEDIA_PAUSE
+  86: TvActionKey.PAUSE, // Android KEYCODE_MEDIA_STOP
 } as const;
 
 /**
  * Pobiera kierunek nawigacji przestrzennej ze zdarzenia klawiatury pilota
  */
 export function getTvDirectionFromEvent(e: KeyboardEvent): TvDirection | null {
-  const keyCode = (e as any).keyCode;
-  if (
-    e.key === "ArrowUp" ||
-    e.key === "Up" ||
-    keyCode === 38 ||
-    keyCode === 19
-  ) {
-    return TvDirection.UP;
+  const byKey = TV_KEY_MAP[e.key];
+  if (byKey && Object.values(TvDirection).includes(byKey as TvDirection)) {
+    return byKey as TvDirection;
   }
-  if (
-    e.key === "ArrowDown" ||
-    e.key === "Down" ||
-    keyCode === 40 ||
-    keyCode === 20
-  ) {
-    return TvDirection.DOWN;
+  const keyCode = (e as any).keyCode as number | undefined;
+  if (keyCode !== undefined) {
+    const byCode = TV_KEYCODE_MAP[keyCode];
+    if (byCode && Object.values(TvDirection).includes(byCode as TvDirection)) {
+      return byCode as TvDirection;
+    }
   }
-  if (
-    e.key === "ArrowLeft" ||
-    e.key === "Left" ||
-    keyCode === 37 ||
-    keyCode === 21
-  ) {
-    return TvDirection.LEFT;
+  return null;
+}
+
+/**
+ * Pobiera akcję pilota ze zdarzenia klawiatury (Back, Select, Play, Pause, Play/Pause)
+ */
+export function getTvActionFromEvent(e: KeyboardEvent): TvActionKey | null {
+  const byKey = TV_KEY_MAP[e.key];
+  if (byKey && Object.values(TvActionKey).includes(byKey as TvActionKey)) {
+    return byKey as TvActionKey;
   }
-  if (
-    e.key === "ArrowRight" ||
-    e.key === "Right" ||
-    keyCode === 39 ||
-    keyCode === 22
-  ) {
-    return TvDirection.RIGHT;
+  const keyCode = (e as any).keyCode as number | undefined;
+  if (keyCode !== undefined) {
+    const byCode = TV_KEYCODE_MAP[keyCode];
+    if (byCode && Object.values(TvActionKey).includes(byCode as TvActionKey)) {
+      return byCode as TvActionKey;
+    }
   }
   return null;
 }
