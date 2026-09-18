@@ -138,15 +138,17 @@ export const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
   ) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
+      e.stopPropagation();
       if (currentControl === "reset") {
         const soundBtn = document.getElementById("btn-toggle-sound");
         if (soundBtn) setTvFocus(soundBtn);
       } else if (currentControl === "sound" && onToggleWakeLock) {
-        const wakeLockBtn = document.getElementById("btn-toggle-wake-lock");
+        const wakeLockBtn = document.getElementById("btn-hud-wakelock");
         if (wakeLockBtn) setTvFocus(wakeLockBtn);
       }
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
+      e.stopPropagation();
       if (currentControl === "wakelock") {
         const soundBtn = document.getElementById("btn-toggle-sound");
         if (soundBtn) setTvFocus(soundBtn);
@@ -156,20 +158,22 @@ export const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
       }
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      // Nawigacja w górę do selektora ćwiczeń
+      e.stopPropagation();
+      // Nawigacja w górę do aktywnej karty selektora ćwiczeń
       const activeExerciseCard = document.querySelector<HTMLElement>(
-        '[data-tv-zone="exercise-carousel"][data-tv-selected="true"], [data-tv-zone="exercise-carousel"]',
+        '#exercise-selector-container button[aria-selected="true"], [data-tv-zone="exercise-selector"] button[data-tv-focusable="true"]',
       );
       if (activeExerciseCard) {
         setTvFocus(activeExerciseCard);
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
+      e.stopPropagation();
       // Nawigacja w dół do kontrolek kamery
-      const cameraToggleBtn = document.getElementById("btn-toggle-camera");
-      const simulatorToggleBtn = document.getElementById(
-        "btn-toggle-simulator",
+      const cameraToggleBtn = document.getElementById(
+        "btn-toggle-camera-power",
       );
+      const simulatorToggleBtn = document.getElementById("btn-toggle-demo");
       if (cameraToggleBtn) {
         setTvFocus(cameraToggleBtn);
       } else if (simulatorToggleBtn) {
@@ -335,7 +339,7 @@ export const WorkoutHUD: React.FC<WorkoutHUDProps> = ({
           {/* Przycisk: Nie wygaszaj ekranu (Screen Wake Lock) */}
           {onToggleWakeLock && (
             <button
-              id="btn-toggle-wake-lock"
+              id="btn-hud-wakelock"
               type="button"
               tabIndex={0}
               data-tv-focusable="true"

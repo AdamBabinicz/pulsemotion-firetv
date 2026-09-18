@@ -79,28 +79,31 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
   ) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
+      e.stopPropagation();
       const nextIndex = (currentIndex + 1) % EXERCISES.length;
       const nextExercise = EXERCISES[nextIndex];
-      onSelect(nextExercise);
       const nextEl = document.getElementById(`exercise-tab-${nextExercise.id}`);
       if (nextEl) setTvFocus(nextEl);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
+      e.stopPropagation();
       const prevIndex =
         (currentIndex - 1 + EXERCISES.length) % EXERCISES.length;
       const prevExercise = EXERCISES[prevIndex];
-      onSelect(prevExercise);
       const prevEl = document.getElementById(`exercise-tab-${prevExercise.id}`);
       if (prevEl) setTvFocus(prevEl);
     } else if (e.key === "ArrowUp") {
-      // Skocz w górę do najbliższego elementu kontrolnego (np. aparat/symulator/header)
+      e.preventDefault();
+      e.stopPropagation();
+      // Skocz w górę do najbliższego elementu kontrolnego w nagłówku
       const currentTarget = e.currentTarget;
       const upTarget = findNextSpatialElement(currentTarget, TvDirection.UP);
       if (upTarget) {
-        e.preventDefault();
         setTvFocus(upTarget);
       }
     } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      e.stopPropagation();
       // Skocz w dół do akcji treningu / HUD / stopki
       const currentTarget = e.currentTarget;
       const downTarget = findNextSpatialElement(
@@ -108,7 +111,6 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
         TvDirection.DOWN,
       );
       if (downTarget) {
-        e.preventDefault();
         setTvFocus(downTarget);
       }
     }
@@ -116,6 +118,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
 
   return (
     <div
+      id="exercise-selector-container"
       className="w-full flex flex-col gap-2"
       data-tv-zone="exercise-selector"
       role="region"
@@ -182,6 +185,7 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
             <button
               key={ex.id}
               id={`exercise-tab-${ex.id}`}
+              data-exercise-id={ex.id}
               role="tab"
               aria-selected={isSelected}
               tabIndex={isSelected ? 0 : -1}

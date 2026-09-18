@@ -222,6 +222,13 @@ export function handleModalFocusTrap(
   const lastFocusable = focusables[focusables.length - 1];
   const activeElement = document.activeElement as HTMLElement | null;
 
+  // Jeśli fokus jest poza oknem modalnym, przenieś go na pierwszy element modalu
+  if (!activeElement || !modalContainer.contains(activeElement)) {
+    event.preventDefault();
+    setTvFocus(firstFocusable);
+    return true;
+  }
+
   // Sprawdź czy naciśnięto klawisze nawigacji w modalu
   const isNext =
     (event.key === "Tab" && !event.shiftKey) ||

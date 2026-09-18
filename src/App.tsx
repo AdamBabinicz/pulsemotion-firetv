@@ -21,6 +21,7 @@ import { Language, ThemeMode, translations } from "./data/translations";
 import {
   findNextSpatialElement,
   getFocusableElements,
+  handleModalFocusTrap,
   setTvFocus,
   TvDirection,
 } from "./utils/tvNavigation";
@@ -705,6 +706,7 @@ export default function App() {
       const keyCode = (e as any).keyCode;
 
       // 1. Fire TV Remote BACK button (Escape / Backspace / BrowserBack / KeyCode 4 or 27)
+      // Amazon Fire TV Guidelines: Back button MUST navigate back in navigation hierarchy, never pause playback!
       if (
         e.key === "Escape" ||
         e.key === "Backspace" ||
@@ -717,25 +719,34 @@ export default function App() {
           setIsPrivacyOpen(false);
           setIsTermsOpen(false);
           setIsCookieSettingsOpen(false);
-        } else if (isCompleted) {
+          return;
+        }
+        if (isCompleted) {
           e.preventDefault();
           setIsCompleted(false);
-          setIsPaused(true);
-        } else {
-          e.preventDefault();
-          setIsPaused((prev) => !prev);
+          return;
         }
+        if (document.fullscreenElement) {
+          e.preventDefault();
+          document.exitFullscreen().catch(() => {});
+          return;
+        }
+        // At top-level root, do NOT hijack Back key for pause (allows OS/browser back behavior)
         return;
       }
 
-      // 2. Fire TV Dedicated Remote Media Keys (Play/Pause, Fast Forward, Rewind)
-      if (
-        e.key === "MediaPlayPause" ||
-        e.key === "MediaPlay" ||
-        e.key === "MediaPause" ||
-        keyCode === 179 ||
-        keyCode === 85
-      ) {
+      // 2. Tab key focus trap inside active modal
+      if (e.key === "Tab") {
+        const activeModal = document.querySelector<HTMLElement>(
+          '#workout-summary-card, #privacy-policy-modal, #terms-modal, #cookie-settings-modal, #cookie-consent-banner, [role="dialog"]',
+        );
+        if (activeModal && handleModalFocusTrap(e, activeModal)) {
+          return;
+        }
+      }
+
+      // 3. Fire TV Dedicated Remote Media Keys (Play/Pause, Fast Forward, Rewind)
+      if (e.key === "MediaPlayPause" || keyCode === 179) {
         e.preventDefault();
         if (
           isCompleted ||
@@ -745,6 +756,18 @@ export default function App() {
         } else {
           setIsPaused((prev) => !prev);
         }
+        return;
+      }
+
+      if (e.key === "MediaPlay" || keyCode === 85) {
+        e.preventDefault();
+        setIsPaused(false);
+        return;
+      }
+
+      if (e.key === "MediaPause" || keyCode === 86) {
+        e.preventDefault();
+        setIsPaused(true);
         return;
       }
 
@@ -768,7 +791,7 @@ export default function App() {
         return;
       }
 
-      // 3. Fire TV D-pad Spatial Navigation (ArrowUp, ArrowDown, ArrowLeft, ArrowRight)
+      // 4. Fire TV D-pad Spatial Navigation (ArrowUp, ArrowDown, ArrowLeft, ArrowRight)
       let direction: TvDirection | null = null;
       if (
         e.key === "ArrowUp" ||
@@ -805,15 +828,19 @@ export default function App() {
 
         // Scope to active modal if open, otherwise full document
         const activeModal = document.querySelector<HTMLElement>(
-          "#workout-summary-modal, #privacy-modal-card, #terms-modal-card, #cookie-consent-banner",
+          '#workout-summary-card, #privacy-policy-modal, #terms-modal, #cookie-settings-modal, #cookie-consent-banner, [role="dialog"]',
         );
 
+        const scopeContainer = activeModal || document;
         const currentActive = document.activeElement as HTMLElement | null;
 
-        // If no element or body is currently focused, focus the primary entry element
-        if (!currentActive || currentActive === document.body) {
-          const container = activeModal || document;
-          const focusables = getFocusableElements(container);
+        // If no element or active element is outside current scope container, focus first element in scope
+        if (
+          !currentActive ||
+          currentActive === document.body ||
+          !scopeContainer.contains(currentActive)
+        ) {
+          const focusables = getFocusableElements(scopeContainer);
           if (focusables.length > 0) {
             setTvFocus(focusables[0]);
           }
@@ -821,7 +848,6 @@ export default function App() {
         }
 
         // Navigate spatially to nearest neighbor in requested 2D direction
-        const scopeContainer = activeModal || document;
         const nextElement = findNextSpatialElement(
           currentActive,
           direction,
@@ -829,11 +855,14 @@ export default function App() {
         );
         if (nextElement) {
           setTvFocus(nextElement);
+        } else if (activeModal) {
+          // Boundary reached inside modal: wrap around using focus trap
+          handleModalFocusTrap(e, activeModal);
         }
         return;
       }
 
-      // 4. Enter / Space / Fire TV Center Select button
+      // 5. Enter / Space / Fire TV Center Select button
       if (
         e.key === " " ||
         e.key === "Enter" ||
@@ -942,12 +971,14 @@ export default function App() {
     handlePrevExercise,
   ]);
 
-  // Amazon 10-Foot standard: Initial Focus setup on app mount
+  // Amazon 10-Foot standard: Initial Focus setup on app mount (Zero Phantom State)
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const initialTarget = document.querySelector<HTMLElement>(
-        '[data-exercise-id="squats"], #exercise-selector-container button',
-      );
+      const initialTarget =
+        document.querySelector<HTMLElement>(
+          '#exercise-tab-squats, [data-exercise-id="squats"], #exercise-selector-container button[data-tv-focusable="true"]',
+        ) ??
+        document.querySelector<HTMLElement>('button[data-tv-focusable="true"]');
       if (initialTarget) {
         setTvFocus(initialTarget);
       }
@@ -1023,7 +1054,7 @@ export default function App() {
 
           {/* Przycisk: Nie wygaszaj ekranu (Screen Wake Lock dla smartfona) */}
           <button
-            id="btn-toggle-wakelock"
+            id="btn-header-wakelock"
             type="button"
             onClick={handleToggleWakeLock}
             className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border font-bold text-xs transition-all focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
