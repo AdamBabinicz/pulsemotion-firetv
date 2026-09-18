@@ -6,7 +6,7 @@
     <title>PulseMotion TV – AI Pose Coach for Amazon Fire TV!</title>
     <meta
       name="description"
-      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -19,6 +19,8 @@
       z 'self' — patrz public/mediapipe/ i locateFile w PoseCamera.tsx.
     -->
     <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#10b981" />
 
     <!-- Open Graph (Facebook, LinkedIn, Discord, Slack) -->
     <meta property="og:type" content="website" />
@@ -30,7 +32,7 @@
     />
     <meta
       property="og:description"
-      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
     <meta
       property="og:image"
@@ -53,7 +55,7 @@
     />
     <meta
       name="twitter:description"
-      content="AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home."
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
     <meta
       name="twitter:image"
@@ -67,7 +69,7 @@
         "@type": "WebApplication",
         "name": "PulseMotion TV",
         "url": "https://pulsemotion-firetv.netlify.app/",
-        "description": "AI fitness coach for Amazon Fire TV: 60 FPS on-device pose tracking, hands-free voice control, live rep counter, and zero cloud streaming in your home.",
+        "description": "AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming.",
         "applicationCategory": "HealthApplication",
         "operatingSystem": "Amazon Fire OS, Android TV, Modern Web Browsers",
         "offers": {
@@ -83,7 +85,7 @@
         "browserRequirements": "Requires WebAssembly support",
         "featureList": [
           "100% On-device MediaPipe Pose estimation",
-          "60 FPS real-time joint angle calculation",
+          "Real-time on-device joint angle calculation",
           "Hands-free multi-modal voice navigation",
           "Fire TV remote D-Pad spatial navigation",
           "Zero cloud video streaming privacy"
@@ -100,5 +102,6 @@
   >
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
 </html>

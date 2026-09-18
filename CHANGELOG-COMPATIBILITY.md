@@ -1,6 +1,9 @@
 # CHANGELOG — Zgodność z wymaganiami jury (Build, Ship, Shape: Amazon Developer Hackathon — Fire TV Track)
 
-Data: 2026-09-18 · Baza: commit `ab6eee5` (HEAD z GitHuba) · Zmiany: 4 pliki kodu + 1 nowy test
+Data: 2026-09-18 · Baza: `4007905` (poprzedni HEAD, z którego powstała zmiana `2545a5c`) · Zmiany: 4 pliki kodu + 1 nowy test
+
+> **English summary:** this is an author-facing Polish change log. The English-language mapping of
+> every hackathon requirement to this repository is in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
 
 ## Co naprawiono (i dlaczego)
 
@@ -90,3 +93,22 @@ NIE wystarcza — od Androida 6 (Fire OS 5+) zgoda musi zostać wywołana w runt
 1. **Wideo demo** — scena aplikacji na Fire TV / symulatorze Vega (wymóg binarny regulaminu).
 2. **Push do GitHuba** — zaaplikuj paczkę, commit + push (jury sprawdza publiczne repo).
 3. **Pola formularza Devpost** — feedback per narzędzie, track, wyjaśnienie pre-existing, friction log.
+
+---
+
+## 2026-09-18 (druga runda) — ujednolicenie języka wydajności i mini challenge'ów
+
+1. **Tabela Performance Budget** — kolumna `Measured on Fire TV Stick 4K` → `Dev-phase measurement ¹`,
+   z przypisem: pomiary z fazy developerskiej na Fire TV Stick 4K Max, repo **nie ma benchmark harnessu**,
+   wyniki **nie są odtwarzane w CI** i **nie są gwarancją**. Jedyną liczbą wydajności, jaką aplikacja
+   deklaruje o sobie w runtime, jest live FPS w badge HUD.
+2. **Commit table** — wiersz `09-16` mówił „verified Fire TV hardware metrics"; zastąpione przez
+   „dev-phase hardware measurements (no benchmark harness, not reproduced in CI)".
+3. **`SUBMISSION-CHECKLIST.md`** — nowy plik: mapowanie każdego wymagania regulaminu (Fire TV Track,
+   repo, wideo, product feedback, friction log, mini challenge'e, okres zgłoszeń, kryteria oceny)
+   na stan projektu, z dosłownymi cytatami z regulaminu i datą pobrania 2026-09-18.
+4. **Mini challenge'e** — jawne stwierdzenie, że **AWS Builder** i **Open Source** nie są zgłaszane:
+   brak jakiejkolwiek integracji AWS/Kiro Crew w kodzie, a licencja MIT na tym repo nie kwalifikuje
+   do Open Source Mini Challenge (wymagany osobny projekt/contribution obok zgłoszenia głównego).
+5. **`CHANGELOG-COMPATIBILITY.md`** — poprawiona nieaktualna baza `ab6eee5` na realny poprzedni HEAD
+   `4007905`; dodany angielski odnośnik do checklisty (wymóg: materiały submission po angielsku).

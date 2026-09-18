@@ -40,7 +40,7 @@
 
 <br />
 
-[**🚀 Quick Start**](#-quick-start) · [**🏗️ Architecture**](#%EF%B8%8F-architecture) · [**💪 Exercises**](#-exercise-catalog) · [**📺 10-Foot UI**](#-the-10-foot-living-room-ui) · [**🧱 Friction Log**](#-friction-log--amazon-developer-hackathon) · [**🎮 Remote Mapping**](#-remote--keyboard-mapping)
+[**🚀 Quick Start**](#-quick-start) · [**🏗️ Architecture**](#%EF%B8%8F-architecture) · [**💪 Exercises**](#-exercise-catalog) · [**📺 10-Foot UI**](#-the-10-foot-living-room-ui) · [**🧱 Friction Log**](#-friction-log--amazon-developer-hackathon) · [**🎮 Remote Mapping**](#-remote--keyboard-mapping) · [**✅ Submission Checklist**](./SUBMISSION-CHECKLIST.md)
 
 </div>
 
@@ -70,16 +70,23 @@ Full deployment guide: [`firetv/README.md`](./firetv/README.md).
 | Friction log (eligible for **up to 10%** judging bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present |
 | Code repository (public, MIT) | this repo |
 
+> **Mini challenges — deliberately not claimed.** No AWS service or Kiro Crew is used anywhere in this
+> project, so **AWS Builder** is **not** claimed. **Open Source** requires a *separate, additional*
+> contribution (new repo, branch, fork or pull request) alongside the primary-track submission — having
+> this repo public with an MIT license does **not** qualify on its own, so it is **not** claimed either.
+> Both requirements are quoted verbatim in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
+
 ### Updates after the hackathon start (Aug 31, 2026)
 
 The public repo history begins **2026-09-14** — i.e. **after** the Submission Period opened on
-2026-08-31 — so this is a **new** project built for the hackathon. All Fire TV work landed in this window:
+2026-08-31 — so this is a **new** project built for the hackathon. All work landed in this window
+(29 commits on `main`):
 
 | Date (2026) | Commit | What changed |
 | :-- | :-- | :-- |
 | 09-14 | `d7023e7`, `b62f399` | Initial PulseMotion TV release (Fire TV) |
 | 09-15 | `947df1e` | Multi-modal voice freeze, debounce filter, Fire TV docs |
-| 09-16 | `d4b6849` | README with live Netlify app + verified Fire TV hardware metrics |
+| 09-16 | `d4b6849` | README with live Netlify app + dev-phase hardware measurements (no benchmark harness, not reproduced in CI) |
 | 09-17 | `5029f11`…`b84ceaf` | HUD localization, i18n fix, screen wake lock, accessibility |
 | 09-18 | `e436511`…`4007905` | 2D spatial navigation, keycodes 89/90/227/228, runtime CAMERA permission, Fire TV env detection |
 
@@ -103,6 +110,7 @@ The public repo history begins **2026-09-14** — i.e. **after** the Submission 
 - [🌍 Bilingual Experience](#-bilingual-experience)
 - [🎮 Remote & Keyboard Mapping](#-remote--keyboard-mapping)
 - [🧱 Friction Log — Amazon Developer Hackathon](#-friction-log--amazon-developer-hackathon)
+- [✅ Submission Checklist](./SUBMISSION-CHECKLIST.md)
 - [🚀 Quick Start](#-quick-start)
 - [📁 Project Structure](#-project-structure)
 - [🛠️ Scripts Reference](#%EF%B8%8F-scripts-reference)
@@ -374,7 +382,7 @@ sequenceDiagram
 
 ## 📊 Performance Budget
 
-| Stage                                             | Target Budget | Measured on Fire TV Stick 4K | Status |
+| Stage                                             | Target Budget | Dev-phase measurement ¹ | Status |
 | :------------------------------------------------ | ------------: | ---------------------------: | :----: |
 | Camera capture (`getUserMedia` @ 720p)            |        `4 ms` |                     `3.8 ms` |   🟢   |
 | Frame → GPU texture upload                        |        `3 ms` |                     `3.1 ms` |   🟢   |
@@ -387,6 +395,8 @@ sequenceDiagram
 | **Sustained frame rate**                          |  **`60 FPS`** |    `58–60 FPS` *(dev-phase, not reproduced in CI)* |   ⚪   |
 
 > 🟢 **Health metric legend:** `≤ budget` · 🟡 `within 15% of budget` · 🔴 `budget exceeded → auto quality downgrade`
+>
+> ¹ Measured during development on a **Fire TV Stick 4K Max (2nd Gen, 2023)**. The repository ships **no benchmark harness**, so these figures are **not reproduced in CI** and are **not guaranteed**. The one performance number the running app asserts about itself is the live FPS shown in the HUD badge.
 
 ---
 
