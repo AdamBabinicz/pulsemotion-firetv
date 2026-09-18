@@ -18,6 +18,12 @@ import { TvRemoteOverlay } from "./components/TvRemoteOverlay";
 import { VoiceControlBadge } from "./components/VoiceControlBadge";
 import { voiceCommander, VoiceCommandEvent } from "./utils/voiceCommander";
 import { Language, ThemeMode, translations } from "./data/translations";
+import {
+  findNextSpatialElement,
+  getFocusableElements,
+  setTvFocus,
+  TvDirection,
+} from "./utils/tvNavigation";
 
 // Komponenty prawne, cookies i stopka
 import { Footer } from "./components/Footer";
@@ -90,6 +96,7 @@ export default function App() {
   const [isWakeLockSupported, setIsWakeLockSupported] = useState<boolean>(true);
   const wakeLockSentinelRef = useRef<any>(null);
   const shouldKeepAwakeRef = useRef<boolean>(false);
+  const manualWakeLockForcedRef = useRef<boolean>(false);
 
   // Stany otwarcia modali prawnych i cookies
   const [isPrivacyOpen, setIsPrivacyOpen] = useState<boolean>(false);
@@ -219,14 +226,26 @@ export default function App() {
     [language],
   );
 
-  // Przełącznik Wake Lock
+  // Przełącznik Wake Lock (ręczne wymuszenie lub zwolnienie blokady)
   const handleToggleWakeLock = useCallback(async () => {
     if (isWakeLockActive) {
+      manualWakeLockForcedRef.current = false;
       await releaseWakeLock(true);
     } else {
+      manualWakeLockForcedRef.current = true;
       await requestWakeLock(true);
     }
   }, [isWakeLockActive, releaseWakeLock, requestWakeLock]);
+
+  // Amazon Fire TV Energy Management: Wymuś blokadę podczas aktywnego treningu, zwalniaj na pauzie lub po ukończeniu
+  useEffect(() => {
+    const isActivelyTraining = !isPaused && !isCompleted;
+    if (isActivelyTraining) {
+      requestWakeLock(false);
+    } else if (!manualWakeLockForcedRef.current) {
+      releaseWakeLock(false);
+    }
+  }, [isPaused, isCompleted, requestWakeLock, releaseWakeLock]);
 
   // Automatyczne wznawianie blokady ekranu po powrocie do karty/aplikacji (ważne na telefonach!)
   useEffect(() => {
@@ -672,7 +691,7 @@ export default function App() {
     }
   };
 
-  // Keyboard and Fire TV Remote controls (D-pad, Media keys, Back button)
+  // Keyboard and Fire TV Remote controls (D-pad, Media keys, Back button, 2D Spatial Navigation)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept when user is typing inside an input
@@ -706,9 +725,11 @@ export default function App() {
           e.preventDefault();
           setIsPaused((prev) => !prev);
         }
+        return;
       }
-      // 2. Fire TV Remote Play/Pause button
-      else if (
+
+      // 2. Fire TV Dedicated Remote Media Keys (Play/Pause, Fast Forward, Rewind)
+      if (
         e.key === "MediaPlayPause" ||
         e.key === "MediaPlay" ||
         e.key === "MediaPause" ||
@@ -724,48 +745,113 @@ export default function App() {
         } else {
           setIsPaused((prev) => !prev);
         }
+        return;
       }
-      // 3. Fire TV Fast Forward / Next Media key
-      else if (
+
+      if (
         e.key === "MediaTrackNext" ||
         e.key === "MediaFastForward" ||
         keyCode === 228
       ) {
         e.preventDefault();
         handleNextExercise();
+        return;
       }
-      // 4. Fire TV Rewind / Previous Media key
-      else if (
+
+      if (
         e.key === "MediaTrackPrevious" ||
         e.key === "MediaRewind" ||
         keyCode === 227
       ) {
         e.preventDefault();
         handlePrevExercise();
+        return;
       }
-      // 5. Arrow Keys (Direct exercise skip or D-pad)
-      else if (e.key === "ArrowRight") {
-        handleNextExercise();
-      } else if (e.key === "ArrowLeft") {
-        handlePrevExercise();
+
+      // 3. Fire TV D-pad Spatial Navigation (ArrowUp, ArrowDown, ArrowLeft, ArrowRight)
+      let direction: TvDirection | null = null;
+      if (
+        e.key === "ArrowUp" ||
+        e.key === "Up" ||
+        keyCode === 38 ||
+        keyCode === 19
+      ) {
+        direction = TvDirection.UP;
+      } else if (
+        e.key === "ArrowDown" ||
+        e.key === "Down" ||
+        keyCode === 40 ||
+        keyCode === 20
+      ) {
+        direction = TvDirection.DOWN;
+      } else if (
+        e.key === "ArrowLeft" ||
+        e.key === "Left" ||
+        keyCode === 37 ||
+        keyCode === 21
+      ) {
+        direction = TvDirection.LEFT;
+      } else if (
+        e.key === "ArrowRight" ||
+        e.key === "Right" ||
+        keyCode === 39 ||
+        keyCode === 22
+      ) {
+        direction = TvDirection.RIGHT;
       }
-      // 6. Enter / Space / Fire TV Center Select button
-      else if (
+
+      if (direction) {
+        e.preventDefault();
+
+        // Scope to active modal if open, otherwise full document
+        const activeModal = document.querySelector<HTMLElement>(
+          "#workout-summary-modal, #privacy-modal-card, #terms-modal-card, #cookie-consent-banner",
+        );
+
+        const currentActive = document.activeElement as HTMLElement | null;
+
+        // If no element or body is currently focused, focus the primary entry element
+        if (!currentActive || currentActive === document.body) {
+          const container = activeModal || document;
+          const focusables = getFocusableElements(container);
+          if (focusables.length > 0) {
+            setTvFocus(focusables[0]);
+          }
+          return;
+        }
+
+        // Navigate spatially to nearest neighbor in requested 2D direction
+        const scopeContainer = activeModal || document;
+        const nextElement = findNextSpatialElement(
+          currentActive,
+          direction,
+          scopeContainer,
+        );
+        if (nextElement) {
+          setTvFocus(nextElement);
+        }
+        return;
+      }
+
+      // 4. Enter / Space / Fire TV Center Select button
+      if (
         e.key === " " ||
         e.key === "Enter" ||
         keyCode === 13 ||
         keyCode === 66 ||
         keyCode === 23
       ) {
-        // If a specific button or interactive element is focused via D-pad, let the native click happen
-        const activeElement = document.activeElement;
+        const activeElement = document.activeElement as HTMLElement | null;
         if (
           activeElement &&
           activeElement !== document.body &&
           (activeElement.tagName === "BUTTON" ||
             activeElement.getAttribute("role") === "button" ||
-            activeElement.tagName === "A")
+            activeElement.tagName === "A" ||
+            activeElement.tagName === "INPUT")
         ) {
+          activeElement.click();
+          e.preventDefault();
           return;
         }
 
@@ -777,7 +863,10 @@ export default function App() {
         } else {
           handleResetSet();
         }
-      } else if (e.key.toLowerCase() === "m") {
+        return;
+      }
+
+      if (e.key.toLowerCase() === "m") {
         handleToggleMute();
       } else if (e.key.toLowerCase() === "v") {
         handleToggleVoice();
@@ -802,6 +891,69 @@ export default function App() {
     isCookieSettingsOpen,
     currentExercise.targetRepsOrSeconds,
   ]);
+
+  // Media Session API for Fire TV Alexa Voice Remote and system media controls
+  useEffect(() => {
+    if (typeof window === "undefined" || !("mediaSession" in navigator)) {
+      return;
+    }
+
+    try {
+      const exTrans =
+        translations[language].exercises[
+          currentExercise.id as keyof (typeof translations)["pl"]["exercises"]
+        ];
+      const exName = exTrans?.name || currentExercise.name;
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `${exName} (${metrics.reps}/${currentExercise.targetRepsOrSeconds})`,
+        artist: "PulseMotion TV Coach",
+        album: "Fire TV Fitness",
+      });
+
+      navigator.mediaSession.playbackState = isPaused ? "paused" : "playing";
+
+      navigator.mediaSession.setActionHandler("play", () => {
+        setIsPaused(false);
+      });
+
+      navigator.mediaSession.setActionHandler("pause", () => {
+        setIsPaused(true);
+      });
+
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        handleNextExercise();
+      });
+
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        handlePrevExercise();
+      });
+    } catch (err) {
+      console.warn("MediaSession warning:", err);
+    }
+  }, [
+    currentExercise.id,
+    currentExercise.name,
+    currentExercise.targetRepsOrSeconds,
+    metrics.reps,
+    isPaused,
+    language,
+    handleNextExercise,
+    handlePrevExercise,
+  ]);
+
+  // Amazon 10-Foot standard: Initial Focus setup on app mount
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const initialTarget = document.querySelector<HTMLElement>(
+        '[data-exercise-id="squats"], #exercise-selector-container button',
+      );
+      if (initialTarget) {
+        setTvFocus(initialTarget);
+      }
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const isDark = theme === "dark";
 

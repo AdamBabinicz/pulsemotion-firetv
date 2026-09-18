@@ -179,6 +179,11 @@ export function findNextSpatialElement(
 export function setTvFocus(element: HTMLElement | null): boolean {
   if (!element) return false;
 
+  document.querySelectorAll('[data-tv-focused="true"]').forEach((el) => {
+    el.removeAttribute("data-tv-focused");
+  });
+  element.setAttribute("data-tv-focused", "true");
+
   element.focus({ preventScroll: true });
   element.scrollIntoView({
     behavior: "smooth",
