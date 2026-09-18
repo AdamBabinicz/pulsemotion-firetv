@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
-import { setTvFocus } from "../utils/tvNavigation";
+import { setTvFocus, handleModalFocusTrap } from "../utils/tvNavigation";
 
 interface WorkoutSummaryModalProps {
   exercise: ExerciseDefinition;
@@ -97,24 +97,7 @@ export const WorkoutSummaryModal: React.FC<WorkoutSummaryModalProps> = ({
 
       // Focus Trap - Tab / Shift+Tab nie mogą opuścić modala
       if (e.key === "Tab" && modalCardRef.current) {
-        const focusables = Array.from(
-          modalCardRef.current.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), [tabindex="0"]',
-          ),
-        ).filter((el) => el.offsetParent !== null);
-
-        if (focusables.length > 0) {
-          const first = focusables[0];
-          const last = focusables[focusables.length - 1];
-
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            setTvFocus(last);
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            setTvFocus(first);
-          }
-        }
+        handleModalFocusTrap(e, modalCardRef.current);
       }
     };
 

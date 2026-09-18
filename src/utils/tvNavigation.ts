@@ -47,6 +47,46 @@ export const TV_KEY_MAP = {
 } as const;
 
 /**
+ * Pobiera kierunek nawigacji przestrzennej ze zdarzenia klawiatury pilota
+ */
+export function getTvDirectionFromEvent(e: KeyboardEvent): TvDirection | null {
+  const keyCode = (e as any).keyCode;
+  if (
+    e.key === "ArrowUp" ||
+    e.key === "Up" ||
+    keyCode === 38 ||
+    keyCode === 19
+  ) {
+    return TvDirection.UP;
+  }
+  if (
+    e.key === "ArrowDown" ||
+    e.key === "Down" ||
+    keyCode === 40 ||
+    keyCode === 20
+  ) {
+    return TvDirection.DOWN;
+  }
+  if (
+    e.key === "ArrowLeft" ||
+    e.key === "Left" ||
+    keyCode === 37 ||
+    keyCode === 21
+  ) {
+    return TvDirection.LEFT;
+  }
+  if (
+    e.key === "ArrowRight" ||
+    e.key === "Right" ||
+    keyCode === 39 ||
+    keyCode === 22
+  ) {
+    return TvDirection.RIGHT;
+  }
+  return null;
+}
+
+/**
  * Selector elementów interaktywnych kwalifikujących się do fokusu na TV
  */
 export const TV_FOCUSABLE_SELECTOR =

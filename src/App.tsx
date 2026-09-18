@@ -21,6 +21,7 @@ import { Language, ThemeMode, translations } from "./data/translations";
 import {
   findNextSpatialElement,
   getFocusableElements,
+  getTvDirectionFromEvent,
   handleModalFocusTrap,
   setTvFocus,
   TvDirection,
@@ -706,7 +707,8 @@ export default function App() {
       const keyCode = (e as any).keyCode;
 
       // 1. Fire TV Remote BACK button (Escape / Backspace / BrowserBack / KeyCode 4 or 27)
-      // Amazon Fire TV Guidelines: Back button MUST navigate back in navigation hierarchy, never pause playback!
+      // Amazon Fire TV Guidelines: Back button MUST navigate back in navigation hierarchy:
+      // Modals -> Summary -> Fullscreen -> Active Workout to Pause -> Exit/Root
       if (
         e.key === "Escape" ||
         e.key === "Backspace" ||
@@ -731,7 +733,13 @@ export default function App() {
           document.exitFullscreen().catch(() => {});
           return;
         }
-        // At top-level root, do NOT hijack Back key for pause (allows OS/browser back behavior)
+        // Jeśli trening jest w toku, Back przechodzi poziom wyżej do stanu pauzy/gotowości
+        if (!isPaused && !isCompleted) {
+          e.preventDefault();
+          setIsPaused(true);
+          return;
+        }
+        // W stanie pauzy na poziomie głównym pozwól systemowi obsłużyć Back (np. powrót do launchera)
         return;
       }
 
@@ -745,8 +753,11 @@ export default function App() {
         }
       }
 
-      // 3. Fire TV Dedicated Remote Media Keys (Play/Pause, Fast Forward, Rewind)
-      if (e.key === "MediaPlayPause" || keyCode === 179) {
+      // 3. Fire TV Dedicated Remote Media Keys:
+      // 179 & 85 = KEYCODE_MEDIA_PLAY_PAUSE (toggle)
+      // 126 = KEYCODE_MEDIA_PLAY (play)
+      // 127 = KEYCODE_MEDIA_PAUSE / 86 = KEYCODE_MEDIA_STOP (pause/stop)
+      if (e.key === "MediaPlayPause" || keyCode === 179 || keyCode === 85) {
         e.preventDefault();
         if (
           isCompleted ||
@@ -759,13 +770,18 @@ export default function App() {
         return;
       }
 
-      if (e.key === "MediaPlay" || keyCode === 85) {
+      if (e.key === "MediaPlay" || keyCode === 126) {
         e.preventDefault();
         setIsPaused(false);
         return;
       }
 
-      if (e.key === "MediaPause" || keyCode === 86) {
+      if (
+        e.key === "MediaPause" ||
+        e.key === "MediaStop" ||
+        keyCode === 127 ||
+        keyCode === 86
+      ) {
         e.preventDefault();
         setIsPaused(true);
         return;
@@ -792,36 +808,7 @@ export default function App() {
       }
 
       // 4. Fire TV D-pad Spatial Navigation (ArrowUp, ArrowDown, ArrowLeft, ArrowRight)
-      let direction: TvDirection | null = null;
-      if (
-        e.key === "ArrowUp" ||
-        e.key === "Up" ||
-        keyCode === 38 ||
-        keyCode === 19
-      ) {
-        direction = TvDirection.UP;
-      } else if (
-        e.key === "ArrowDown" ||
-        e.key === "Down" ||
-        keyCode === 40 ||
-        keyCode === 20
-      ) {
-        direction = TvDirection.DOWN;
-      } else if (
-        e.key === "ArrowLeft" ||
-        e.key === "Left" ||
-        keyCode === 37 ||
-        keyCode === 21
-      ) {
-        direction = TvDirection.LEFT;
-      } else if (
-        e.key === "ArrowRight" ||
-        e.key === "Right" ||
-        keyCode === 39 ||
-        keyCode === 22
-      ) {
-        direction = TvDirection.RIGHT;
-      }
+      const direction = getTvDirectionFromEvent(e);
 
       if (direction) {
         e.preventDefault();

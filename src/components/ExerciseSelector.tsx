@@ -10,11 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
-import {
-  findNextSpatialElement,
-  TvDirection,
-  setTvFocus,
-} from "../utils/tvNavigation";
+import { setTvFocus } from "../utils/tvNavigation";
 
 interface ExerciseSelectorProps {
   currentExercise: ExerciseDefinition;
@@ -92,28 +88,8 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
       const prevExercise = EXERCISES[prevIndex];
       const prevEl = document.getElementById(`exercise-tab-${prevExercise.id}`);
       if (prevEl) setTvFocus(prevEl);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      e.stopPropagation();
-      // Skocz w górę do najbliższego elementu kontrolnego w nagłówku
-      const currentTarget = e.currentTarget;
-      const upTarget = findNextSpatialElement(currentTarget, TvDirection.UP);
-      if (upTarget) {
-        setTvFocus(upTarget);
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      e.stopPropagation();
-      // Skocz w dół do akcji treningu / HUD / stopki
-      const currentTarget = e.currentTarget;
-      const downTarget = findNextSpatialElement(
-        currentTarget,
-        TvDirection.DOWN,
-      );
-      if (downTarget) {
-        setTvFocus(downTarget);
-      }
     }
+    // ArrowUp oraz ArrowDown przechodzą do centralnego silnika 2D w App.tsx
   };
 
   return (
