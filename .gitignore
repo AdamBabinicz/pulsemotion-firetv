@@ -31,3 +31,5 @@ Thumbs.db
 # Pliki edytorow
 .vscode/
 .idea/
+# npm root lockfile (project uses pnpm)
+package-lock.json

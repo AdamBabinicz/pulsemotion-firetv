@@ -9,7 +9,7 @@
 
 # 🏃‍♂️ PulseMotion TV
 
-### Next-Generation AI Interactive Fitness & Pose Coach for Amazon Fire TV & Silk Browser
+### Next-Generation AI Interactive Fitness & Pose Coach — an HTML5 Fire TV Web App (Fire OS)
 
 **Your living room is the gym. Your Fire TV remote is the controller. On-device pose coaching, real-time feedback, and no cloud video processing.**
 
@@ -30,7 +30,7 @@
 
 [![MediaPipe](https://img.shields.io/badge/Google-MediaPipe%20Pose-00897B?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/mediapipe)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-SIMD%20%2B%20WebGL%202.0-654FF0?style=flat-square&logo=webassembly&logoColor=white)](https://webassembly.org/)
-[![Fire TV](https://img.shields.io/badge/Amazon-Fire%20TV%20%26%20Silk%20Browser-FF9900?style=flat-square&logo=amazonfiretv&logoColor=white)](https://developer.amazon.com/)
+[![Fire TV](https://img.shields.io/badge/Amazon-Fire%20TV%20Web%20App%20%C2%B7%20Fire%20OS%208-FF9900?style=flat-square&logo=amazonfiretv&logoColor=white)](https://developer.amazon.com/)
 [![Web Speech API](https://img.shields.io/badge/Web%20Speech-API-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
 [![Pipeline Latency](https://img.shields.io/badge/Pipeline-design%20target%20%3C%2035%20ms-10B981?style=flat-square)](#-performance-budget)
@@ -49,9 +49,38 @@
 > ### ⚡ TL;DR
 >
 > **PulseMotion TV** turns an Amazon Fire TV Stick into a hands-free, camera-driven personal trainer.
-> Google **MediaPipe Pose** runs **on-device** inside the **Silk Browser**, powered by **WebAssembly SIMD** — with a design target of **< 35 ms end-to-end pipeline** (live FPS is shown in the HUD badge, not pre-declared as a number).
+> Google **MediaPipe Pose** runs **on-device** inside the **Fire TV Web App runtime** (Amazon Web App Tester / Silk on Fire OS 8), powered by **WebAssembly SIMD** — with a design target of **< 35 ms end-to-end pipeline** (live FPS is shown in the HUD badge, not pre-declared as a number).
 > A **Web Speech Synthesis** voice coach calls out reps in real time, **Web Speech Recognition** lets you navigate by talking, and the **Fire TV remote D-Pad** drives the entire 10-foot UI.
 > **No video ever leaves your living room.**
+
+---
+
+## 🏆 Hackathon Submission — Fire TV Track
+
+**What this is:** an **HTML5 Fire TV application** (React 19 + TypeScript + Vite 6) that runs on **Fire OS**
+through Amazon's Fire TV Web App environment — *hosted*, *packaged*, or *Cordova-hybrid*.
+Full deployment guide: [`firetv/README.md`](./firetv/README.md).
+
+| Jury requirement | Where it is satisfied |
+| :-- | :-- |
+| Runs on Fire OS (Fire TV track) | Fire TV Web App via **Amazon Web App Tester** — [`firetv/`](./firetv), [`amazon.testerurls.json`](./amazon.testerurls.json) |
+| Any framework allowed | React + Vite web build — no Kotlin / React Native rewrite needed |
+| Benchmark device | **Fire TV Stick 4K Max (2nd Gen, 2023)** — Fire OS 8, Android 11 (API 30), 2 GB RAM |
+| Friction log (+10% bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present |
+| Code repository (public, MIT) | this repo |
+
+### Updates after the hackathon start (Aug 31, 2026)
+
+The public repo history begins **2026-09-14** — i.e. **after** the Submission Period opened on
+2026-08-31 — so this is a **new** project built for the hackathon. All Fire TV work landed in this window:
+
+| Date (2026) | Commit | What changed |
+| :-- | :-- | :-- |
+| 09-14 | `d7023e7`, `b62f399` | Initial PulseMotion TV release (Fire TV) |
+| 09-15 | `947df1e` | Multi-modal voice freeze, debounce filter, Fire TV docs |
+| 09-16 | `d4b6849` | README with live Netlify app + verified Fire TV hardware metrics |
+| 09-17 | `5029f11`…`b84ceaf` | HUD localization, i18n fix, screen wake lock, accessibility |
+| 09-18 | `e436511`…`4007905` | 2D spatial navigation, keycodes 89/90/227/228, runtime CAMERA permission, Fire TV env detection |
 
 ---
 
@@ -301,7 +330,7 @@ sequenceDiagram
 | **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
 | **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
 | **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
-| **Runtime Target**        | **Amazon Silk Browser** on Fire TV OS                                                         | —       | Deployed runtime for the hackathon track                           |
+| **Runtime Target**        | **Amazon Fire TV Web App** (hosted / packaged / Cordova hybrid) on Fire OS 8                  | —       | Deployed runtime for the hackathon track — see `firetv/`          |
 | **Package Manager**       | [pnpm](https://pnpm.io/)                                                                      | `9+`    | Fastest installs, content-addressed store, disk-efficient          |
 
 ---
@@ -626,10 +655,18 @@ export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
 
 ## 🧱 Friction Log — Amazon Developer Hackathon
 
+> **Submission-ready format.** Each entry below maps 1:1 to the fields the rules ask for in an
+> optional friction-log entry: **specific task attempted** → *🎯 Task attempted* ·
+> **steps taken** → *🛠️ Solution* · **expected vs. actual** → *Symptom (actual)* + *Root Cause* ·
+> **severity rating** → *⚠️ Severity* · **workaround used** → *🛠️ Solution* ·
+> **actionable suggestion** → *📚 Takeaway*.
+
 ### 🔴 Friction Point 1 — Low-Power GPU on HDMI Streaming Sticks
 
 | Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🎯 Task attempted** | Run the MediaPipe Pose pipeline on a Fire TV Stick 4K without thermal throttling. |
+| **⚠️ Severity** | 🔴 Critical (thermal) |
 | **🔥 Symptom**    | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session.                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived.                                                                                                                                                                                                                           |
 | **🛠️ Solution**   | 1. Enabled **WASM SIMD** for inference and post-processing math.<br/>2. Drew the skeleton overlay on a **Canvas 2D** context instead of a second GPU pass.<br/>3. Drove the loop with `requestAnimationFrame` plus an in-flight guard, so frames are dropped instead of queued when inference lags.<br/>4. Documented the frame-time budget in the Performance table above. |
@@ -657,6 +694,8 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 | Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🎯 Task attempted** | Design and validate the 10-foot TV UI from a 3 m viewing distance. |
+| **⚠️ Severity** | 🟠 High |
 | **🔥 Symptom**    | The first build looked great on a 27-inch monitor but was **unusable on the TV**: buttons vanished into the bezel, the focus indicator was invisible from 3 m, and text was unreadable.                                                                                                                                                                                                                                                                                                 |
 | **🔍 Root Cause** | Classic **web ergonomics thinking**: hover states, 32 px click targets, 14 px body text, and layouts that ignored **overscan** — many TVs crop 3–5% of each edge.                                                                                                                                                                                                                                                                                                                       |
 | **🛠️ Solution**   | 1. Introduced a **5% safe-area inset** wrapper, validated against 720p / 1080p / 4K.<br/>2. Enforced a **minimum 48 px** (recommended 64 px) focus target via a shared Tailwind token.<br/>3. Replaced hover with **always-visible glowing emerald focus rings** (`ring-4` + a 40 px emerald `shadow` bloom).<br/>4. Rescaled all typography to the 10-foot scale (`text-2xl` minimum, `text-6xl+` headings).<br/>5. Designed against WCAG AAA contrast targets for 10-foot TV viewing — every foreground/background pair measured at **≥ 7:1**. |
@@ -685,6 +724,8 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 | Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🎯 Task attempted** | Test D-Pad / remote navigation off-device during development. |
+| **⚠️ Severity** | 🟡 Medium |
 | **🔥 Symptom**    | Every navigation change required a **physical deploy to the Fire TV Stick**, so a 30-second UI tweak cost a 2-minute round trip. Developers could not test D-Pad behaviour on a laptop.                                                                                                                                                                                                                                                                                                   |
 | **🔍 Root Cause** | The app listened for **Fire TV–specific keycodes** that a laptop keyboard never emitted, so the whole navigation layer was effectively untestable off-device.                                                                                                                                                                                                                                                                                                                             |
 | **🛠️ Solution**   | 1. Built a **Virtual Fire TV Remote** overlay widget that renders a real D-Pad and media buttons.<br/>2. Each virtual button **dispatches the native Android keycode** (`DPAD_UP`, `DPAD_CENTER`, `MEDIA_PLAY_PAUSE`, …) through a synthetic `KeyboardEvent`.<br/>3. Unified both paths behind a single **`KeyEvent Normalizer`**, so remote and keyboard funnel into one `RemoteAction` union.<br/>4. Added a live keycode HUD that shows the last received code — invaluable during QA. |
@@ -717,6 +758,8 @@ export function dispatchRemoteKey(button: keyof typeof KEYCODE_MAP) {
 
 | Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🎯 Task attempted** | Keep the spoken voice coach intelligible at living-room volume during rapid rep milestones. |
+| **⚠️ Severity** | 🟠 High |
 | **🔥 Symptom**    | The voice coach **talked over itself**: rep counts collided with form cues, producing an unintelligible "R-eee-p-kee-p-your-ba-a-ack" garble that drowned out the workout rhythm.                                                                                                                                                                                                                                                                                                                                             |
 | **🔍 Root Cause** | `SpeechSynthesis.speak()` calls were fired **directly from the rep FSM** — a producer capable of emitting several events within a few hundred milliseconds. There was no queue, no priority, and no cancellation of stale utterances.                                                                                                                                                                                                                                                                                         |
 | **🛠️ Solution**   | 1. Introduced a **debounced audio queue** with a single-consumer worker loop.<br/>2. Assigned **priority tiers**: `critical` (form safety) > `progress` (rep milestones) > `ambient` (encouragement).<br/>3. **Critical cues pre-empt** lower tiers via `speechSynthesis.cancel()`.<br/>4. Rep milestones are **debounced to at most one utterance per 1.5 s**, and ambient chatter is suppressed entirely during high-intensity intervals.<br/>5. All speech is enqueued **off the render path** so it never blocks a frame. |
@@ -773,6 +816,8 @@ function flush(locale: string) {
 
 | Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🎯 Task attempted** | Make a voice command execute exactly once when spoken as a longer phrase. |
+| **⚠️ Severity** | 🟠 High |
 | **🔥 Symptom**    | Voice commands suffered from **rapid double-execution**: speaking a longer phrase like *"bieg z wysokim unoszeniem kolan"* caused the engine to trigger the switch twice, disrupting speech synthesis and creating an audible echo loop. Furthermore, pausing workouts via voice silenced speech but allowed the background animation loop to continue animating joints.                                                                                                                  |
 | **🔍 Root Cause** | The browser's **Web Speech Recognition API** fires continuous `onresult` callbacks for interim and final hypothesis transcripts. Without a state-aware cooldown, multiple transcript segments matched the regex parser within milliseconds. In the simulator, the animation clock operated independently of the workout state machine.                                                                                                                                                  |
 | **🛠️ Solution**   | 1. Designed an **asymmetric debounce engine** (`voiceCommander.ts`): a strict 3,500 ms cooldown for exercise switches and 850 ms for controls.<br/>2. Wired the pause state directly into the synthetic pose generator (`PoseCamera.tsx`), freezing the kinematic progression in mid-frame.<br/>3. Added a hands-free `"wyłącz mikrofon"` command with a physical **`Key V`** wake-up toggle.<br/>4. Rendered a prominent 10-foot pause banner with instant resume guidance. |
@@ -839,18 +884,32 @@ pnpm build && pnpm preview
 
 > 🟢 **The dev server runs at [http://localhost:3000](http://localhost:3000).**
 
-### Deploying to Amazon Fire TV
+### Running on Amazon Fire TV (Fire TV Web App)
+
+> ✅ PulseMotion runs as an **Amazon Fire TV Web App** — the hosted/packaged HTML5
+> model Amazon documents for Fire TV — not merely "a website in Silk". Full, step-by-step
+> instructions: **[`firetv/README.md`](./firetv/README.md)**.
 
 ```bash
-# Build the production bundle
+# 1. Build the production bundle
 pnpm build
 
-# Serve it over your local network (the Fire TV Silk Browser must reach it)
+# 2. Serve it on your LAN (or deploy to Netlify — the Fire TV only needs a URL)
 pnpm preview --host 0.0.0.0 --port 3000
 ```
 
-Then, on your Fire TV, open the **Silk Browser** and navigate to `http://<your-lan-ip>:3000`.
+1. Install **Web App Tester** from the Amazon Appstore on your Fire TV.
+2. Open it → **Hosted Apps** tab → enter your app URL
+   (`https://<your-host>/` or `http://<your-lan-ip>:3000/`).
+   Preload the list with [`amazon.testerurls.json`](./amazon.testerurls.json).
+3. **Test App** → PulseMotion launches full-screen on Fire OS; drive it entirely with the Fire TV remote.
 
+```bash
+# Offline / Appstore path: zip dist/ as a *packaged* Fire TV web app
+./firetv/package-firetv.sh        # → firetv/pulsemotion-firetv.zip
+```
+
+A **Cordova (Fire OS native) hybrid** build is also provided in `cordova/config.xml`.
 > 🔵 **Tip — Testing without a Fire TV device:** The built-in **Virtual Fire TV Remote** widget renders a full D-Pad overlay in the desktop build, dispatching native Android keycodes. You can develop and validate the entire 10-foot navigation UX on any laptop.
 
 ---

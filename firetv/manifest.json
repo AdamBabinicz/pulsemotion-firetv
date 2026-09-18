@@ -1,0 +1,15 @@
+{
+  "name": "PulseMotion TV",
+  "short_name": "PulseMotion",
+  "description": "AI interactive fitness and pose coach for Amazon Fire TV. On-device MediaPipe pose tracking, hands-free voice control, live rep counter, zero cloud video processing.",
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b1220",
+  "theme_color": "#10b981",
+  "lang": "en",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
