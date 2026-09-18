@@ -3,41 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>PulseMotion TV – AI Pose Coach for Amazon Fire TV!</title>
+
     <meta
       name="description"
       content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
+
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://static.cloudflareinsights.com blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
     />
+
     <!--
-      CSP 2.0+: 'wasm-unsafe-eval' (Chromium 95+, Fire OS 7+) pozwala na kompilację
-      WASM MediaPipe bez pełnego 'unsafe-eval'. MediaPipe NIE jest już ładowany z CDN:
-      wszystkie pliki (pose.js, wasm, tflite) są vendored w /mediapipe/ i serwowane
-      z 'self' — patrz public/mediapipe/ i locateFile w PoseCamera.tsx.
+      CSP 2.0+: 'wasm-unsafe-eval' (Chromium 95+, Fire OS 7+) allows
+      WASM compilation required by MediaPipe without enabling full
+      'unsafe-eval'.
+
+      MediaPipe is bundled locally and is not loaded from a CDN.
+      All required files are served from /mediapipe/ as part of the
+      application build. See public/mediapipe/ and locateFile in
+      PoseCamera.tsx.
     -->
+
     <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
+
     <link rel="manifest" href="/site.webmanifest" />
+
     <meta name="theme-color" content="#10b981" />
 
     <!-- Open Graph (Facebook, LinkedIn, Discord, Slack) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pulsemotion-firetv.netlify.app/" />
     <meta property="og:site_name" content="PulseMotion TV" />
+
     <meta
       property="og:title"
       content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
     />
+
     <meta
       property="og:description"
       content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
+
     <meta
       property="og:image"
       content="https://pulsemotion-firetv.netlify.app/assets/1.png"
     />
+
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="720" />
     <meta property="og:locale" content="en_US" />
@@ -45,18 +60,22 @@
 
     <!-- Twitter / X Cards -->
     <meta name="twitter:card" content="summary_large_image" />
+
     <meta
       name="twitter:url"
       content="https://pulsemotion-firetv.netlify.app/"
     />
+
     <meta
       name="twitter:title"
       content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
     />
+
     <meta
       name="twitter:description"
       content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
     />
+
     <meta
       name="twitter:image"
       content="https://pulsemotion-firetv.netlify.app/assets/1.png"
@@ -93,15 +112,20 @@
       }
     </script>
 
-    <!-- Google MediaPipe Pose & Camera Utils — VENDORED lokalnie (redundancja: SRI nie działa dla 'self'; pliki są częścią buildu) -->
+    <!--
+      Google MediaPipe Pose & Camera Utils — bundled locally.
+      The files are part of the application build and are served
+      from /mediapipe/.
+    -->
     <script src="/mediapipe/camera_utils/camera_utils.js"></script>
     <script src="/mediapipe/pose/pose.js"></script>
   </head>
+
   <body
     class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black"
   >
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
-  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
-</body>
+  </body>
 </html>
