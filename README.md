@@ -5,11 +5,11 @@
 
 <div align="center">
 
-<img src="./public/assets/1.png" alt="PulseMotion TV — AI Pose Coach for Amazon Fire TV" width="100%" />
+<img src="./public/assets/1.png" alt="PulseMotion TV — On-Device Pose Coach for Amazon Fire TV" width="100%" />
 
 # 🏃‍♂️ PulseMotion TV
 
-### Next-Generation AI Interactive Fitness & Pose Coach — an HTML5 Fire TV Web App (Fire OS)
+### Next-Generation On-Device Computer Vision Fitness & Pose Coach — an HTML5 Fire TV Web App (Fire OS)
 
 **Your living room is the gym. Your Fire TV remote is the controller. On-device pose coaching, real-time feedback, and no cloud video processing.**
 
@@ -29,7 +29,7 @@
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
 [![MediaPipe](https://img.shields.io/badge/Google-MediaPipe%20Pose-00897B?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/mediapipe)
-[![WebAssembly](https://img.shields.io/badge/WebAssembly-SIMD%20%2B%20WebGL%202.0-654FF0?style=flat-square&logo=webassembly&logoColor=white)](https://webassembly.org/)
+[![WebAssembly](https://img.shields.io/badge/WebAssembly-SIMD-654FF0?style=flat-square&logo=webassembly&logoColor=white)](https://webassembly.org/)
 [![Fire TV](https://img.shields.io/badge/Amazon-Fire%20TV%20Web%20App%20%C2%B7%20Fire%20OS%208-FF9900?style=flat-square&logo=amazonfiretv&logoColor=white)](https://developer.amazon.com/)
 [![Web Speech API](https://img.shields.io/badge/Web%20Speech-API-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
@@ -58,15 +58,16 @@
 ## 🏆 Hackathon Submission — Fire TV Track
 
 **What this is:** an **HTML5 Fire TV application** (React 19 + TypeScript + Vite 6) that runs on **Fire OS**
-through Amazon's Fire TV Web App environment — *hosted*, *packaged*, or *Cordova-hybrid*.
+through Amazon's Fire TV Web App environment — *hosted* or *packaged*.
+An **experimental** Cordova hybrid configuration is also included (unbuilt, unverified — see `cordova/`).
 Full deployment guide: [`firetv/README.md`](./firetv/README.md).
 
 | Jury requirement | Where it is satisfied |
 | :-- | :-- |
 | Runs on Fire OS (Fire TV track) | Fire TV Web App via **Amazon Web App Tester** — [`firetv/`](./firetv), [`amazon.testerurls.json`](./amazon.testerurls.json) |
 | Any framework allowed | React + Vite web build — no Kotlin / React Native rewrite needed |
-| Benchmark device | **Fire TV Stick 4K Max (2nd Gen, 2023)** — Fire OS 8, Android 11 (API 30), 2 GB RAM |
-| Friction log (+10% bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present |
+| Tested target device | **Fire TV Stick 4K Max (2nd Gen, 2023)** — Fire OS 8, Android 11 (API 30), 2 GB RAM (verified target, not a universal Fire OS compatibility claim) |
+| Friction log (eligible for **up to 10%** judging bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present |
 | Code repository (public, MIT) | this repo |
 
 ### Updates after the hackathon start (Aug 31, 2026)
@@ -120,7 +121,7 @@ The public repo history begins **2026-09-14** — i.e. **after** the Submission 
 <tr>
 <td width="50%" valign="top">
 
-### 🧠 On-Device AI Pose Engine
+### 🧠 On-Device Pose Engine — Computer Vision
 
 Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, with a Canvas 2D skeleton overlay driven by `requestAnimationFrame`. 33 skeletal landmarks tracked per frame, no server round-trip. Live FPS is visible in the HUD badge during a session.
 
@@ -194,7 +195,7 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 | **Privacy & Trust**                        | No cloud inference, no accounts, no telemetry — camera stream never leaves device; hands-free voice mute with hardware hotkey fallback.           |
 | **Accessibility**                          | Designed against WCAG AAA contrast targets for 10-foot TV viewing, spatial navigation, multi-modal voice control, **two** languages, synthetic simulator for camera-less testing. |
 | **Completeness**                           | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log.                                    |
-| 🎁 **Bonus: Friction Log (+10%)**            | Five deeply documented friction points with root-cause analysis and shipped solutions → [jump to it](#-friction-log--amazon-developer-hackathon).  |
+| 🎁 **Friction Log — eligible for up to 10% judging bonus**            | Five deeply documented friction points with root-cause analysis and shipped solutions → [jump to it](#-friction-log--amazon-developer-hackathon).  |
 
 ---
 
@@ -324,13 +325,13 @@ sequenceDiagram
 | **Language**              | [TypeScript](https://www.typescriptlang.org/)                                                 | `5`     | Strict mode, exhaustive discriminated unions for the rep FSM       |
 | **Build Tool**            | [Vite](https://vitejs.dev/)                                                                   | `6`     | Instant HMR, optimized WASM asset pipeline, ES2022 target          |
 | **Styling**               | [Tailwind CSS](https://tailwindcss.com/)                                                      | `v4`    | Zero-runtime CSS, 10-foot spacing scale, focus-ring utilities      |
-| **AI / Computer Vision**  | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe)                     | Latest  | 33-landmark full-body pose estimation                              |
+| **Computer Vision (on-device)**  | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe)                     | Latest  | 33-landmark full-body pose estimation                              |
 | **Compute Acceleration**  | [WebAssembly SIMD](https://webassembly.org/)                                                  | —       | Vectorized inference on the Fire TV Stick's ARM CPU                |
 | **Overlay Rendering**     | Canvas 2D (`getContext("2d")`)                                                                | —       | Skeleton overlay drawn per animation frame                         |
 | **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
 | **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
 | **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
-| **Runtime Target**        | **Amazon Fire TV Web App** (hosted / packaged / Cordova hybrid) on Fire OS 8                  | —       | Deployed runtime for the hackathon track — see `firetv/`          |
+| **Runtime Target**        | **Amazon Fire TV Web App** (hosted / packaged; experimental Cordova hybrid) — tested on Fire OS 8                  | —       | Deployed runtime for the hackathon track — see `firetv/`          |
 | **Package Manager**       | [pnpm](https://pnpm.io/)                                                                      | `9+`    | Fastest installs, content-addressed store, disk-efficient          |
 
 ---
@@ -560,7 +561,7 @@ PulseMotion TV features full hands-free operation designed specifically for a li
 | Command (PL) | Command (EN) | Action |
 | :--- | :--- | :--- |
 | **„Przysiady”**, **„Pajacyki”**, **„Bieg”**, **„Drzewo”**, **„Wznosy”** | *"Squats"*, *"Jumping Jacks"*, *"High Knees"*, *"Tree Pose"*, *"Arm Raises"* | Jump directly to targeted exercise |
-| **„Symulator”** / **„Demo”** | *"Simulator"* / *"Demo"* | Start / stop AI kinematic pose simulator |
+| **„Symulator”** / **„Demo”** | *"Simulator"* / *"Demo"* | Start / stop kinematic pose simulator |
 | **„Pauza”** / **„Stop”** | *"Pause"* / *"Stop"* | Freeze timer, rep tracker, and simulator |
 | **„Start”** / **„Wznów”** | *"Start"* / *"Resume"* | Resume active workout or begin next set |
 | **„Zamknij”** / **„Wróć”** | *"Close"* / *"Back"* | Dismiss completed set summary modal |
@@ -909,7 +910,7 @@ pnpm preview --host 0.0.0.0 --port 3000
 ./firetv/package-firetv.sh        # → firetv/pulsemotion-firetv.zip
 ```
 
-A **Cordova (Fire OS native) hybrid** build is also provided in `cordova/config.xml`.
+An **experimental Cordova (Fire OS native) hybrid** configuration is included in `cordova/config.xml` — it has **not** been built or device-verified (`cordova build android` has not been run).
 > 🔵 **Tip — Testing without a Fire TV device:** The built-in **Virtual Fire TV Remote** widget renders a full D-Pad overlay in the desktop build, dispatching native Android keycodes. You can develop and validate the entire 10-foot navigation UX on any laptop.
 
 ---
@@ -925,7 +926,7 @@ pulsemotion-firetv/
 ├── 📁 src/
 │   ├── 📁 components/                  # 10-Foot UI & TV Components
 │   │   ├── 📄 ExerciseSelector.tsx     # 5-column adaptive exercise carousel & D-Pad focus
-│   │   ├── 📄 PoseCamera.tsx           # MediaPipe WebGL camera pipeline & simulator canvas
+│   │   ├── 📄 PoseCamera.tsx           # MediaPipe (WASM SIMD) camera pipeline & Canvas 2D overlay
 │   │   ├── 📄 TvRemoteOverlay.tsx      # On-screen Fire TV Remote simulator widget
 │   │   ├── 📄 VoiceControlBadge.tsx    # Live voice status pill, key V hotkey & cheat sheet
 │   │   ├── 📄 VirtualCoachGuide.tsx    # Biomechanical posture & form guide visualizer

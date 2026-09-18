@@ -83,7 +83,7 @@ NIE wystarcza — od Androida 6 (Fire OS 5+) zgoda musi zostać wywołana w runt
 | „Product feedback on every tool, API, or SDK you used…" | Pole formularza Devpost (treść gotowa z wcześniejszej wiadomości) | 🟡 do wklejenia |
 | „Which track(s) and mini challenge(s) you're entering" | Pole formularza: „Fire TV" | 🟡 do wklejenia |
 | „If your project existed before the hackathon, a clear explanation…" | `git log` (wszystkie commity 17–18.09.2026) + wyliczenie w treści zgłoszenia | 🟡 do wklejenia |
-| „Optional: Friction log entries… up to a 10% judging bonus" | README sekcja 🧱 Friction Log (5 punktów) → skopiować do formularza | 🟡 do wklejenia (+10%) |
+| „Optional: Friction log entries… up to a 10% judging bonus" | README sekcja 🧱 Friction Log (5 punktów) → skopiować do formularza | 🟡 do wklejenia (up to 10%) |
 
 ## Jedyne otwarte pozycje (poza kodem)
 

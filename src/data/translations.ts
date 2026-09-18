@@ -384,7 +384,7 @@ export const translations: Record<Language, TranslationSchema> = {
       lastUpdated: "Ostatnia aktualizacja: Wrzesień 2026",
       section1Title: "1. 100% Lokalne Przetwarzanie Kamery (Zero-Cloud Vision)",
       section1Text:
-        "PulseMotion TV wykorzystuje model Google MediaPipe działający wyłącznie w Twojej przeglądarce za pośrednictwem technologii WebAssembly i WebGL. Klatki wideo z kamery są analizowane w czasie rzeczywistym w pamięci RAM Twojego urządzenia i natychmiast usuwane. Żadne zdjęcia, wideo ani punkty biometryczne nigdy nie są przesyłane do serwerów zewnętrznych ani chmury.",
+        "PulseMotion TV wykorzystuje model Google MediaPipe działający wyłącznie w Twojej przeglądarce za pośrednictwem technologii WebAssembly SIMD (inferencja na CPU) i nakładki Canvas 2D. Klatki wideo z kamery są analizowane w czasie rzeczywistym w pamięci RAM Twojego urządzenia i natychmiast usuwane. Żadne zdjęcia, wideo ani punkty biometryczne nigdy nie są przesyłane do serwerów zewnętrznych ani chmury.",
       section2Title: "2. Mikrofon i Sterowanie Głosem",
       section2Text:
         "Dostęp do mikrofonu jest opcjonalny i służy wyłącznie do rozpoznawania komend nawigacyjnych treningu za pośrednictwem Web Speech API. Dźwięk nie jest nagrywany na stałe ani archiwizowany. W każdej chwili możesz wyłączyć mikrofon komendą głosową lub klawiszem V.",
@@ -693,7 +693,7 @@ export const translations: Record<Language, TranslationSchema> = {
       lastUpdated: "Last updated: September 2026",
       section1Title: "1. 100% On-Device Camera Processing (Zero-Cloud Vision)",
       section1Text:
-        "PulseMotion TV runs Google MediaPipe Pose entirely inside your client browser using WebAssembly SIMD and WebGL acceleration. Camera video frames are analyzed frame-by-frame in volatile RAM and immediately discarded. No video, photography, or biometric coordinates are ever transmitted to external cloud servers.",
+        "PulseMotion TV runs Google MediaPipe Pose entirely inside your client browser using WebAssembly SIMD inference (CPU) with a Canvas 2D overlay. Camera video frames are analyzed frame-by-frame in volatile RAM and immediately discarded. No video, photography, or biometric coordinates are ever transmitted to external cloud servers.",
       section2Title: "2. Microphone & Hands-Free Voice Control",
       section2Text:
         "Microphone access is strictly optional and used exclusively for real-time workout voice commands via the browser Web Speech API. Audio is never recorded, saved, or uploaded. You can disable the microphone at any time by voice command or by pressing the V key.",

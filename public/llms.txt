@@ -12,7 +12,7 @@
 
 ## Core Value Proposition
 
-PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an intelligent personal gym. By executing Google MediaPipe Pose via WebAssembly SIMD and WebGL 2.0 GPU hardware acceleration, the application tracks 33 skeletal body landmarks at sustained 60 FPS without uploading video frames to external servers.
+PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an intelligent personal gym. By executing Google MediaPipe Pose via WebAssembly SIMD on-device (CPU) inference with a Canvas 2D skeleton overlay, the application tracks 33 skeletal body landmarks in real time without uploading video frames to external servers.
 
 ## Key Capabilities
 
@@ -45,6 +45,6 @@ PulseMotion TV transforms any living room with an Amazon Fire TV Stick into an i
 - [React 19 & TypeScript](https://react.dev/): Modern frontend core with strict typing and functional component hierarchy.
 - [Vite 6 Build System](https://vitejs.dev/): Ultra-fast modern web application bundling with automated asset optimization.
 - [Tailwind CSS v4](https://tailwindcss.com/): Responsive utility styling tailored for 10-foot TV overscan and mobile devices.
-- [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe/solutions/vision/pose_landmarker): High-performance on-device pose estimation executing via WASM SIMD and WebGL 2.0.
+- [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe/solutions/vision/pose_landmarker): High-performance on-device pose estimation executing via WASM SIMD with a Canvas 2D overlay.
 - [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API): Native browser voice command recognition and real-time audio coach synthesis.
 - [Lucide React](https://lucide.dev/): Lightweight, accessible SVG iconography.

@@ -11,7 +11,7 @@ Amazon officially supports three Fire TV web app models
 | :-- | :-- | :-- |
 | **Hosted app** | Assets live on a web server; the device downloads them before running | ✅ primary demo path |
 | **Packaged app** | Same app, assets bundled in a `.zip` | ✅ offline / Appstore path |
-| **HTML5 hybrid app** | Native shell (Cordova) wrapping web content | ✅ `../cordova/config.xml` |
+| **HTML5 hybrid app** | Native shell (Cordova) wrapping web content | ⚠️ **experimental** — config in `../cordova/config.xml`, not built or device-verified |
 
 All three are the *same* React + TypeScript + Vite codebase. No rewrite to
 Kotlin or React Native is required — the Fire TV track explicitly allows
@@ -55,15 +55,15 @@ Zip the contents of `dist/` (with `index.html` at the zip root) and load it:
 Then: Web App Tester → **Packaged Apps** tab → enter the `.zip` URL, or copy the
 zip to `/sdcard/amazonwebapps/` on the device and press **Sync List** → **Test App**.
 
-## C. Fire OS (Cordova) build — hybrid
+## C. Fire OS (Cordova) build — hybrid (experimental, unverified)
 
-`../cordova/config.xml` packages the same `dist/` as a native Fire OS app with
+`../cordova/config.xml` is an **experimental** configuration that would package the same `dist/` as a native Fire OS app with
 LEANBACK_LAUNCHER, banner 320×180, `camera required="false"`, and the runtime
 CAMERA permission bridge (`src/utils/cameraPermissions.ts` + `cordova-plugin-android-permissions`).
 
 ---
 
-## Device used for benchmarking
+## Tested target device
 
 **Fire TV Stick 4K Max (2nd Gen, 2023)** — build model `AFTKRT`, **Fire OS 8**
 (Android 11, API 30), MediaTek MT8696T, 4× Cortex-A55 up to 2.0 GHz,
