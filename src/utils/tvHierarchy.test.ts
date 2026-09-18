@@ -171,7 +171,7 @@ describe("tvHierarchy - rozłączność ścieżek aktywacji Select", () => {
     }
   });
 
-  it("mapowanie pilota: kody Fire TV 85/179, 126, 127/86, 227/228 są zgodne z README", () => {
+  it("mapowanie pilota: kody Fire TV 85/179, 126, 127/86, 89/90, 227/228 są zgodne z README", () => {
     // Play/Pause
     assert.strictEqual(TV_KEYCODE_MAP[85], "PLAY_PAUSE");
     assert.strictEqual(TV_KEYCODE_MAP[179], "PLAY_PAUSE");
@@ -180,9 +180,13 @@ describe("tvHierarchy - rozłączność ścieżek aktywacji Select", () => {
     // Pause / Stop
     assert.strictEqual(TV_KEYCODE_MAP[127], "PAUSE");
     assert.strictEqual(TV_KEYCODE_MAP[86], "PAUSE");
-    // MEDIA_REWIND (89) i MEDIA_FAST_FORWARD (90) celowo NIE są zmapowane
-    // (nawigacja po ćwiczeniach używa 227/228 — decyzja semantyczna autora)
-    assert.strictEqual(89 in TV_KEYCODE_MAP, false);
-    assert.strictEqual(90 in TV_KEYCODE_MAP, false);
+    // MEDIA_REWIND (89) i MEDIA_FAST_FORWARD (90): zmapowane na zmianę ćwiczenia
+    // (TRACK_PREV / TRACK_NEXT) — decyzja semantyczna zgodna z konwencją
+    // Media Session API na Fire TV (patrz README, tabela pilota)
+    assert.strictEqual(TV_KEYCODE_MAP[89], "TRACK_PREV");
+    assert.strictEqual(TV_KEYCODE_MAP[90], "TRACK_NEXT");
+    // 227/228 (Fire TV track prev/next) — ta sama semantyka
+    assert.strictEqual(TV_KEYCODE_MAP[227], "TRACK_PREV");
+    assert.strictEqual(TV_KEYCODE_MAP[228], "TRACK_NEXT");
   });
 });

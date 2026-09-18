@@ -1,8 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!--
-  SZKIELET NIEZBUDOWANY (⚠️): `cordova build android` nie był uruchamiany w ramach
-  tej zmiany. Przed pierwszą kompilacją uzupełnij: widget id, ikony, splash,
-  podpis release oraz sprawdź zgodność z aktualną wersją cordova-android.
+  SZKIELET (⚠️): `cordova build android` nadal nie był uruchamiany w ramach tej zmiany.
+  Uzupełnione względem poprzedniej iteracji: ikony (cordova/res/), banner leanback
+  (cordova/res/banner.png), LEANBACK_LAUNCHER, camera required="false" (Fire TV Stick
+  nie ma kamery — required="true" wykluczałby aplikację z filtrowania Appstore),
+  AllowInlineMediaPlayback + MediaPlaybackRequiresUserAction=false (auto-play
+  <video> z getUserMedia), poprawiona notka CSP (MediaPipe jest teraz vendored,
+  CSP wymaga już tylko 'wasm-unsafe-eval').
+  Przed pierwszą kompilacją: dodaj platformę (cordova platform add android),
+  zweryfikuj zgodność z aktualną wersją cordova-android i skonfiguruj podpis release.
 -->
 <widget id="pl.pulsemotion.tv" version="1.0.0" xmlns="http://www.w3.org/ns/widgets"
         xmlns:android="http://schemas.android.com/apk/res/android">
@@ -16,26 +22,55 @@
     </author>
 
     <content src="index.html" />
-    <allow-intent href="https://cdn.jsdelivr.net/*" />
-    <allow-navigation href="https://pulsemotion-firetv.netlify.app/*" />
 
-    <!-- ⚠️ WYMAGANE PRZED PIERWSZYM getUserMedia: runtime permission CAMERA.
-         Zgoda w runtime musi być wywołana przed startem kamery — sam wpis
-         w manifeście nie wystarcza dla Androida 6+. -->
+    <!-- MediaPipe jest vendored w www/mediapipe/ (build Vite kopiuje public/) —
+         brak ładowania skryptów z zewnętrznego CDN w runtime. -->
+    <allow-intent href="https://static.cloudflareinsights.com/*" />
+    <allow-navigation href="*" />
+
     <platform name="android">
+        <!-- ⚠️ WYMAGANE PRZED PIERWSZYM getUserMedia: runtime permission CAMERA.
+             Zgoda w runtime musi być wywołana przed startem kamery (np.
+             cordova-plugin-android-permissions) — sam wpis w manifeście nie
+             wystarcza dla Androida 6+. -->
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.CAMERA" />
-            <uses-feature android:name="android.hardware.camera" android:required="true" />
+            <!-- Fire TV Stick nie ma wbudowanej kamery: required="false", inaczej
+                 Appstore przefiltruje aplikację jako niekompatybilną ze Stickiem.
+                 Aplikacja obsługuje brak kamery czytelnym komunikatem + trybem
+                 symulacji AI (PoseCamera.tsx). -->
+            <uses-feature android:name="android.hardware.camera" android:required="false" />
             <uses-feature android:name="android.hardware.microphone" android:required="false" />
             <!-- Fire TV / Android TV: deklaracja braku ekranu dotykowego -->
             <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+            <!-- Leanback launcher: dodatkowy intent-filter MAIN + LEANBACK_LAUNCHER
+                 (dokumentowany wzorzec cordova-android) — bez tego wpis aplikacja
+                 nie pojawi się w launcherze TV na Fire TV / Android TV -->
+            <config-file target="AndroidManifest.xml" parent="application/activity">
+                <intent-filter>
+                    <action android:name="android.intent.action.MAIN" />
+                    <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                </intent-filter>
+            </config-file>
+            <!-- Banner leanback (320x180 → res/banner.png → @drawable/banner):
+                 wymagany do wyświetlenia w launcherze TV -->
+            <config-file target="AndroidManifest.xml" parent="application">
+                <meta-data android:name="banner" android:resource="@drawable/banner" />
+            </config-file>
         </config-file>
 
-        <!-- Allowlist do rozmów z CDN MediaPipe (CSP w index.html też wymaga
-             'unsafe-inline'/'unsafe-eval' dla WASM — patrz otwarta kwestia w README) -->
         <preference name="AndroidInsecureFileModeEnabled" value="true" />
+        <!-- Auto-play <video> ze strumieniem getUserMedia bez gestu użytkownika -->
         <preference name="AllowInlineMediaPlayback" value="true" />
+        <preference name="MediaPlaybackRequiresUserAction" value="false" />
         <preference name="Fullscreen" value="true" />
         <preference name="Orientation" value="landscape" />
+
+        <!-- Ikony (cordova/res/) i splash wymagają uzupełnienia przed release;
+             banner: cordova/res/banner.png (320x180 px, do @drawable/banner) -->
+        <icon src="res/icon.png" />
+        <icon src="res/icon-192.png" density="mdpi" />
+        <icon src="res/icon-512.png" density="xxxhdpi" />
     </platform>
 </widget>

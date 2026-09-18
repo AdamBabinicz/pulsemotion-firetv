@@ -170,3 +170,49 @@ describe("tvNavigation - TV Key & Code Mapping", () => {
     assert.ok(Object.keys(TV_KEYCODE_MAP).length > 10);
   });
 });
+
+describe("tvNavigation - Track Next/Prev (exercise switch)", () => {
+  // Decyzja semantyczna: 89 (KEYCODE_MEDIA_REWIND) / 227 (Fire TV track-prev)
+  // → poprzednie ćwiczenie; 90 (KEYCODE_MEDIA_FAST_FORWARD) / 228 (track-next)
+  // → następne ćwiczenie. Zgodne z konwencją Media Session API na Fire TV.
+  it("resolves MediaTrackNext / MediaFastForward to TRACK_NEXT", () => {
+    assert.strictEqual(
+      getTvActionFromEvent({ key: "MediaTrackNext" } as KeyboardEvent),
+      TvActionKey.TRACK_NEXT,
+    );
+    assert.strictEqual(
+      getTvActionFromEvent({ key: "MediaFastForward" } as KeyboardEvent),
+      TvActionKey.TRACK_NEXT,
+    );
+  });
+
+  it("resolves MediaTrackPrevious / MediaRewind to TRACK_PREV", () => {
+    assert.strictEqual(
+      getTvActionFromEvent({ key: "MediaTrackPrevious" } as KeyboardEvent),
+      TvActionKey.TRACK_PREV,
+    );
+    assert.strictEqual(
+      getTvActionFromEvent({ key: "MediaRewind" } as KeyboardEvent),
+      TvActionKey.TRACK_PREV,
+    );
+  });
+
+  it("resolves numerical keyCodes 89/90/227/228 for exercise switching", () => {
+    assert.strictEqual(
+      getTvActionFromEvent({ keyCode: 90 } as unknown as KeyboardEvent),
+      TvActionKey.TRACK_NEXT,
+    );
+    assert.strictEqual(
+      getTvActionFromEvent({ keyCode: 228 } as unknown as KeyboardEvent),
+      TvActionKey.TRACK_NEXT,
+    );
+    assert.strictEqual(
+      getTvActionFromEvent({ keyCode: 89 } as unknown as KeyboardEvent),
+      TvActionKey.TRACK_PREV,
+    );
+    assert.strictEqual(
+      getTvActionFromEvent({ keyCode: 227 } as unknown as KeyboardEvent),
+      TvActionKey.TRACK_PREV,
+    );
+  });
+});

@@ -38,6 +38,9 @@ export interface TranslationSchema {
   tvModeHint: string;
   cameraActive: string;
   cameraInactive: string;
+  cameraNoDevice: string;
+  cameraNoDeviceDesc: string;
+  cameraDenied: string;
   turnCameraOn: string;
   turnCameraOff: string;
   fps: string;
@@ -202,6 +205,10 @@ export const translations: Record<Language, TranslationSchema> = {
     tvModeHint: "Steruj pilotem TV: D-pad (↑ ↓ ← →), OK, Wstecz",
     cameraActive: "Kamera TV Aktywna",
     cameraInactive: "Kamera Wyłączona",
+    cameraNoDevice: "Brak Kamery",
+    cameraNoDeviceDesc:
+      "Nie wykryto urządzenia wideo. Fire TV Stick nie ma wbudowanej kamery — podłącz kamerę USB albo użyj trybu symulacji AI.",
+    cameraDenied: "Brak Dostępu do Kamery",
     turnCameraOn: "Włącz kamerę",
     turnCameraOff: "Wyłącz kamerę",
     fps: "FPS",
@@ -214,7 +221,7 @@ export const translations: Record<Language, TranslationSchema> = {
     studioModeDesc: "Wirtualny ruch bez konieczności używania kamery",
     cameraPromptTitle: "Uruchom Kamerę do Treningu",
     cameraPromptDesc:
-      "Aplikacja analizuje Twoją sylwetkę w 100% lokalnie na Twoim laptopie. Wideo nigdy nie opuszcza urządzenia.",
+      "Aplikacja analizuje Twoją sylwetkę w 100% lokalnie na Twoim urządzeniu. Wideo nigdy nie opuszcza urządzenia.",
     enableCameraBtn: "Zezwól i Włącz Kamerę",
     useSimulatorBtn: "Włącz Symulację AI",
     readyPrompt: "Gotowy do startu",
@@ -509,6 +516,10 @@ export const translations: Record<Language, TranslationSchema> = {
     tvModeHint: "Navigate with TV remote: D-pad (↑ ↓ ← →), OK, Back",
     cameraActive: "TV Camera Active",
     cameraInactive: "Camera Offline",
+    cameraNoDevice: "No Camera Found",
+    cameraNoDeviceDesc:
+      "No video input device detected. Fire TV Stick has no built-in camera — connect a USB camera or use AI Simulation mode.",
+    cameraDenied: "Camera Access Denied",
     turnCameraOn: "Turn on camera",
     turnCameraOff: "Turn off camera",
     fps: "FPS",
@@ -521,8 +532,7 @@ export const translations: Record<Language, TranslationSchema> = {
     studioModeDesc: "Test workouts with virtual movement without camera",
     cameraPromptTitle: "Enable Camera for Real-Time Coaching",
     cameraPromptDesc:
-      "Your posture is computed 100% locally on your device. Video frames are processed in-browser and never uploaded.",
-    enableCameraBtn: "Allow & Start Camera",
+      "Your posture is computed 100% locally on your device. Video frames are processed in-browser and never uploaded.",    enableCameraBtn: "Allow & Start Camera",
     useSimulatorBtn: "Start Motion Simulation",
     readyPrompt: "Ready to start",
     selectExerciseLabel: "Select Exercise (Navigate or Click)",

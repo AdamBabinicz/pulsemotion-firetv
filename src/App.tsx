@@ -790,23 +790,15 @@ export default function App() {
         return;
       }
 
-      const keyCode = (e as any).keyCode;
-
-      if (
-        e.key === "MediaTrackNext" ||
-        e.key === "MediaFastForward" ||
-        keyCode === 228
-      ) {
+      // 3a. Track Next / Fast-Forward (89/90, 227/228, MediaTrackNext/MediaFastForward):
+      // zmiana ćwiczenia — mapowanie w TV_KEYCODE_MAP/TV_KEY_MAP (testowalny silnik)
+      if (tvAction === TvActionKey.TRACK_NEXT) {
         e.preventDefault();
         handleNextExercise();
         return;
       }
 
-      if (
-        e.key === "MediaTrackPrevious" ||
-        e.key === "MediaRewind" ||
-        keyCode === 227
-      ) {
+      if (tvAction === TvActionKey.TRACK_PREV) {
         e.preventDefault();
         handlePrevExercise();
         return;
@@ -976,7 +968,7 @@ export default function App() {
   return (
     <div
       id="app-root-container"
-      className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col font-sans transition-colors duration-300 ${
+      className={`tv-safe-zone min-h-screen w-full max-w-full overflow-x-hidden flex flex-col font-sans transition-colors duration-300 ${
         isDark
           ? "bg-neutral-950 text-neutral-100"
           : "bg-neutral-50 text-neutral-900"

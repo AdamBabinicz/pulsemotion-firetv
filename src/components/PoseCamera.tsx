@@ -238,6 +238,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const [cameraFailureReason, setCameraFailureReason] = useState<
+    "none" | "no-device" | "denied" | "generic"
+  >("none");
   const [hasCameraError, setHasCameraError] = useState<boolean>(false);
   const [showSkeleton, setShowSkeleton] = useState<boolean>(true);
   const [fps, setFps] = useState<number>(0);
@@ -548,6 +551,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     targetFacingMode: "user" | "environment" = facingMode,
   ) => {
     setHasCameraError(false);
+    setCameraFailureReason("none");
     if (!videoRef.current) return;
 
     try {
@@ -562,10 +566,36 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         audio: false,
       };
 
+      // Fire TV Stick (i inne TV bez kamery): sprawdź najpierw, czy w ogóle jest
+      // urządzenie wideo — czytelny komunikat zamiast generycznego NotReadableError.
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasVideoInput = devices.some((d) => d.kind === "videoinput");
+        if (!hasVideoInput) {
+          setCameraFailureReason("no-device");
+          setHasCameraError(true);
+          return;
+        }
+      } catch {
+        // enumerateDevices niedostępny — pozwól getUserMedia spróbować i obsłużyć błąd
+      }
+
       let stream: MediaStream | null = null;
       try {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch {
+      } catch (err) {
+        const name = (err as DOMException)?.name;
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          setCameraFailureReason("denied");
+        } else if (
+          name === "NotFoundError" ||
+          name === "OverconstrainedError" ||
+          name === "NotReadableError"
+        ) {
+          setCameraFailureReason("no-device");
+        } else {
+          setCameraFailureReason("generic");
+        }
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false,
@@ -593,6 +623,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       await video.play();
       setCameraActive(true);
       setHasCameraError(false);
+      setCameraFailureReason("none");
 
       let isProcessingFrame = false;
       const processFrame = async () => {
@@ -661,8 +692,10 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     async function initMediaPipe() {
       if (typeof window === "undefined") return;
 
+  // Pollingujemy wyłącznie window.Pose — plik camera_utils.js jest ładowany z tego
+  // samego katalogu public/ co pose.js, więc oba skrypty są dostępne równocześnie.
       let retries = 0;
-      while ((!window.Pose || !window.Camera) && retries < 25) {
+      while (!window.Pose && retries < 25) {
         await new Promise((res) => setTimeout(res, 200));
         retries++;
       }
@@ -674,9 +707,11 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       try {
         const pose = new window.Pose({
-          // Wersja przypięta 1:1 z tagiem <script integrity=...> w index.html
-          locateFile: (file: string) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`,
+          // WERSJONOWANIE: MediaPipe jest VENDORED w public/mediapipe/pose
+          // (@mediapipe/pose@0.5.1675469404, sha384-qcJQ+n/… pliku pose.js zweryfikowany
+          // w momencie vendoringu). locateFile rozwiązuje wszystkie pliki (wasm, tflite,
+          // binarypb) z 'self' — zero zależności od CDN w runtime, CSP bez 'unsafe-eval'.
+          locateFile: (file: string) => `/mediapipe/pose/${file}`,
         });
 
         pose.setOptions({
@@ -977,10 +1012,18 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             <Camera className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <h3 className="text-base sm:text-lg font-bold text-white mb-2">
-            {hasCameraError ? t.cameraInactive : t.cameraPromptTitle}
+            {hasCameraError
+              ? cameraFailureReason === "no-device"
+                ? t.cameraNoDevice
+                : cameraFailureReason === "denied"
+                  ? t.cameraDenied
+                  : t.cameraInactive
+              : t.cameraPromptTitle}
           </h3>
           <p className="text-neutral-300 text-xs sm:text-sm max-w-md mb-5 sm:mb-6 leading-relaxed">
-            {t.cameraPromptDesc}
+            {cameraFailureReason === "no-device" && hasCameraError
+              ? t.cameraNoDeviceDesc
+              : t.cameraPromptDesc}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
             <button

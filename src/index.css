@@ -70,6 +70,20 @@
     scroll-padding: 24px;
   }
 
+  /* ==========================================================================
+     Fire TV Overscan Safe Zone — Design & UX Guidelines (Amazon):
+     "focused item and on-screen text must be within the inner 90% of the screen".
+     Utility przykładany do głównego kontenera aplikacji: 5% marginesu z każdej
+     krawędzi (min. 24px na małych ekranach), więc nic krytycznego nie utknie
+     poza obszarem widocznym na starszych telewizorach z overscan.
+     ========================================================================== */
+  .tv-safe-zone {
+    padding-left: max(24px, 2.5vw);
+    padding-right: max(24px, 2.5vw);
+    padding-top: max(12px, 1.5vh);
+    padding-bottom: max(12px, 1.5vh);
+  }
+
   /* Ukrycie paska przewijania na TV przy zachowaniu przewijalności */
   .tv-hide-scrollbar {
     -ms-overflow-style: none;

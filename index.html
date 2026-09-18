@@ -10,8 +10,14 @@
     />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://pulsemotion-firetv.netlify.app; connect-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://static.cloudflareinsights.com blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
     />
+    <!--
+      CSP 2.0+: 'wasm-unsafe-eval' (Chromium 95+, Fire OS 7+) pozwala na kompilację
+      WASM MediaPipe bez pełnego 'unsafe-eval'. MediaPipe NIE jest już ładowany z CDN:
+      wszystkie pliki (pose.js, wasm, tflite) są vendored w /mediapipe/ i serwowane
+      z 'self' — patrz public/mediapipe/ i locateFile w PoseCamera.tsx.
+    -->
     <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
 
     <!-- Open Graph (Facebook, LinkedIn, Discord, Slack) -->
@@ -85,20 +91,9 @@
       }
     </script>
 
-    <!-- Google MediaPipe Pose & Camera Utils CDN -->
-    <!-- MediaPipe: wersje przypięte 1:1 z locateFile w PoseCamera.tsx; SRI z realnych bajtów CDN -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"
-      integrity="sha384-q1KhAZhJcJXr3zfC3Tz07pBqQSabwFIZhXlmlUAB8s0zk4ETWERkIKGBCFQ5Jc3e"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"
-      integrity="sha384-qcJQ+n/ZcF15Xu2EoRupB4Av+GEAGeW0Td1mp2A90u0NdNLzLYQVMUq1Ax1YAHqk"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
+    <!-- Google MediaPipe Pose & Camera Utils — VENDORED lokalnie (redundancja: SRI nie działa dla 'self'; pliki są częścią buildu) -->
+    <script src="/mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="/mediapipe/pose/pose.js"></script>
   </head>
   <body
     class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black"

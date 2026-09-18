@@ -598,8 +598,8 @@ export const dictionaries: Record<Locale, WorkoutDictionary> = {
 | **Play / Pause**   | `MEDIA_PLAY_PAUSE` (85 / 179)          | `P` / `MediaPlayPause`       | Pause / resume the active workout       |
 | **Media Play**     | `MEDIA_PLAY` (126)                     | `MediaPlay`                  | Resume the paused workout               |
 | **Media Pause / Stop** | `MEDIA_PAUSE` (127) / `MEDIA_STOP` (86) | `MediaPause` / `MediaStop` | Pause the active workout               |
-| **Track Prev ⚠️**  | `MEDIA_REWIND` (89 / 227)              | `MediaTrackPrevious`         | **Not mapped** — previous exercise uses `MediaTrackPrevious` (227) instead |
-| **Track Next ⚠️**  | `MEDIA_FAST_FORWARD` (90 / 228)        | `MediaTrackNext`             | Next exercise (`MediaTrackNext`, 228)   |
+| **Track Prev**     | `MEDIA_REWIND` (89 / 227)              | `MediaTrackPrevious`         | **Previous exercise** — zmapowane (`TRACK_PREV` w `TV_KEYCODE_MAP`) |
+| **Track Next**     | `MEDIA_FAST_FORWARD` (90 / 228)        | `MediaTrackNext`             | **Next exercise** — zmapowane (`TRACK_NEXT` w `TV_KEYCODE_MAP`) |
 | **Voice Button**   | Hardware Voice                         | `V`                          | Toggle voice recognition on / off       |
 | **Back / Escape**  | `BACK` (4)                             | `Escape`                     | Pause active workout or dismiss summary |
 | **Mute Audio**     | `MEDIA_MUTE`                           | `M`                          | Mute / unmute audio coach feedback      |

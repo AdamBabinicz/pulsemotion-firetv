@@ -16,6 +16,11 @@ export enum TvActionKey {
   PLAY_PAUSE = "PLAY_PAUSE",
   PLAY = "PLAY",
   PAUSE = "PAUSE",
+  // Przyciski transportowe „skoku” — zmapowane na zmianę ćwiczenia
+  // (Media Session API: klucze transportowe sterują odtwarzaniem,
+  // track next/prev przechodzą do sąsiedniej pozycji → sąsiednie ćwiczenie)
+  TRACK_PREV = "TRACK_PREV",
+  TRACK_NEXT = "TRACK_NEXT",
 }
 
 /**
@@ -48,6 +53,13 @@ export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
   MediaPlay: TvActionKey.PLAY,
   MediaPause: TvActionKey.PAUSE,
   MediaStop: TvActionKey.PAUSE,
+
+  // Track next/prev + rewind/FF: poprzednie/następne ćwiczenie
+  // (dawniej „niezmapowane 89/90” — patrz README, tabela pilota)
+  MediaTrackNext: TvActionKey.TRACK_NEXT,
+  MediaFastForward: TvActionKey.TRACK_NEXT,
+  MediaTrackPrevious: TvActionKey.TRACK_PREV,
+  MediaRewind: TvActionKey.TRACK_PREV,
 } as const;
 
 /**
@@ -80,6 +92,14 @@ export const TV_KEYCODE_MAP: Record<number, TvDirection | TvActionKey> = {
   126: TvActionKey.PLAY, // Android KEYCODE_MEDIA_PLAY
   127: TvActionKey.PAUSE, // Android KEYCODE_MEDIA_PAUSE
   86: TvActionKey.PAUSE, // Android KEYCODE_MEDIA_STOP
+
+  // Track next/prev (zmiana ćwiczenia):
+  // 89 (KEYCODE_MEDIA_REWIND) / 227 (Fire TV track-previous) → poprzednie ćwiczenie
+  // 90 (KEYCODE_MEDIA_FAST_FORWARD) / 228 (Fire TV track-next) → następne ćwiczenie
+  89: TvActionKey.TRACK_PREV,
+  227: TvActionKey.TRACK_PREV,
+  90: TvActionKey.TRACK_NEXT,
+  228: TvActionKey.TRACK_NEXT,
 } as const;
 
 /**
