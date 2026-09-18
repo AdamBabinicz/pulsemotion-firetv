@@ -10,7 +10,7 @@
     />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://pulsemotion-firetv.netlify.app; connect-src 'self' https://cdn.jsdelivr.net blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://pulsemotion-firetv.netlify.app; connect-src 'self' https://cdn.jsdelivr.net https://static.cloudflareinsights.com blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
     />
     <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
 
@@ -74,7 +74,7 @@
           "name": "Adam Babinicz",
           "url": "https://github.com/AdamBabinicz/pulsemotion-firetv"
         },
-        "browserRequirements": "Requires WebGL 2.0 and WebAssembly support",
+        "browserRequirements": "Requires WebAssembly support",
         "featureList": [
           "100% On-device MediaPipe Pose estimation",
           "60 FPS real-time joint angle calculation",
@@ -86,13 +86,18 @@
     </script>
 
     <!-- Google MediaPipe Pose & Camera Utils CDN -->
+    <!-- MediaPipe: wersje przypięte 1:1 z locateFile w PoseCamera.tsx; SRI z realnych bajtów CDN -->
     <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"
+      integrity="sha384-q1KhAZhJcJXr3zfC3Tz07pBqQSabwFIZhXlmlUAB8s0zk4ETWERkIKGBCFQ5Jc3e"
       crossorigin="anonymous"
+      referrerpolicy="no-referrer"
     ></script>
     <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js"
+      integrity="sha384-qcJQ+n/ZcF15Xu2EoRupB4Av+GEAGeW0Td1mp2A90u0NdNLzLYQVMUq1Ax1YAHqk"
       crossorigin="anonymous"
+      referrerpolicy="no-referrer"
     ></script>
   </head>
   <body

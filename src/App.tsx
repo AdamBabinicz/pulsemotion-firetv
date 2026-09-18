@@ -25,6 +25,10 @@ import {
   getTvDirectionFromEvent,
   handleModalFocusTrap,
   setTvFocus,
+  BackAction,
+  resolveBackHierarchy,
+  isNativelyActivated,
+  shouldProgrammaticClick,
   TvActionKey,
   TvDirection,
 } from "./utils/tvNavigation";
@@ -712,31 +716,39 @@ export default function App() {
       // Amazon Fire TV Guidelines: Back button MUST navigate back in navigation hierarchy:
       // Modals -> Summary -> Fullscreen -> Active Workout to Pause -> Exit/Root
       if (tvAction === TvActionKey.BACK) {
-        if (isPrivacyOpen || isTermsOpen || isCookieSettingsOpen) {
-          e.preventDefault();
-          setIsPrivacyOpen(false);
-          setIsTermsOpen(false);
-          setIsCookieSettingsOpen(false);
-          return;
+        // Hierarchia Back rozwiązywana przez czystą funkcję resolveBackHierarchy()
+        // (testowalna bez DOM — patrz src/utils/tvHierarchy.test.ts)
+        const backAction = resolveBackHierarchy({
+          isAnyModalOpen: isPrivacyOpen || isTermsOpen || isCookieSettingsOpen,
+          isSummaryOpen: isCompleted,
+          isFullscreen: document.fullscreenElement !== null,
+          isWorkoutRunning: true,
+          isPaused,
+        });
+
+        switch (backAction) {
+          case BackAction.DISMISS_MODALS:
+            e.preventDefault();
+            setIsPrivacyOpen(false);
+            setIsTermsOpen(false);
+            setIsCookieSettingsOpen(false);
+            return;
+          case BackAction.CLOSE_SUMMARY:
+            e.preventDefault();
+            setIsCompleted(false);
+            return;
+          case BackAction.EXIT_FULLSCREEN:
+            e.preventDefault();
+            document.exitFullscreen().catch(() => {});
+            return;
+          case BackAction.PAUSE_WORKOUT:
+            e.preventDefault();
+            setIsPaused(true);
+            return;
+          case BackAction.PASS_TO_SYSTEM:
+            // W stanie pauzy na poziomie głównym pozwól systemowi obsłużyć Back
+            return;
         }
-        if (isCompleted) {
-          e.preventDefault();
-          setIsCompleted(false);
-          return;
-        }
-        if (document.fullscreenElement) {
-          e.preventDefault();
-          document.exitFullscreen().catch(() => {});
-          return;
-        }
-        // Jeśli trening jest w toku, Back przechodzi poziom wyżej do stanu pauzy/gotowości
-        if (!isPaused && !isCompleted) {
-          e.preventDefault();
-          setIsPaused(true);
-          return;
-        }
-        // W stanie pauzy na poziomie głównym pozwól systemowi obsłużyć Back (np. powrót do launchera)
-        return;
       }
 
       // 2. Tab key focus trap inside active modal
@@ -845,16 +857,15 @@ export default function App() {
       // 5. Enter / Space / Fire TV Center Select button
       if (tvAction === TvActionKey.SELECT) {
         const activeElement = document.activeElement as HTMLElement | null;
-        if (
-          activeElement &&
-          activeElement !== document.body &&
-          (activeElement.tagName === "BUTTON" ||
-            activeElement.getAttribute("role") === "button" ||
-            activeElement.tagName === "A" ||
-            activeElement.tagName === "INPUT")
-        ) {
-          activeElement.click();
+
+        // Element natywnie aktywowalny (button / a / input...): NIE wołamy click()
+        // ani preventDefault(). Oba mechanizmy mogły zadziałać razem → podwójna aktywacja.
+        if (isNativelyActivated(activeElement)) {
+          return;
+        }
+        if (shouldProgrammaticClick(activeElement)) {
           e.preventDefault();
+          activeElement!.click();
           return;
         }
 

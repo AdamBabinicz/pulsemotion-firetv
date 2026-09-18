@@ -325,3 +325,72 @@ export function handleModalFocusTrap(
 
   return false;
 }
+
+/**
+ * Deklarowany przez kontekst aplikacji stan, który wpływa na hierarchię Back
+ */
+export interface BackContext {
+  isAnyModalOpen: boolean;
+  isSummaryOpen: boolean;
+  isFullscreen: boolean;
+  isWorkoutRunning: boolean;
+  isPaused: boolean;
+}
+
+/**
+ * Akcja wynikająca z naciśnięcia Back — zgodna z wytycznymi Fire TV:
+ * Modals → Summary → Fullscreen → Active Workout → Pause → System
+ */
+export enum BackAction {
+  DISMISS_MODALS = "DISMISS_MODALS",
+  CLOSE_SUMMARY = "CLOSE_SUMMARY",
+  EXIT_FULLSCREEN = "EXIT_FULLSCREEN",
+  PAUSE_WORKOUT = "PAUSE_WORKOUT",
+  PASS_TO_SYSTEM = "PASS_TO_SYSTEM",
+}
+
+/**
+ * Czysta (bez DOM) rozdzielczość hierarchii Back do celów testowych.
+ * Kolejność ma znaczenie i jest pilnowana testem regresyjnym.
+ */
+export function resolveBackHierarchy(ctx: BackContext): BackAction {
+  if (ctx.isAnyModalOpen) return BackAction.DISMISS_MODALS;
+  if (ctx.isSummaryOpen) return BackAction.CLOSE_SUMMARY;
+  if (ctx.isFullscreen) return BackAction.EXIT_FULLSCREEN;
+  if (ctx.isWorkoutRunning && !ctx.isPaused) return BackAction.PAUSE_WORKOUT;
+  return BackAction.PASS_TO_SYSTEM;
+}
+
+/**
+ * Element natywnie aktywowalny (button / a / input...) — Enter NIE woła click()
+ * ani preventDefault(), bo oba mechanizmy mogłyby zadziałać razem → podwójna aktywacja.
+ */
+export function isNativelyActivated(element: HTMLElement | null): boolean {
+  if (!element) return false;
+  return (
+    element.tagName === "BUTTON" ||
+    element.tagName === "A" ||
+    element.tagName === "INPUT" ||
+    element.tagName === "SELECT" ||
+    element.tagName === "TEXTAREA"
+  );
+}
+
+/**
+ * Element, który wymaga programistycznego click() przy Enter (role="button",
+ * data-tv-focusable itd. — elementy bez natywnej obsługi Enter).
+ */
+export function shouldProgrammaticClick(element: HTMLElement | null): boolean {
+  if (!element) return false;
+  if (isNativelyActivated(element)) return false;
+
+  // Klasyfikacja po atrybutach — działa też w środowisku bez DOM (node:test)
+  const isRoleButton = element.getAttribute("role") === "button";
+  const isTvFocusable = element.hasAttribute("data-tv-focusable");
+  if (!isRoleButton && !isTvFocusable) return false;
+
+  // document.body nigdy nie jest celem programistycznej aktywacji
+  if (typeof document !== "undefined" && element === document.body) return false;
+
+  return true;
+}

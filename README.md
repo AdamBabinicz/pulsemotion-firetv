@@ -33,8 +33,8 @@
 [![Fire TV](https://img.shields.io/badge/Amazon-Fire%20TV%20%26%20Silk%20Browser-FF9900?style=flat-square&logo=amazonfiretv&logoColor=white)](https://developer.amazon.com/)
 [![Web Speech API](https://img.shields.io/badge/Web%20Speech-API-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
-[![Pipeline Latency](https://img.shields.io/badge/Pipeline-31.4%20ms%20measured%20end--to--end-10B981?style=flat-square)](#-performance-budget)
-[![Real-Time Tracking](https://img.shields.io/badge/Pose%20Tracking-58%E2%80%9360%20FPS%20sustained%20on%20Fire%20TV%20Stick%204K-10B981?style=flat-square)](#-performance-budget)
+[![Pipeline Latency](https://img.shields.io/badge/Pipeline-design%20target%20%3C%2035%20ms-10B981?style=flat-square)](#-performance-budget)
+[![Real-Time Tracking](https://img.shields.io/badge/Pose%20Tracking-live%20FPS%20badge%20in%20HUD-10B981?style=flat-square)](#-performance-budget)
 [![Privacy](https://img.shields.io/badge/Privacy--First%20On--Device-Zero%20Video%20or%20Biometric%20Upload-047857?style=flat-square)](#-privacy-first-architecture)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20PL-F59E0B?style=flat-square)](#-bilingual-experience)
 
@@ -49,7 +49,7 @@
 > ### ⚡ TL;DR
 >
 > **PulseMotion TV** turns an Amazon Fire TV Stick into a hands-free, camera-driven personal trainer.
-> Google **MediaPipe Pose** runs **on-device** inside the **Silk Browser**, powered by **WebAssembly SIMD** and **WebGL 2.0** GPU acceleration — a **31.4 ms measured end-to-end pipeline**, with **58–60 FPS sustained on tested Fire TV Stick 4K**.
+> Google **MediaPipe Pose** runs **on-device** inside the **Silk Browser**, powered by **WebAssembly SIMD** — with a design target of **< 35 ms end-to-end pipeline** (live FPS is shown in the HUD badge, not pre-declared as a number).
 > A **Web Speech Synthesis** voice coach calls out reps in real time, **Web Speech Recognition** lets you navigate by talking, and the **Fire TV remote D-Pad** drives the entire 10-foot UI.
 > **No video ever leaves your living room.**
 
@@ -93,7 +93,7 @@
 
 ### 🧠 On-Device AI Pose Engine
 
-Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, executing on the **WebGL 2.0** GPU pipeline. 33 skeletal landmarks tracked per frame, **58–60 FPS sustained on tested Fire TV Stick 4K**, no server round-trip.
+Google **MediaPipe Pose** compiled to **WebAssembly SIMD**, with a Canvas 2D skeleton overlay driven by `requestAnimationFrame`. 33 skeletal landmarks tracked per frame, no server round-trip. Live FPS is visible in the HUD badge during a session.
 
 </td>
 <td width="50%" valign="top">
@@ -161,7 +161,7 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 | Criterion                                    | How PulseMotion TV Delivers                                                                                                                       |
 | :------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Fire TV Native Experience**               | Purpose-built for the 10-foot form factor: overscan-safe, D-Pad-first, remote-native keycodes (`Key V` voice trigger, `Space`/`Enter` action).    |
-| **Innovative Use of Device Capabilities**  | MediaPipe Pose + WASM SIMD + WebGL 2.0 sustaining **58–60 FPS** on the tested Fire TV Stick 4K HDMI streaming stick.                              |
+| **Innovative Use of Device Capabilities**  | MediaPipe Pose + WASM SIMD + Canvas 2D overlay on the Fire TV Stick 4K HDMI streaming stick — 100% on-device.                              |
 | **Privacy & Trust**                        | No cloud inference, no accounts, no telemetry — camera stream never leaves device; hands-free voice mute with hardware hotkey fallback.           |
 | **Accessibility**                          | Designed against WCAG AAA contrast targets for 10-foot TV viewing, spatial navigation, multi-modal voice control, **two** languages, synthetic simulator for camera-less testing. |
 | **Completeness**                           | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log.                                    |
@@ -191,7 +191,7 @@ flowchart TD
     subgraph VISION["👁️ Computer Vision Engine"]
         C1["getUserMedia<br/>720p Video Stream"]
         C2["MediaPipe Pose Solution<br/>WASM SIMD"]
-        C3["WebGL 2.0 GPU Backend<br/>Hardware Acceleration"]
+        C3["WebAssembly Runtime<br/>On-device Inference"]
         C4["33-Landmark Skeleton<br/>Normalized Coordinates"]
     end
 
@@ -203,7 +203,7 @@ flowchart TD
     end
 
     subgraph OUTPUT["📺 Output Layer — 10-Foot UI"]
-        E1["Canvas Skeleton Overlay<br/>Render Loop · 58–60 FPS Sustained"]
+        E1["Canvas 2D Skeleton Overlay<br/>requestAnimationFrame Render Loop"]
         E2["Rep Counter HUD & Live Pause Banner<br/>Emerald Glow Focus Rings"]
         E3["Web Speech Synthesis<br/>Real-Time Voice Coach"]
         E4["Voice Prompt Hint Bar<br/>Discoverable Command Stream"]
@@ -240,14 +240,14 @@ sequenceDiagram
     autonumber
     participant Cam as 📷 Camera (Silk Browser)
     participant MP as 🧠 MediaPipe Pose (WASM SIMD)
-    participant GPU as ⚡ WebGL 2.0 Backend
+    participant GPU as ⚡ WASM Inference Runtime
     participant Solver as 📐 Angle Solver
     participant FSM as 🔁 Rep State Machine
     participant TTS as 🗣️ Speech Synthesis
     participant UI as 📺 10-Foot HUD
 
     loop Every frame — target 16.6 ms budget
-        Cam->>MP: requestVideoFrameCallback (720p)
+        Cam->>MP: Camera frame (720p, rAF loop)
         MP->>GPU: Upload frame texture
         GPU-->>MP: 33 landmarks (x, y, z, visibility)
         MP->>Solver: Normalized landmark array
@@ -259,7 +259,7 @@ sequenceDiagram
         end
         FSM->>UI: Skeleton overlay draw call
     end
-    Note over Cam,UI: Pipeline budget < 35 ms · measured 31.4 ms end-to-end · 58–60 FPS sustained on tested Fire TV Stick 4K
+    Note over Cam,UI: Design target < 35 ms end-to-end · live FPS shown in HUD badge · figures not reproduced in CI
 ```
 
 ### Layered Component Model
@@ -278,7 +278,7 @@ sequenceDiagram
 │  Exercise Registry · Angle Calculators · Rep FSM · Form Validators           │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  VISION LAYER                             MediaPipe + WebAssembly SIMD        │
-│  Pose Detector · Landmark Normalizer · WebGL 2.0 Renderer · Frame Scheduler  │
+│  Pose Detector · Landmark Normalizer · Canvas 2D Renderer · rAF Scheduler  │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  PLATFORM LAYER                           Browser & Device Adapters          │
 │  getUserMedia · SpeechSynthesis · SpeechRecognition · KeyEvent Normalizer    │
@@ -297,7 +297,7 @@ sequenceDiagram
 | **Styling**               | [Tailwind CSS](https://tailwindcss.com/)                                                      | `v4`    | Zero-runtime CSS, 10-foot spacing scale, focus-ring utilities      |
 | **AI / Computer Vision**  | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe)                     | Latest  | 33-landmark full-body pose estimation                              |
 | **Compute Acceleration**  | [WebAssembly SIMD](https://webassembly.org/)                                                  | —       | Vectorized inference on the Fire TV Stick's ARM CPU                |
-| **Graphics Acceleration** | **WebGL 2.0**                                                                                 | —       | GPU-backed inference + skeleton overlay render                     |
+| **Overlay Rendering**     | Canvas 2D (`getContext("2d")`)                                                                | —       | Skeleton overlay drawn per animation frame                         |
 | **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
 | **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
 | **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
@@ -348,13 +348,13 @@ sequenceDiagram
 | :------------------------------------------------ | ------------: | ---------------------------: | :----: |
 | Camera capture (`getUserMedia` @ 720p)            |        `4 ms` |                     `3.8 ms` |   🟢   |
 | Frame → GPU texture upload                        |        `3 ms` |                     `3.1 ms` |   🟢   |
-| MediaPipe Pose inference (WASM SIMD + WebGL 2.0)  |       `20 ms` |                    `19.4 ms` |   🟢   |
+| MediaPipe Pose inference (WASM SIMD)              |       `20 ms` |        `19.4 ms` *(dev-phase)* |   ⚪   |
 | Joint-angle solver (33 landmarks, 12 angles)      |        `2 ms` |                     `1.6 ms` |   🟢   |
 | Rep FSM + form validation                         |        `1 ms` |                     `0.7 ms` |   🟢   |
 | React HUD reconciliation (transition-prioritized) |        `2 ms` |                     `1.9 ms` |   🟢   |
 | Speech synthesis enqueue (non-blocking)           |        `1 ms` |                     `0.9 ms` |   🟢   |
-| **End-to-end pipeline**                           | **`< 35 ms`** |                **`31.4 ms`** |   🟢   |
-| **Sustained frame rate**                          |  **`60 FPS`** |              **`58–60 FPS`** |   🟢   |
+| **End-to-end pipeline**                           | **`< 35 ms`** |       `31.4 ms` *(dev-phase, not reproduced in CI)* |   ⚪   |
+| **Sustained frame rate**                          |  **`60 FPS`** |    `58–60 FPS` *(dev-phase, not reproduced in CI)* |   ⚪   |
 
 > 🟢 **Health metric legend:** `≤ budget` · 🟡 `within 15% of budget` · 🔴 `budget exceeded → auto quality downgrade`
 
@@ -592,31 +592,32 @@ export const dictionaries: Record<Locale, WorkoutDictionary> = {
 | :----------------- | :------------------------------------- | :--------------------------- | :-------------------------------------- |
 | **D-Pad Up**       | `DPAD_UP` (19)                         | `↑` ArrowUp                  | Move focus up / increase difficulty     |
 | **D-Pad Down**     | `DPAD_DOWN` (20)                       | `↓` ArrowDown                | Move focus down / decrease difficulty   |
-| **D-Pad Left**     | `DPAD_LEFT` (21)                       | `←` ArrowLeft                | Previous exercise / rewind carousel     |
-| **D-Pad Right**    | `DPAD_RIGHT` (22)                      | `→` ArrowRight               | Next exercise / advance carousel        |
+| **D-Pad Left**     | `DPAD_LEFT` (21)                       | `←` ArrowLeft                | Move focus left                         |
+| **D-Pad Right**    | `DPAD_RIGHT` (22)                      | `→` ArrowRight               | Move focus right                        |
 | **Select / OK**    | `DPAD_CENTER` (23)                     | `Enter` / `Space`            | Activate focused card / confirm         |
-| **Play / Pause**   | `MEDIA_PLAY_PAUSE` (85)                | `P`                          | Pause / resume the active workout       |
-| **Rewind**         | `REWIND` (89)                          | `R`                          | Restart the current set / reset counter |
+| **Play / Pause**   | `MEDIA_PLAY_PAUSE` (85 / 179)          | `P` / `MediaPlayPause`       | Pause / resume the active workout       |
+| **Media Play**     | `MEDIA_PLAY` (126)                     | `MediaPlay`                  | Resume the paused workout               |
+| **Media Pause / Stop** | `MEDIA_PAUSE` (127) / `MEDIA_STOP` (86) | `MediaPause` / `MediaStop` | Pause the active workout               |
+| **Track Prev ⚠️**  | `MEDIA_REWIND` (89 / 227)              | `MediaTrackPrevious`         | **Not mapped** — previous exercise uses `MediaTrackPrevious` (227) instead |
+| **Track Next ⚠️**  | `MEDIA_FAST_FORWARD` (90 / 228)        | `MediaTrackNext`             | Next exercise (`MediaTrackNext`, 228)   |
 | **Voice Button**   | Hardware Voice                         | `V`                          | Toggle voice recognition on / off       |
 | **Back / Escape**  | `BACK` (4)                             | `Escape`                     | Pause active workout or dismiss summary |
 | **Mute Audio**     | `MEDIA_MUTE`                           | `M`                          | Mute / unmute audio coach feedback      |
 
 ```ts
-// src/navigation/keymap.ts
-export const REMOTE_KEYMAP = {
-  DPAD_UP: "ArrowUp",
-  DPAD_DOWN: "ArrowDown",
-  DPAD_LEFT: "ArrowLeft",
-  DPAD_RIGHT: "ArrowRight",
-  DPAD_CENTER: "Enter",
-  MEDIA_PLAY_PAUSE: "p",
-  REWIND: "r",
-  VOICE_TRIGGER: "v",
-  MUTE: "m",
-  BACK: "Escape",
+// src/utils/tvNavigation.ts — rzeczywisty fragment (przeczytaj cały plik dla kodów Android KeyEvent)
+export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
+  ArrowUp: TvDirection.UP,   Up: TvDirection.UP,
+  ArrowDown: TvDirection.DOWN, Down: TvDirection.DOWN,
+  ArrowLeft: TvDirection.LEFT,  Left: TvDirection.LEFT,
+  ArrowRight: TvDirection.RIGHT, Right: TvDirection.RIGHT,
+  Enter: TvActionKey.SELECT,  " ": TvActionKey.SELECT,
+  Escape: TvActionKey.BACK,   Backspace: TvActionKey.BACK,
+  MediaPlayPause: TvActionKey.PLAY_PAUSE,
+  MediaPlay: TvActionKey.PLAY,
+  MediaPause: TvActionKey.PAUSE,
+  MediaStop: TvActionKey.PAUSE,
 } as const;
-
-export type RemoteAction = keyof typeof REMOTE_KEYMAP;
 ```
 
 > 🟠 **Callout — The Virtual Fire TV Remote** renders this exact table as an on-screen D-Pad overlay during desktop development, dispatching the native Android keycodes so the desktop build and the Fire TV build share **one** navigation code path.
@@ -631,12 +632,12 @@ export type RemoteAction = keyof typeof REMOTE_KEYMAP;
 | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🔥 Symptom**    | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session.                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived.                                                                                                                                                                                                                           |
-| **🛠️ Solution**   | 1. Forced the **WebGL 2.0 GPU delegate** for MediaPipe instead of the CPU/WASM-only path.<br/>2. Enabled **WASM SIMD** for the post-processing math.<br/>3. Unified inference and overlay into a **single shared `WebGL` context** to eliminate double uploads.<br/>4. Switched to `requestVideoFrameCallback` so we only process genuinely new frames.<br/>5. Added an **adaptive quality governor**: if measured frame time exceeds 20 ms for 30 consecutive frames, input resolution steps `720p → 540p → 480p`, and landmark smoothing is reduced. |
-| **✅ Impact**     | **58–60 FPS sustained** over a 20-minute workout session with no thermal throttle. End-to-end pipeline dropped to **31.4 ms**.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **🛠️ Solution**   | 1. Enabled **WASM SIMD** for inference and post-processing math.<br/>2. Drew the skeleton overlay on a **Canvas 2D** context instead of a second GPU pass.<br/>3. Drove the loop with `requestAnimationFrame` plus an in-flight guard, so frames are dropped instead of queued when inference lags.<br/>4. Documented the frame-time budget in the Performance table above. |
+| **✅ Impact**     | Stable interactive session over long workouts in development-phase testing. These figures are **not reproduced in CI** — the repo contains no benchmark harness; treat them as historical dev-phase numbers, not guarantees. |                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **📚 Takeaway**   | On streaming sticks, _thermal sustained performance_ matters far more than _peak benchmark performance_. Budget for the steady state, not the first 10 seconds.                                                                                                                                                                                                                                                                                                                                                                                        |
 
 ```ts
-// src/vision/qualityGovernor.ts — the fix that saved 20 FPS
+// Illustrative snippet (design sketch — this file does NOT exist in the repo)
 export const QUALITY_TIERS = [
   { label: "ultra", width: 1280, height: 720, smoothing: 0.65 },
   { label: "high", width: 960, height: 540, smoothing: 0.55 },
@@ -809,7 +810,7 @@ export function dispatchAction(action: VoiceAction) {
 | :---------- | :---------------------- | :-------------------------------------------------- |
 | **Node.js** | `≥ 20 LTS`              | Required by Vite 6                                  |
 | **pnpm**    | `≥ 9`                   | Fastest, most disk-efficient package manager        |
-| **Browser** | Chrome / Edge / Silk    | WebGL 2.0 + WASM SIMD support required              |
+| **Browser** | Chrome / Edge / Silk    | WASM support required (Canvas 2D overlay)           |
 | **Webcam**  | Any 720p USB / built-in | Optional — use the Synthetic Pose Simulator instead |
 
 ```bash
@@ -924,7 +925,7 @@ pulsemotion-firetv/
 
 ```mermaid
 flowchart LR
-    V1["✅ v1.0 — Hackathon Release<br/>5 exercises<br/>58–60 FPS · EN/PL"] --> V2["🚧 v1.1 — Personalization<br/>Custom reps & rest<br/>Workout presets"]
+    V1["✅ v1.0 — Hackathon Release<br/>5 exercises<br/>on-device pose · EN/PL"] --> V2["🚧 v1.1 — Personalization<br/>Custom reps & rest<br/>Workout presets"]
     V2 --> V3["🧭 v1.2 — Multi-Player<br/>Split-screen pose<br/>Household profiles"]
     V3 --> V4["🔮 v2.0 — On-Device Memory<br/>Weekly progress index<br/>Fully on-device, always"]
 
@@ -936,7 +937,7 @@ flowchart LR
 
 | Version  |   Status    | Highlights                                                                                                |
 | :------- | :---------: | :-------------------------------------------------------------------------------------------------------- |
-| **v1.0** | ✅ Shipped  | 5 calibrated exercises, MediaPipe Pose at 58–60 FPS sustained, voice coach, EN/PL, D-Pad navigation, synthetic simulator. |
+| **v1.0** | ✅ Shipped  | 5 calibrated exercises, on-device MediaPipe Pose, voice coach, EN/PL, D-Pad navigation, synthetic simulator. |
 | **v1.1** | 🚧 Planned  | Custom rep targets, rest timers, shareable workout presets.                                               |
 | **v1.2** | 🧭 Explored | Multi-player split-screen pose tracking for household workouts.                                           |
 | **v2.0** |  🔮 Vision  | On-device weekly progress index — still fully on-device.                                                  |

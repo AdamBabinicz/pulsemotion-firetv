@@ -674,8 +674,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       try {
         const pose = new window.Pose({
+          // Wersja przypięta 1:1 z tagiem <script integrity=...> w index.html
           locateFile: (file: string) =>
-            `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+            `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`,
         });
 
         pose.setOptions({

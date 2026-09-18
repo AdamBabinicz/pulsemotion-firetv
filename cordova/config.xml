@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  SZKIELET NIEZBUDOWANY (⚠️): `cordova build android` nie był uruchamiany w ramach
+  tej zmiany. Przed pierwszą kompilacją uzupełnij: widget id, ikony, splash,
+  podpis release oraz sprawdź zgodność z aktualną wersją cordova-android.
+-->
+<widget id="pl.pulsemotion.tv" version="1.0.0" xmlns="http://www.w3.org/ns/widgets"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>PulseMotion TV</name>
+    <description>
+        AI fitness coach for Amazon Fire TV: on-device pose tracking,
+        hands-free voice control, live rep counter, zero cloud streaming.
+    </description>
+    <author email="contact@pulsemotion.tv" href="https://github.com/AdamBabinicz">
+        Adam Babinicz
+    </author>
+
+    <content src="index.html" />
+    <allow-intent href="https://cdn.jsdelivr.net/*" />
+    <allow-navigation href="https://pulsemotion-firetv.netlify.app/*" />
+
+    <!-- ⚠️ WYMAGANE PRZED PIERWSZYM getUserMedia: runtime permission CAMERA.
+         Zgoda w runtime musi być wywołana przed startem kamery — sam wpis
+         w manifeście nie wystarcza dla Androida 6+. -->
+    <platform name="android">
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-feature android:name="android.hardware.camera" android:required="true" />
+            <uses-feature android:name="android.hardware.microphone" android:required="false" />
+            <!-- Fire TV / Android TV: deklaracja braku ekranu dotykowego -->
+            <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+        </config-file>
+
+        <!-- Allowlist do rozmów z CDN MediaPipe (CSP w index.html też wymaga
+             'unsafe-inline'/'unsafe-eval' dla WASM — patrz otwarta kwestia w README) -->
+        <preference name="AndroidInsecureFileModeEnabled" value="true" />
+        <preference name="AllowInlineMediaPlayback" value="true" />
+        <preference name="Fullscreen" value="true" />
+        <preference name="Orientation" value="landscape" />
+    </platform>
+</widget>
