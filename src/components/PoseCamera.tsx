@@ -18,6 +18,8 @@ import {
   TvDirection,
   setTvFocus,
 } from "../utils/tvNavigation";
+import { requestCameraRuntimePermission } from "../utils/cameraPermissions";
+import { detectTvEnvironment } from "../utils/fireTvEnvironment";
 
 interface PoseCameraProps {
   onPoseDetected: (landmarks: Landmark[]) => void;
@@ -234,9 +236,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 }) => {
   const t = translations[lang];
   const isDark = theme === "dark";
+  // Fire TV / Fire OS detection (W14): D-pad-first UX, brak przełącznika
+  // przód/tył kamery na urządzeniach TV.
+  const tvEnv = detectTvEnvironment();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const demoButtonRef = useRef<HTMLButtonElement | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [cameraFailureReason, setCameraFailureReason] = useState<
     "none" | "no-device" | "denied" | "generic"
@@ -290,6 +296,15 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       onDemoModeChangeRef.current(demoMode);
     }
   }, [demoMode]);
+
+  // Gdy system odmówi kamery w runtime (denied), przekazuj fokus D-padem
+  // od razu na przycisk "Symulator AI" — użytkownik TV dostaje gotową,
+  // czytelną alternatywę zamiast ślepej uliczki (W16).
+  useEffect(() => {
+    if (hasCameraError && cameraFailureReason === "denied") {
+      demoButtonRef.current?.focus();
+    }
+  }, [hasCameraError, cameraFailureReason]);
 
   useEffect(() => {
     exerciseIdRef.current = exerciseId;
@@ -553,6 +568,17 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setHasCameraError(false);
     setCameraFailureReason("none");
     if (!videoRef.current) return;
+
+    // Fire OS / Android 6+: runtime permission CAMERA musi zostać przyznana
+    // natywnym mostem PRZED getUserMedia (W7). W czystym web buildzie
+    // (window.cordova nieobecne) prompty rozwiązują się natychmiast i
+    // obowiązuje standardowy przepływ uprawnień przeglądarki.
+    const permissionGranted = await requestCameraRuntimePermission();
+    if (!permissionGranted) {
+      setCameraFailureReason("denied");
+      setHasCameraError(true);
+      return;
+    }
 
     try {
       stopCamera();
@@ -947,22 +973,26 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             </span>
           </button>
 
-          <button
-            id="btn-flip-camera"
-            type="button"
-            tabIndex={0}
-            data-tv-focusable="true"
-            onKeyDown={handleNavKeyDown}
-            onClick={toggleFacingMode}
-            className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
-            title={t.switchCamera}
-            aria-label={t.switchCamera}
-          >
-            <SwitchCamera className="w-4 h-4 text-sky-400" />
-            <span className="text-[10px] font-mono hidden md:inline">
-              {facingMode === "user" ? t.frontCamera : t.backCamera}
-            </span>
-          </button>
+          {/* Fire TV / Sticks mają tylko jedną "kamerę" (zwykle żadną) —
+              przełącznik front/back ma sens wyłącznie poza TV */}
+          {!tvEnv.isTvLike && (
+            <button
+              id="btn-flip-camera"
+              type="button"
+              tabIndex={0}
+              data-tv-focusable="true"
+              onKeyDown={handleNavKeyDown}
+              onClick={toggleFacingMode}
+              className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
+              title={t.switchCamera}
+              aria-label={t.switchCamera}
+            >
+              <SwitchCamera className="w-4 h-4 text-sky-400" />
+              <span className="text-[10px] font-mono hidden md:inline">
+                {facingMode === "user" ? t.frontCamera : t.backCamera}
+              </span>
+            </button>
+          )}
 
           <button
             id="btn-toggle-skeleton"
@@ -1025,6 +1055,11 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               ? t.cameraNoDeviceDesc
               : t.cameraPromptDesc}
           </p>
+          {hasCameraError && cameraFailureReason === "denied" && (
+            <p className="mb-5 text-xs sm:text-sm text-amber-300/90 max-w-md leading-relaxed">
+              {t.studioModeDesc}
+            </p>
+          )}
           <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
             <button
               id="btn-retry-camera"
@@ -1040,12 +1075,17 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             </button>
             <button
               id="btn-launch-demo"
+              ref={demoButtonRef}
               type="button"
               tabIndex={0}
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
-              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border border-indigo-400 transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
+              className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border transition-all shadow-lg active:scale-95 ${
+                hasCameraError && cameraFailureReason === "denied"
+                  ? "border-amber-300 shadow-amber-400/30 ring-2 ring-amber-300/60"
+                  : "border-indigo-400 shadow-indigo-600/25"
+              }`}
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
               <span>{t.studioMode}</span>

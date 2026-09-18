@@ -28,6 +28,15 @@
     <allow-intent href="https://static.cloudflareinsights.com/*" />
     <allow-navigation href="*" />
 
+    <!-- W7: runtime CAMERA permission (Android 6+ / Fire OS 5+). Sam wpis
+         uses-permission w manifeście NIE wystarcza — bez tej wtyczki system
+         po cichu odmawia i getUserMedia kończy się NotAllowedError. Wtyczka
+         udostępnia most cordova.plugins.permissions, z którego przed każdym
+         getUserMedia korzysta src/utils/cameraPermissions.ts. Instalacja:
+         cordova plugin add cordova-plugin-android-permissions (lub automatycznie
+         przy `cordova platform add android` dzięki temu wpisowi). -->
+    <plugin name="cordova-plugin-android-permissions" />
+
     <platform name="android">
         <!-- ⚠️ WYMAGANE PRZED PIERWSZYM getUserMedia: runtime permission CAMERA.
              Zgoda w runtime musi być wywołana przed startem kamery (np.
