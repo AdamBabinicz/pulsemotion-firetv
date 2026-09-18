@@ -1,4 +1,4 @@
-import { Landmark } from '../types';
+import { Landmark } from "../types";
 
 /**
  * Calculates the angle in degrees at point B given points A, B, and C
@@ -7,7 +7,8 @@ import { Landmark } from '../types';
  * @param c Third point (e.g. Ankle)
  */
 export function calculateAngle(a: Landmark, b: Landmark, c: Landmark): number {
-  const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+  const radians =
+    Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
   let angle = Math.abs((radians * 180.0) / Math.PI);
 
   if (angle > 180.0) {

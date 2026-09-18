@@ -1,23 +1,24 @@
-export type ExerciseId = 
-  | 'squats'
-  | 'jumping_jacks'
-  | 'high_knees'
-  | 'tree_pose'
-  | 'arm_raises';
+export type ExerciseId =
+  | "squats"
+  | "jumping_jacks"
+  | "high_knees"
+  | "tree_pose"
+  | "arm_raises";
 
-export type FormQuality = 'perfect' | 'good' | 'needs_correction' | 'idle';
+export type FormQuality = "perfect" | "good" | "needs_correction" | "idle";
 
 export interface ExerciseDefinition {
   id: ExerciseId;
   name: string;
-  category: 'Strength' | 'Cardio' | 'Balance' | 'Mobility';
+  category: "Strength" | "Cardio" | "Balance" | "Mobility";
   targetRepsOrSeconds: number;
   isTimeBased: boolean;
-  caloriePerRepOrSec: number;
-  description: string;
-  targetMuscles: string[];
-  keyCues: string[];
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  caloriePerRepOrSec?: number;
+  description?: string;
+  targetMuscles?: string[];
+  keyCues?: string[];
+  difficulty?: "Beginner" | "Intermediate" | "Advanced";
+  targetAngle?: number;
 }
 
 export interface Landmark {
@@ -34,17 +35,17 @@ export interface PoseFrameData {
 
 export interface ExerciseMetrics {
   reps: number;
-  target: number;
-  currentAngle: number;
-  targetAngleMin: number;
-  targetAngleMax: number;
+  target?: number;
+  currentAngle?: number;
+  targetAngleMin?: number;
+  targetAngleMax?: number;
   formQuality: FormQuality;
-  feedbackMessage: string;
+  feedbackMessage?: string;
   caloriesBurned: number;
   elapsedSeconds: number;
-  accuracyScores: number[]; // 0-100 for each rep
+  accuracyScores?: number[]; // 0-100 for each rep
   averageAccuracy: number;
-  stage: string; // e.g. 'up', 'down', 'holding'
+  stage?: string; // e.g. 'up', 'down', 'holding'
 }
 
 export interface WorkoutHistoryItem {

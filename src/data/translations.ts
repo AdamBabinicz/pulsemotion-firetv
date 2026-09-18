@@ -15,6 +15,22 @@ export interface VoiceCommandHelpItem {
   desc: string;
 }
 
+export interface TvNavigationLabels {
+  dpadHint: string;
+  dpadUp: string;
+  dpadDown: string;
+  dpadLeft: string;
+  dpadRight: string;
+  dpadCenter: string;
+  back: string;
+  modalCloseHint: string;
+  headerZone: string;
+  cameraZone: string;
+  exerciseZone: string;
+  actionZone: string;
+  footerZone: string;
+}
+
 export interface TranslationSchema {
   appTitle: string;
   appSubtitle: string;
@@ -66,14 +82,21 @@ export interface TranslationSchema {
   energyBurned: string;
   timeSpent: string;
   safePatternBadge: string;
+  biomechanicalPatternLabel: string;
+  returnToExerciseView: string;
+  closeModalHint: string;
   nextExerciseBtn: string;
   repeatSetBtn: string;
   remoteTitle: string;
+  tvRemoteTitle: string;
   hideRemote: string;
   showRemote: string;
   remoteNavHint: string;
   remoteActionHint: string;
   remoteMuteHint: string;
+  navHint: string;
+  confirmHint: string;
+  muteHint: string;
   themeLight: string;
   themeDark: string;
   // Voice Control
@@ -96,7 +119,9 @@ export interface TranslationSchema {
   backCamera: string;
   mobileWorkoutMode: string;
   mobileGuideToggle: string;
-  // Legal, Cookies & Footer (New)
+  // TV Remote Navigation
+  tvNavigation: TvNavigationLabels;
+  // Legal, Cookies & Footer
   cookieBanner: {
     title: string;
     description: string;
@@ -174,7 +199,7 @@ export const translations: Record<Language, TranslationSchema> = {
     appSubtitle: "Interaktywny Trener Fitness AI na Fire TV i Web",
     privacyBadge:
       "100% On-Device AI Vision (Prywatność – obraz nie opuszcza laptopa)",
-    tvModeHint: "Steruj strzałkami ← → lub pilotem",
+    tvModeHint: "Steruj pilotem TV: D-pad (↑ ↓ ← →), OK, Wstecz",
     cameraActive: "Kamera TV Aktywna",
     cameraInactive: "Kamera Wyłączona",
     turnCameraOn: "Włącz kamerę",
@@ -226,14 +251,21 @@ export const translations: Record<Language, TranslationSchema> = {
     timeSpent: "Czas Pracy",
     safePatternBadge:
       "Wzorzec bezpieczny: Kąty stawów w rekomendowanym oknie biomechanicznym.",
+    biomechanicalPatternLabel: "Wzorzec biomechaniczny: ",
+    returnToExerciseView: "Wróć do podglądu ćwiczenia (Esc)",
+    closeModalHint: "Zamknij (Esc / Back)",
     nextExerciseBtn: "Kolejne Ćwiczenie (Enter)",
     repeatSetBtn: "Powtórz Serię",
     remoteTitle: "Pilot Fire TV",
+    tvRemoteTitle: "Pilot Fire TV",
     hideRemote: "Ukryj Pilot TV",
     showRemote: "Pilot Fire TV",
-    remoteNavHint: "Nawigacja: ← / →",
-    remoteActionHint: "Zatwierdź / Reset: Spacja / Enter",
+    remoteNavHint: "Nawigacja: D-pad ↑ / ↓ / ← / →",
+    remoteActionHint: "Zatwierdź: OK / Enter | Wstecz: Back / Esc",
     remoteMuteHint: "Wycisz dźwięk: Klawisz M",
+    navHint: "Nawigacja",
+    confirmHint: "Zatwierdź",
+    muteHint: "Wycisz",
     themeLight: "Jasny",
     themeDark: "Ciemny",
     // Voice Control
@@ -295,13 +327,29 @@ export const translations: Record<Language, TranslationSchema> = {
       "Dostęp do mikrofonu został zablokowany w przeglądarce.",
     pausedBanner: "Trening Wstrzymany (Pauza)",
     pausedBannerDesc:
-      "Powiedz „Start” lub naciśnij Spację/Enter, aby wznowić trening.",
+      "Naciśnij OK na pilocie lub powiedz „Start”, aby wznowić trening.",
     // Mobile Features
     switchCamera: "Obróć Kamerę",
     frontCamera: "Przednia",
     backCamera: "Tylna",
     mobileWorkoutMode: "Tryb Mobilny",
     mobileGuideToggle: "Wskazówki ćwiczenia",
+    // TV Remote Navigation
+    tvNavigation: {
+      dpadHint: "Nawigacja D-pad: Użyj strzałek ↑ ↓ ← → i przycisku OK",
+      dpadUp: "Góra",
+      dpadDown: "Dół",
+      dpadLeft: "Lewo",
+      dpadRight: "Prawo",
+      dpadCenter: "Wybierz (OK)",
+      back: "Wstecz",
+      modalCloseHint: "Naciśnij Wstecz / Escape, aby powrócić",
+      headerZone: "Pasek górny",
+      cameraZone: "Strefa kamery i symulacji",
+      exerciseZone: "Wybór ćwiczeń",
+      actionZone: "Akcje treningowe",
+      footerZone: "Stopka",
+    },
     // Legal, Cookies & Footer
     cookieBanner: {
       title: "Prywatność i Pliki Cookies",
@@ -458,7 +506,7 @@ export const translations: Record<Language, TranslationSchema> = {
     appTitle: "PulseMotion TV",
     appSubtitle: "Interactive AI Fitness Coach for Fire TV & Web",
     privacyBadge: "100% On-Device AI Vision (Zero video leaves your laptop)",
-    tvModeHint: "Navigate with ← → arrows or remote",
+    tvModeHint: "Navigate with TV remote: D-pad (↑ ↓ ← →), OK, Back",
     cameraActive: "TV Camera Active",
     cameraInactive: "Camera Offline",
     turnCameraOn: "Turn on camera",
@@ -510,14 +558,21 @@ export const translations: Record<Language, TranslationSchema> = {
     timeSpent: "Active Duration",
     safePatternBadge:
       "Safe Pattern: Joint angles stayed within the recommended orthopedic window.",
+    biomechanicalPatternLabel: "Biomechanical pattern: ",
+    returnToExerciseView: "Return to exercise view (Esc)",
+    closeModalHint: "Close (Esc / Back)",
     nextExerciseBtn: "Next Exercise (Enter)",
     repeatSetBtn: "Repeat Set",
     remoteTitle: "Fire TV Remote",
+    tvRemoteTitle: "Fire TV Remote",
     hideRemote: "Hide Remote",
     showRemote: "Fire TV Remote",
-    remoteNavHint: "Navigate: ← / →",
-    remoteActionHint: "Select / Reset: Space / Enter",
+    remoteNavHint: "Navigate: D-pad ↑ / ↓ / ← / →",
+    remoteActionHint: "Select: OK / Enter | Back: Back / Esc",
     remoteMuteHint: "Mute Voice: M key",
+    navHint: "Navigate",
+    confirmHint: "Confirm",
+    muteHint: "Mute",
     themeLight: "Light",
     themeDark: "Dark",
     // Voice Control
@@ -578,13 +633,29 @@ export const translations: Record<Language, TranslationSchema> = {
     micPermissionDenied: "Microphone permission was denied in browser.",
     pausedBanner: "Workout Paused",
     pausedBannerDesc:
-      'Say "Resume" / "Start" or press Space/Enter to continue.',
+      'Press OK on remote or say "Resume" / "Start" to continue.',
     // Mobile Features
     switchCamera: "Switch Camera",
     frontCamera: "Front",
     backCamera: "Rear",
     mobileWorkoutMode: "Mobile Mode",
     mobileGuideToggle: "Exercise Guide",
+    // TV Remote Navigation
+    tvNavigation: {
+      dpadHint: "D-pad Navigation: Use arrows ↑ ↓ ← → and OK button",
+      dpadUp: "Up",
+      dpadDown: "Down",
+      dpadLeft: "Left",
+      dpadRight: "Right",
+      dpadCenter: "Select (OK)",
+      back: "Back",
+      modalCloseHint: "Press Back / Escape to return",
+      headerZone: "Header Bar",
+      cameraZone: "Camera & Simulation Area",
+      exerciseZone: "Exercise Selection",
+      actionZone: "Workout Actions",
+      footerZone: "Footer",
+    },
     // Legal, Cookies & Footer
     cookieBanner: {
       title: "Privacy & Cookie Preferences",
@@ -646,6 +717,7 @@ export const translations: Record<Language, TranslationSchema> = {
       termsLink: "Terms & Health Disclaimer",
       cookieSettingsLink: "Cookie Settings",
     },
+    // Exercises
     exercises: {
       squats: {
         name: "Power Squats",
@@ -713,6 +785,7 @@ export const translations: Record<Language, TranslationSchema> = {
         muscles: ["Lateral Deltoids", "Trapezius", "Rotator Cuff"],
       },
     },
+    // Spoken feedback messages
     voice: {
       greatRep: "Great rep!",
       goDeeper: "Go deeper! Aim for 90 degrees.",

@@ -359,13 +359,13 @@ export default function App() {
 
       // Pure metrics state update
       setMetrics((prev) => {
-        let newScores = [...prev.accuracyScores];
+        let newScores = [...(prev.accuracyScores || [])];
         let newCalories = prev.caloriesBurned;
 
         if (result.countedRep) {
           const score = result.repAccuracy > 0 ? result.repAccuracy : 90;
           newScores.push(score);
-          newCalories += currentExercise.caloriePerRepOrSec;
+          newCalories += currentExercise.caloriePerRepOrSec ?? 0.3;
         }
 
         const avgAccuracy =
@@ -672,25 +672,104 @@ export default function App() {
     }
   };
 
-  // Keyboard and Fire TV Remote controls
+  // Keyboard and Fire TV Remote controls (D-pad, Media keys, Back button)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      // Don't intercept when user is typing inside an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      const keyCode = (e as any).keyCode;
+
+      // 1. Fire TV Remote BACK button (Escape / Backspace / BrowserBack / KeyCode 4 or 27)
+      if (
+        e.key === "Escape" ||
+        e.key === "Backspace" ||
+        e.key === "BrowserBack" ||
+        keyCode === 27 ||
+        keyCode === 4
+      ) {
         if (isPrivacyOpen || isTermsOpen || isCookieSettingsOpen) {
+          e.preventDefault();
           setIsPrivacyOpen(false);
           setIsTermsOpen(false);
           setIsCookieSettingsOpen(false);
         } else if (isCompleted) {
+          e.preventDefault();
           setIsCompleted(false);
           setIsPaused(true);
         } else {
+          e.preventDefault();
           setIsPaused((prev) => !prev);
         }
-      } else if (e.key === "ArrowRight") {
+      }
+      // 2. Fire TV Remote Play/Pause button
+      else if (
+        e.key === "MediaPlayPause" ||
+        e.key === "MediaPlay" ||
+        e.key === "MediaPause" ||
+        keyCode === 179 ||
+        keyCode === 85
+      ) {
+        e.preventDefault();
+        if (
+          isCompleted ||
+          currentRepsRef.current >= currentExercise.targetRepsOrSeconds
+        ) {
+          handleNextExercise();
+        } else {
+          setIsPaused((prev) => !prev);
+        }
+      }
+      // 3. Fire TV Fast Forward / Next Media key
+      else if (
+        e.key === "MediaTrackNext" ||
+        e.key === "MediaFastForward" ||
+        keyCode === 228
+      ) {
+        e.preventDefault();
+        handleNextExercise();
+      }
+      // 4. Fire TV Rewind / Previous Media key
+      else if (
+        e.key === "MediaTrackPrevious" ||
+        e.key === "MediaRewind" ||
+        keyCode === 227
+      ) {
+        e.preventDefault();
+        handlePrevExercise();
+      }
+      // 5. Arrow Keys (Direct exercise skip or D-pad)
+      else if (e.key === "ArrowRight") {
         handleNextExercise();
       } else if (e.key === "ArrowLeft") {
         handlePrevExercise();
-      } else if (e.key === " " || e.key === "Enter") {
+      }
+      // 6. Enter / Space / Fire TV Center Select button
+      else if (
+        e.key === " " ||
+        e.key === "Enter" ||
+        keyCode === 13 ||
+        keyCode === 66 ||
+        keyCode === 23
+      ) {
+        // If a specific button or interactive element is focused via D-pad, let the native click happen
+        const activeElement = document.activeElement;
+        if (
+          activeElement &&
+          activeElement !== document.body &&
+          (activeElement.tagName === "BUTTON" ||
+            activeElement.getAttribute("role") === "button" ||
+            activeElement.tagName === "A")
+        ) {
+          return;
+        }
+
+        e.preventDefault();
         if (isCompleted) {
           handleNextExercise();
         } else if (isPaused) {
@@ -721,6 +800,7 @@ export default function App() {
     isPrivacyOpen,
     isTermsOpen,
     isCookieSettingsOpen,
+    currentExercise.targetRepsOrSeconds,
   ]);
 
   const isDark = theme === "dark";
@@ -750,7 +830,7 @@ export default function App() {
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <span
-                className={`text-base sm:text-lg font-black tracking-tight truncate ${isDark ? "text-white" : "text-neutral-950"}`}
+                className={`text-base sm:lg:text-lg font-black tracking-tight truncate ${isDark ? "text-white" : "text-neutral-950"}`}
               >
                 {t.appTitle}
               </span>
@@ -1019,7 +1099,7 @@ export default function App() {
             <PoseCamera
               onPoseDetected={handlePoseDetected}
               formQuality={metrics.formQuality}
-              currentAngle={metrics.currentAngle}
+              currentAngle={metrics.currentAngle ?? 180}
               exerciseId={currentExercise.id}
               lang={language}
               theme={theme}
@@ -1037,7 +1117,7 @@ export default function App() {
           <div className="order-2 lg:order-1 lg:col-span-5 w-full max-w-full flex flex-col">
             <VirtualCoachGuide
               exercise={currentExercise}
-              stage={metrics.stage}
+              stage={metrics.stage ?? ""}
               lang={language}
               theme={theme}
             />

@@ -13,11 +13,16 @@ import {
   PauseCircle,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
+import {
+  findNextSpatialElement,
+  TvDirection,
+  setTvFocus,
+} from "../utils/tvNavigation";
 
 interface PoseCameraProps {
   onPoseDetected: (landmarks: Landmark[]) => void;
   formQuality: FormQuality;
-  currentAngle: number;
+  currentAngle?: number;
   exerciseId: string;
   lang: Language;
   theme: ThemeMode;
@@ -34,7 +39,7 @@ declare global {
   }
 }
 
-// Biomechanical model generator for synthetic studio simulation
+// Generator syntetycznych punktów biometrycznych dla symulatora
 function getBiomechanicalLandmarks(
   exerciseId: string,
   progress: number,
@@ -44,7 +49,6 @@ function getBiomechanicalLandmarks(
     .fill(0)
     .map(() => ({ x: 0.5, y: 0.5, visibility: 0.95 }));
 
-  // Upright resting posture when set is finished
   if (isResting) {
     synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
     synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
@@ -177,7 +181,6 @@ function getBiomechanicalLandmarks(
     synthetic[29] = { x: 0.52, y: 0.67, visibility: 0.99 };
     synthetic[31] = { x: 0.53, y: 0.68, visibility: 0.99 };
   } else {
-    // LATERAL ARM RAISES - PERFECT 90-DEGREE FORM
     const cycle = (1 - Math.cos(progress)) / 2;
 
     synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
@@ -220,7 +223,7 @@ function getBiomechanicalLandmarks(
 export const PoseCamera: React.FC<PoseCameraProps> = ({
   onPoseDetected,
   formQuality,
-  currentAngle,
+  currentAngle = 180,
   exerciseId,
   lang,
   theme,
@@ -231,16 +234,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 }) => {
   const t = translations[lang];
   const isDark = theme === "dark";
-
-  // Dynamic localization labels without hardcoding strings
-  const pauseLabel =
-    (t as any).pause ||
-    (t as any).paused ||
-    (lang === "pl" ? "Pauza" : "Pause");
-  const simPausedLabel =
-    (t as any).simPaused ||
-    (t as any).simulationPaused ||
-    `${pauseLabel}: ${t.studioMode}`;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -392,7 +385,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       }
 
       if (!isWorkoutCompletedRef.current) {
-        let targetJointIndex = POSE_LANDMARKS.RIGHT_KNEE;
+        let targetJointIndex: number = POSE_LANDMARKS.RIGHT_KNEE;
         if (exerciseIdRef.current === "arm_raises") {
           targetJointIndex = POSE_LANDMARKS.RIGHT_SHOULDER;
         } else if (exerciseIdRef.current === "high_knees") {
@@ -435,7 +428,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, []);
 
-  // Coordinated AI Biomechanical Simulator
   const startSimulation = useCallback(() => {
     demoModeRef.current = true;
     setDemoMode(true);
@@ -448,7 +440,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     const simulateLoop = () => {
       if (!demoModeRef.current) return;
 
-      // If paused, maintain current frame without advancing animation progress or counting reps
       if (isPausedRef.current) {
         simulationFrameRef.current = requestAnimationFrame(simulateLoop);
         return;
@@ -471,14 +462,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         return;
       }
 
-      // Cadence for natural coaching tempo
-      let cadenceStep = 0.021; // ~3.0 seconds per rep (Squats, Arm Raises)
+      let cadenceStep = 0.021;
       if (exerciseIdRef.current === "jumping_jacks") {
-        cadenceStep = 0.028; // ~2.4s per rep
+        cadenceStep = 0.028;
       } else if (exerciseIdRef.current === "high_knees") {
-        cadenceStep = 0.016; // ~2.5s per knee cycle
+        cadenceStep = 0.016;
       } else if (exerciseIdRef.current === "tree_pose") {
-        cadenceStep = 0.025; // Gentle breath oscillation
+        cadenceStep = 0.025;
       }
 
       simulationProgressRef.current += cadenceStep;
@@ -536,7 +526,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, [startSimulation, stopSimulation]);
 
-  // Robust External Trigger Handler (handles boolean, timestamp, or explicit request)
   useEffect(() => {
     if (
       externalDemoTrigger !== undefined &&
@@ -544,7 +533,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     ) {
       prevExternalDemoRef.current = externalDemoTrigger;
 
-      // If external trigger is true or a non-zero timestamp, activate simulator
       if (
         externalDemoTrigger === true ||
         (typeof externalDemoTrigger === "number" && externalDemoTrigger > 0)
@@ -745,9 +733,43 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     };
   }, [drawPose]);
 
+  // Obsługa D-Pad dla przycisków kontrolnych kamery na Fire TV
+  const handleNavKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentTarget = e.currentTarget;
+
+    if (e.key === "ArrowUp") {
+      const target = findNextSpatialElement(currentTarget, TvDirection.UP);
+      if (target) {
+        e.preventDefault();
+        setTvFocus(target);
+      }
+    } else if (e.key === "ArrowDown") {
+      const target = findNextSpatialElement(currentTarget, TvDirection.DOWN);
+      if (target) {
+        e.preventDefault();
+        setTvFocus(target);
+      }
+    } else if (e.key === "ArrowLeft") {
+      const target = findNextSpatialElement(currentTarget, TvDirection.LEFT);
+      if (target) {
+        e.preventDefault();
+        setTvFocus(target);
+      }
+    } else if (e.key === "ArrowRight") {
+      const target = findNextSpatialElement(currentTarget, TvDirection.RIGHT);
+      if (target) {
+        e.preventDefault();
+        setTvFocus(target);
+      }
+    }
+  };
+
   return (
     <div
       id="pose-camera-container"
+      data-tv-zone="camera-zone"
+      role="region"
+      aria-label={t.tvNavigation.cameraZone}
       className={`relative w-full aspect-[4/3] sm:aspect-video min-h-[300px] sm:min-h-[360px] md:min-h-[420px] max-h-[560px] rounded-2xl overflow-hidden border flex items-center justify-center shadow-2xl transition-colors ${
         isDark
           ? "bg-neutral-900 border-neutral-800"
@@ -764,7 +786,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <div className="w-64 h-64 rounded-full border border-emerald-500/10 absolute opacity-30 pointer-events-none" />
           <div className="absolute bottom-6 sm:bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 text-xs font-mono">
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isPaused ? simPausedLabel : t.studioMode}</span>
+            <span>{isPaused ? t.pausedBanner : t.studioMode}</span>
           </div>
         </div>
       )}
@@ -789,22 +811,22 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
       />
 
-      {/* Visual Overlay indicator when paused inside canvas */}
+      {/* Nakładka wizualna w stanie pauzy */}
       {isPaused && (
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-20">
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-black/80 border border-amber-500/50 text-amber-400 font-bold text-sm shadow-xl animate-pulse">
             <PauseCircle className="w-5 h-5 text-amber-400" />
-            <span>{pauseLabel}</span>
+            <span>{t.pausedBanner}</span>
           </div>
         </div>
       )}
 
-      {/* Responsive unified top bar preventing element overlapping on mobile */}
+      {/* Pasek kontrolek na górze kontenera kamery */}
       <div
         id="camera-overlay-top-bar"
         className="absolute top-2.5 inset-x-2.5 sm:top-4 sm:inset-x-4 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 z-20 pointer-events-none"
       >
-        {/* Left: Status Badges */}
+        {/* Statusy po lewej stronie */}
         <div
           id="camera-status-badges"
           className="flex items-center flex-wrap gap-1.5 pointer-events-auto"
@@ -839,7 +861,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               }`}
             >
               <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
-              <span>{isPaused ? simPausedLabel : t.studioModeActive}</span>
+              <span>{isPaused ? t.pausedBanner : t.studioModeActive}</span>
             </div>
           )}
 
@@ -853,7 +875,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           )}
         </div>
 
-        {/* Right: Camera and Simulator Controls */}
+        {/* Przyciski operacyjne po prawej stronie */}
         <div
           id="camera-control-buttons"
           className="flex items-center flex-wrap gap-1 sm:gap-2 pointer-events-auto"
@@ -861,6 +883,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <button
             id="btn-toggle-camera-power"
             type="button"
+            tabIndex={0}
+            data-tv-focusable="true"
+            onKeyDown={handleNavKeyDown}
             onClick={() => {
               if (cameraActive) {
                 stopCamera();
@@ -874,6 +899,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 : "bg-black/60 hover:bg-black/80 text-neutral-300 border-neutral-700"
             }`}
             title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
+            aria-label={cameraActive ? t.turnCameraOff : t.turnCameraOn}
           >
             {cameraActive && !demoMode ? (
               <Camera className="w-4 h-4 text-white" />
@@ -888,9 +914,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <button
             id="btn-flip-camera"
             type="button"
+            tabIndex={0}
+            data-tv-focusable="true"
+            onKeyDown={handleNavKeyDown}
             onClick={toggleFacingMode}
             className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5"
             title={t.switchCamera}
+            aria-label={t.switchCamera}
           >
             <SwitchCamera className="w-4 h-4 text-sky-400" />
             <span className="text-[10px] font-mono hidden md:inline">
@@ -901,9 +931,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <button
             id="btn-toggle-skeleton"
             type="button"
+            tabIndex={0}
+            data-tv-focusable="true"
+            onKeyDown={handleNavKeyDown}
             onClick={() => setShowSkeleton((prev) => !prev)}
             className="p-2 sm:p-2.5 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors"
             title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
+            aria-label={showSkeleton ? t.hideSkeleton : t.showSkeleton}
           >
             {showSkeleton ? (
               <Eye className="w-4 h-4 text-emerald-400" />
@@ -915,6 +949,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <button
             id="btn-toggle-demo"
             type="button"
+            tabIndex={0}
+            data-tv-focusable="true"
+            onKeyDown={handleNavKeyDown}
             onClick={toggleDemoSimulator}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all ${
               demoMode
@@ -922,6 +959,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 : "bg-black/60 hover:bg-black/80 text-neutral-200 border-neutral-700"
             }`}
             title={t.studioModeDesc}
+            aria-label={demoMode ? t.stopSimulator : t.studioMode}
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{demoMode ? t.stopSimulator : t.studioMode}</span>
@@ -947,6 +985,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             <button
               id="btn-retry-camera"
               type="button"
+              tabIndex={0}
+              data-tv-focusable="true"
+              onKeyDown={handleNavKeyDown}
               onClick={() => startCamera()}
               className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
@@ -956,6 +997,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             <button
               id="btn-launch-demo"
               type="button"
+              tabIndex={0}
+              data-tv-focusable="true"
+              onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
               className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border border-indigo-400 transition-all shadow-lg shadow-indigo-600/25 active:scale-95"
             >

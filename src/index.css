@@ -35,3 +35,56 @@
     cursor: not-allowed;
   }
 }
+
+/* ==========================================================================
+   Fire TV & 10-Foot UI Spatial Focus Management
+   Gwarantuje wyrazisty i natychmiast widoczny obrys (focus ring) z 3 metrów
+   ========================================================================== */
+
+@layer utilities {
+  /* Globalny obrys dla nawigacji klawiaturą i pilotem Fire TV (D-pad) */
+  :focus-visible,
+  [data-tv-focused="true"] {
+    outline: 3px solid #10b981 !important; /* emerald-500 */
+    outline-offset: 3px !important;
+    box-shadow:
+      0 0 0 4px rgba(16, 185, 129, 0.35),
+      0 0 24px rgba(16, 185, 129, 0.65) !important;
+    transition:
+      transform 0.15s cubic-bezier(0.2, 0, 0, 1),
+      box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1) !important;
+    z-index: 40 !important;
+  }
+
+  /* Lekki efekt powiększenia (10-foot scale) dla zaznaczonego przycisku na TV */
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  button[data-tv-focused="true"],
+  [role="button"][data-tv-focused="true"] {
+    transform: scale(1.035);
+  }
+
+  /* Zapewnienie płynnego przewijania podczas nawigacji D-pad */
+  .tv-scroll-smooth {
+    scroll-behavior: smooth;
+    scroll-padding: 24px;
+  }
+
+  /* Ukrycie paska przewijania na TV przy zachowaniu przewijalności */
+  .tv-hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .tv-hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    transform: none !important;
+    transition: none !important;
+  }
+}

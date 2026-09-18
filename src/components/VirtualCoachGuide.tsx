@@ -5,13 +5,13 @@ import { CheckCircle2, Target, Sparkles } from "lucide-react";
 
 interface VirtualCoachGuideProps {
   exercise: ExerciseDefinition;
-  stage: string;
+  stage?: string;
   lang: Language;
   theme: ThemeMode;
 }
 
 // Map machine & human stages bi-directionally between Polish and English
-function formatStageName(stage: string, lang: Language): string {
+function formatStageName(stage: string | undefined, lang: Language): string {
   if (!stage) {
     return lang === "pl" ? "Pozycja stojąca" : "Standing Position";
   }
@@ -104,7 +104,8 @@ export const VirtualCoachGuide: React.FC<VirtualCoachGuideProps> = ({
   const exTrans = t.exercises[exercise.id as keyof typeof t.exercises];
 
   const exerciseName: string = exTrans?.name || exercise.name;
-  const exerciseDesc: string = exTrans?.description || exercise.description;
+  const exerciseDesc: string =
+    exTrans?.description || exercise.description || "";
   const cuesList: string[] = exTrans?.cues || (exercise as any).cues || [];
   const musclesList: string[] =
     exTrans?.muscles || exercise.targetMuscles || [];
