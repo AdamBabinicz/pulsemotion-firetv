@@ -1,6 +1,21 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="pl" class="dark">
   <head>
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
+    </script>
+    <!-- End Google Tag Manager -->
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -13,7 +28,7 @@
 
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; media-src 'self' blob: data:;"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com; connect-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com; frame-src 'self' https://www.googletagmanager.com; worker-src 'self' blob:; media-src 'self' blob: data:;"
     />
 
     <!--
@@ -72,7 +87,7 @@
 
     <meta
       property="og:description"
-      content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
     />
 
     <meta
@@ -100,7 +115,7 @@
 
     <meta
       name="twitter:description"
-      content="AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming."
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
     />
 
     <meta
@@ -151,6 +166,17 @@
   <body
     class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black"
   >
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-5HMW9V4B"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <div id="root"></div>
 
     <script type="module" src="/src/main.tsx"></script>
