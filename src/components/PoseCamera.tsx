@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Landmark, FormQuality } from "../types";
 import { POSE_CONNECTIONS, POSE_LANDMARKS } from "../utils/poseGeometry";
+import { getBiomechanicalLandmarks } from "../utils/biomechanicalSimulator";
 import {
   Camera,
   CameraOff,
@@ -41,187 +42,6 @@ declare global {
   }
 }
 
-// Generator syntetycznych punktów biometrycznych dla symulatora
-function getBiomechanicalLandmarks(
-  exerciseId: string,
-  progress: number,
-  isResting: boolean = false,
-): Landmark[] {
-  const synthetic: Landmark[] = Array(33)
-    .fill(0)
-    .map(() => ({ x: 0.5, y: 0.5, visibility: 0.95 }));
-
-  if (isResting) {
-    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
-    synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
-    synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
-    synthetic[13] = { x: 0.4, y: 0.44, visibility: 0.99 };
-    synthetic[14] = { x: 0.6, y: 0.44, visibility: 0.99 };
-    synthetic[15] = { x: 0.41, y: 0.58, visibility: 0.99 };
-    synthetic[16] = { x: 0.59, y: 0.58, visibility: 0.99 };
-    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
-    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.45, y: 0.7, visibility: 0.99 };
-    synthetic[26] = { x: 0.55, y: 0.7, visibility: 0.99 };
-    synthetic[27] = { x: 0.45, y: 0.88, visibility: 0.99 };
-    synthetic[28] = { x: 0.55, y: 0.88, visibility: 0.99 };
-    return synthetic;
-  }
-
-  if (exerciseId === "squats") {
-    const cycle = (1 - Math.cos(progress)) / 2;
-
-    synthetic[0] = { x: 0.5, y: 0.22 + cycle * 0.13, visibility: 0.99 };
-    synthetic[1] = { x: 0.49, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[2] = { x: 0.485, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[3] = { x: 0.48, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[4] = { x: 0.51, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[5] = { x: 0.515, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[6] = { x: 0.52, y: 0.21 + cycle * 0.13, visibility: 0.99 };
-    synthetic[7] = { x: 0.46, y: 0.22 + cycle * 0.13, visibility: 0.99 };
-    synthetic[8] = { x: 0.54, y: 0.22 + cycle * 0.13, visibility: 0.99 };
-    synthetic[9] = { x: 0.49, y: 0.25 + cycle * 0.13, visibility: 0.99 };
-    synthetic[10] = { x: 0.51, y: 0.25 + cycle * 0.13, visibility: 0.99 };
-
-    synthetic[11] = { x: 0.42, y: 0.32 + cycle * 0.14, visibility: 0.99 };
-    synthetic[12] = { x: 0.58, y: 0.32 + cycle * 0.14, visibility: 0.99 };
-
-    synthetic[13] = {
-      x: 0.38 - cycle * 0.03,
-      y: 0.42 + cycle * 0.05,
-      visibility: 0.99,
-    };
-    synthetic[14] = {
-      x: 0.62 + cycle * 0.03,
-      y: 0.42 + cycle * 0.05,
-      visibility: 0.99,
-    };
-    synthetic[15] = { x: 0.39, y: 0.42 - cycle * 0.02, visibility: 0.99 };
-    synthetic[16] = { x: 0.61, y: 0.42 - cycle * 0.02, visibility: 0.99 };
-
-    synthetic[23] = { x: 0.44, y: 0.52 + cycle * 0.18, visibility: 0.99 };
-    synthetic[24] = { x: 0.56, y: 0.52 + cycle * 0.18, visibility: 0.99 };
-
-    synthetic[25] = {
-      x: 0.43 - cycle * 0.05,
-      y: 0.7 - cycle * 0.01,
-      visibility: 0.99,
-    };
-    synthetic[26] = {
-      x: 0.57 + cycle * 0.05,
-      y: 0.7 - cycle * 0.01,
-      visibility: 0.99,
-    };
-
-    synthetic[27] = { x: 0.43, y: 0.88, visibility: 0.99 };
-    synthetic[28] = { x: 0.57, y: 0.88, visibility: 0.99 };
-  } else if (exerciseId === "jumping_jacks") {
-    const cycle = (1 - Math.cos(progress)) / 2;
-    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
-    synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
-    synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
-    synthetic[13] = {
-      x: 0.37 - cycle * 0.06,
-      y: 0.4 - cycle * 0.2,
-      visibility: 0.99,
-    };
-    synthetic[14] = {
-      x: 0.63 + cycle * 0.06,
-      y: 0.4 - cycle * 0.2,
-      visibility: 0.99,
-    };
-    synthetic[15] = {
-      x: 0.38 - cycle * 0.08,
-      y: 0.5 - cycle * 0.35,
-      visibility: 0.99,
-    };
-    synthetic[16] = {
-      x: 0.62 + cycle * 0.08,
-      y: 0.5 - cycle * 0.35,
-      visibility: 0.99,
-    };
-    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
-    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.46 - cycle * 0.08, y: 0.7, visibility: 0.99 };
-    synthetic[26] = { x: 0.54 + cycle * 0.08, y: 0.7, visibility: 0.99 };
-    synthetic[27] = { x: 0.47 - cycle * 0.12, y: 0.88, visibility: 0.99 };
-    synthetic[28] = { x: 0.53 + cycle * 0.12, y: 0.88, visibility: 0.99 };
-  } else if (exerciseId === "high_knees") {
-    const cycleL = Math.max(0, Math.sin(progress));
-    const cycleR = Math.max(0, -Math.sin(progress));
-    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
-    synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
-    synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
-    synthetic[13] = { x: 0.39, y: 0.4, visibility: 0.99 };
-    synthetic[14] = { x: 0.61, y: 0.4, visibility: 0.99 };
-    synthetic[15] = { x: 0.41, y: 0.45, visibility: 0.99 };
-    synthetic[16] = { x: 0.59, y: 0.45, visibility: 0.99 };
-    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
-    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.45, y: 0.7 - cycleL * 0.22, visibility: 0.99 };
-    synthetic[26] = { x: 0.55, y: 0.7 - cycleR * 0.22, visibility: 0.99 };
-    synthetic[27] = { x: 0.45, y: 0.88 - cycleL * 0.26, visibility: 0.99 };
-    synthetic[28] = { x: 0.55, y: 0.88 - cycleR * 0.26, visibility: 0.99 };
-  } else if (exerciseId === "tree_pose") {
-    const breath = Math.sin(progress * 0.5) * 0.008;
-
-    synthetic[0] = { x: 0.5, y: 0.2 + breath, visibility: 0.99 };
-    synthetic[11] = { x: 0.44, y: 0.3 + breath, visibility: 0.99 };
-    synthetic[12] = { x: 0.56, y: 0.3 + breath, visibility: 0.99 };
-    synthetic[13] = { x: 0.45, y: 0.38 + breath, visibility: 0.99 };
-    synthetic[14] = { x: 0.55, y: 0.38 + breath, visibility: 0.99 };
-    synthetic[15] = { x: 0.49, y: 0.35 + breath, visibility: 0.99 };
-    synthetic[16] = { x: 0.51, y: 0.35 + breath, visibility: 0.99 };
-    synthetic[23] = { x: 0.46, y: 0.5 + breath, visibility: 0.99 };
-    synthetic[24] = { x: 0.54, y: 0.5 + breath, visibility: 0.99 };
-    synthetic[26] = { x: 0.54, y: 0.7, visibility: 0.99 };
-    synthetic[28] = { x: 0.54, y: 0.88, visibility: 0.99 };
-    synthetic[30] = { x: 0.55, y: 0.9, visibility: 0.99 };
-    synthetic[32] = { x: 0.56, y: 0.91, visibility: 0.99 };
-    synthetic[25] = { x: 0.37, y: 0.63, visibility: 0.99 };
-    synthetic[27] = { x: 0.51, y: 0.66, visibility: 0.99 };
-    synthetic[29] = { x: 0.52, y: 0.67, visibility: 0.99 };
-    synthetic[31] = { x: 0.53, y: 0.68, visibility: 0.99 };
-  } else {
-    const cycle = (1 - Math.cos(progress)) / 2;
-
-    synthetic[0] = { x: 0.5, y: 0.2, visibility: 0.99 };
-    synthetic[11] = { x: 0.43, y: 0.3, visibility: 0.99 };
-    synthetic[12] = { x: 0.57, y: 0.3, visibility: 0.99 };
-
-    synthetic[13] = {
-      x: 0.41 - cycle * 0.14,
-      y: 0.45 - cycle * 0.145,
-      visibility: 0.99,
-    };
-    synthetic[14] = {
-      x: 0.59 + cycle * 0.14,
-      y: 0.45 - cycle * 0.145,
-      visibility: 0.99,
-    };
-
-    synthetic[15] = {
-      x: 0.4 - cycle * 0.25,
-      y: 0.58 - cycle * 0.265,
-      visibility: 0.99,
-    };
-    synthetic[16] = {
-      x: 0.6 + cycle * 0.25,
-      y: 0.58 - cycle * 0.265,
-      visibility: 0.99,
-    };
-
-    synthetic[23] = { x: 0.45, y: 0.5, visibility: 0.99 };
-    synthetic[24] = { x: 0.55, y: 0.5, visibility: 0.99 };
-    synthetic[25] = { x: 0.45, y: 0.7, visibility: 0.99 };
-    synthetic[26] = { x: 0.55, y: 0.7, visibility: 0.99 };
-    synthetic[27] = { x: 0.45, y: 0.88, visibility: 0.99 };
-    synthetic[28] = { x: 0.55, y: 0.88, visibility: 0.99 };
-  }
-
-  return synthetic;
-}
-
 export const PoseCamera: React.FC<PoseCameraProps> = ({
   onPoseDetected,
   formQuality,
@@ -236,8 +56,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 }) => {
   const t = translations[lang];
   const isDark = theme === "dark";
-  // Fire TV / Fire OS detection (W14): D-pad-first UX, brak przełącznika
-  // przód/tył kamery na urządzeniach TV.
   const tvEnv = detectTvEnvironment();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -297,9 +115,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, [demoMode]);
 
-  // Gdy system odmówi kamery w runtime (denied), przekazuj fokus D-padem
-  // od razu na przycisk "Symulator AI" — użytkownik TV dostaje gotową,
-  // czytelną alternatywę zamiast ślepej uliczki (W16).
   useEffect(() => {
     if (hasCameraError && cameraFailureReason === "denied") {
       demoButtonRef.current?.focus();
@@ -569,10 +384,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setCameraFailureReason("none");
     if (!videoRef.current) return;
 
-    // Fire OS / Android 6+: runtime permission CAMERA musi zostać przyznana
-    // natywnym mostem PRZED getUserMedia (W7). W czystym web buildzie
-    // (window.cordova nieobecne) prompty rozwiązują się natychmiast i
-    // obowiązuje standardowy przepływ uprawnień przeglądarki.
     const permissionGranted = await requestCameraRuntimePermission();
     if (!permissionGranted) {
       setCameraFailureReason("denied");
@@ -592,8 +403,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         audio: false,
       };
 
-      // Fire TV Stick (i inne TV bez kamery): sprawdź najpierw, czy w ogóle jest
-      // urządzenie wideo — czytelny komunikat zamiast generycznego NotReadableError.
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const hasVideoInput = devices.some((d) => d.kind === "videoinput");
@@ -602,9 +411,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           setHasCameraError(true);
           return;
         }
-      } catch {
-        // enumerateDevices niedostępny — pozwól getUserMedia spróbować i obsłużyć błąd
-      }
+      } catch {}
 
       let stream: MediaStream | null = null;
       try {
@@ -718,8 +525,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     async function initMediaPipe() {
       if (typeof window === "undefined") return;
 
-      // Pollingujemy wyłącznie window.Pose — plik camera_utils.js jest ładowany z tego
-      // samego katalogu public/ co pose.js, więc oba skrypty są dostępne równocześnie.
       let retries = 0;
       while (!window.Pose && retries < 25) {
         await new Promise((res) => setTimeout(res, 200));
@@ -733,10 +538,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       try {
         const pose = new window.Pose({
-          // WERSJONOWANIE: MediaPipe jest VENDORED w public/mediapipe/pose
-          // (@mediapipe/pose@0.5.1675469404, sha384-qcJQ+n/… pliku pose.js zweryfikowany
-          // w momencie vendoringu). locateFile rozwiązuje wszystkie pliki (wasm, tflite,
-          // binarypb) z 'self' — zero zależności od CDN w runtime, CSP bez 'unsafe-eval'.
           locateFile: (file: string) => `/mediapipe/pose/${file}`,
         });
 
@@ -795,7 +596,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     };
   }, [drawPose]);
 
-  // Obsługa D-Pad dla przycisków kontrolnych kamery na Fire TV
   const handleNavKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     const currentTarget = e.currentTarget;
 
@@ -975,8 +775,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             </span>
           </button>
 
-          {/* Fire TV / Sticks mają tylko jedną "kamerę" (zwykle żadną) —
-              przełącznik front/back ma sens wyłącznie poza TV */}
           {!tvEnv.isTvLike && (
             <button
               id="btn-flip-camera"
@@ -1045,7 +843,8 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-3 sm:mb-4">
             <Camera className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-white mb-2">
+          {/* Poprawka WCAG: h2 zamiast h3 bez przeskakiwania poziomów */}
+          <h2 className="text-base sm:text-lg font-bold text-white mb-2">
             {hasCameraError
               ? cameraFailureReason === "no-device"
                 ? t.cameraNoDevice
@@ -1053,7 +852,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                   ? t.cameraDenied
                   : t.cameraInactive
               : t.cameraPromptTitle}
-          </h3>
+          </h2>
           <p className="text-neutral-300 text-xs sm:text-sm max-w-md mb-5 sm:mb-6 leading-relaxed">
             {cameraFailureReason === "no-device" && hasCameraError
               ? t.cameraNoDeviceDesc
