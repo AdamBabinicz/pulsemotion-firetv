@@ -47,6 +47,8 @@ export function useVoiceNavigation({
   const [isVoiceListening, setIsVoiceListening] = useState<boolean>(false);
   const [lastVoiceCommand, setLastVoiceCommand] = useState<string | null>(null);
   const voiceTimeoutRef = useRef<number | null>(null);
+  // Zabezpieczenie przed samowyzwoleniem 'start' przez echo głośników lektora
+  const lastPauseTimeRef = useRef<number>(0);
 
   useEffect(() => {
     voiceCommander.setLanguage(language);
@@ -172,6 +174,10 @@ export function useVoiceNavigation({
           );
           break;
         case "start":
+          // Jeśli pauza nastąpiła mniej niż 2 sekundy temu, ignorujemy echo lektora
+          if (Date.now() - lastPauseTimeRef.current < 2000) {
+            return;
+          }
           if (
             isCompleted ||
             currentRepsRef.current >= currentExercise.targetRepsOrSeconds
@@ -193,6 +199,7 @@ export function useVoiceNavigation({
           }
           break;
         case "pause":
+          lastPauseTimeRef.current = Date.now();
           setIsPaused(true);
           setMetrics((prev: any) => ({
             ...prev,
@@ -201,10 +208,11 @@ export function useVoiceNavigation({
                 ? "Trening wstrzymany (Pauza). Powiedz 'Start', aby wznowić."
                 : "Workout paused. Say 'Start' to resume.",
           }));
+          // Usunięto wyraz 'Start' z mowy lektora, aby głośnik nie wyzwalał mikrofonu
           audioCoach.speak(
             language === "pl"
-              ? "Przerwa w treningu. Powiedz 'Start', aby wznowić."
-              : "Workout paused. Say 'Start' to resume.",
+              ? "Przerwa w treningu. Trening wstrzymany."
+              : "Workout paused. Rest time.",
           );
           break;
         default:
