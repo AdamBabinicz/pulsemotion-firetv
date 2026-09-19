@@ -17,6 +17,27 @@ interface CookieConsentBannerProps {
 
 const COOKIE_STORAGE_KEY = "pulsemotion_cookie_consent";
 
+// Pomocnicza funkcja aktualizująca stan zgód w standardzie Google Consent Mode v2
+const dispatchGoogleConsent = (analytics: boolean) => {
+  if (typeof window !== "undefined") {
+    const win = window as any;
+    win.dataLayer = win.dataLayer || [];
+    function gtag(...args: any[]) {
+      win.dataLayer.push(arguments);
+    }
+    gtag("consent", "update", {
+      analytics_storage: analytics ? "granted" : "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+    });
+    win.dataLayer.push({
+      event: "consent_update",
+      analytics_storage: analytics ? "granted" : "denied",
+    });
+  }
+};
+
 export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
   t,
   theme,
@@ -33,8 +54,10 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
       const stored = localStorage.getItem(COOKIE_STORAGE_KEY);
       if (stored) {
         const parsed: CookiePreferences = JSON.parse(stored);
-        setAnalyticsAllowed(!!parsed.analytics);
+        const allowed = !!parsed.analytics;
+        setAnalyticsAllowed(allowed);
         setHasChosen(true);
+        dispatchGoogleConsent(allowed);
       } else {
         setHasChosen(false);
       }
@@ -56,15 +79,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
     setAnalyticsAllowed(analytics);
     setHasChosen(true);
     onCloseSettings();
-
-    if (typeof window !== "undefined") {
-      const win = window as any;
-      win.dataLayer = win.dataLayer || [];
-      win.dataLayer.push({
-        event: "consent_update",
-        analytics_storage: analytics ? "granted" : "denied",
-      });
-    }
+    dispatchGoogleConsent(analytics);
   };
 
   return (

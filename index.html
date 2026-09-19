@@ -1,6 +1,32 @@
 <!doctype html>
 <html lang="pl" class="dark">
   <head>
+    <!-- Google Consent Mode v2 Default Setup (Musi być ściśle PRZED skryptem GTM) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+
+      var storedConsent = null;
+      try {
+        storedConsent = JSON.parse(
+          localStorage.getItem("pulsemotion_cookie_consent"),
+        );
+      } catch (e) {}
+
+      var isAnalyticsGranted =
+        storedConsent && storedConsent.analytics === true;
+
+      gtag("consent", "default", {
+        analytics_storage: isAnalyticsGranted ? "granted" : "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      });
+    </script>
+
     <!-- Google Tag Manager -->
     <script>
       (function (w, d, s, l, i) {
