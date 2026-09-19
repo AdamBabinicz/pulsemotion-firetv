@@ -683,168 +683,163 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
       )}
 
-      {/* Pasek kontrolek na górze kontenera kamery — responsywny z inteligentnym dopasowaniem */}
-      <div
-        id="camera-overlay-top-bar"
-        className="absolute top-2 inset-x-2 sm:top-3 sm:inset-x-3 flex flex-wrap items-center justify-between gap-y-1.5 gap-x-2 z-20 pointer-events-none"
-      >
-        {/* Statusy po lewej stronie */}
+      {/* Pasek kontrolek na górze kontenera kamery — widoczny TYLKO gdy kamera lub symulator działa (eliminuje nakładanie na ekran powitalny) */}
+      {(cameraActive || demoMode) && (
         <div
-          id="camera-status-badges"
-          className="flex items-center gap-1 sm:gap-1.5 shrink-0 pointer-events-auto"
+          id="camera-overlay-top-bar"
+          className="absolute top-2.5 inset-x-2.5 sm:top-3.5 sm:inset-x-3.5 flex items-center justify-between gap-1.5 z-20 pointer-events-none"
         >
+          {/* Status po lewej stronie — tylko JEDEN konkretny status, zero dublowania */}
           <div
-            id="badge-camera-status"
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold backdrop-blur-md border shrink-0 ${
-              cameraActive && !demoMode
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
-            }`}
+            id="camera-status-badges"
+            className="flex items-center gap-1.5 shrink-0 pointer-events-auto"
           >
-            <span
-              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${
-                cameraActive && !demoMode
-                  ? "bg-emerald-400 animate-pulse"
-                  : "bg-amber-400"
-              }`}
-            />
-            <span className="whitespace-nowrap">
-              {cameraActive && !demoMode ? t.cameraActive : t.cameraInactive}
-            </span>
+            {demoMode ? (
+              <div
+                id="badge-simulator-active"
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border shadow-sm shrink-0 ${
+                  isPaused
+                    ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="whitespace-nowrap">
+                  {isPaused ? t.pausedBanner : t.studioModeActive}
+                </span>
+              </div>
+            ) : (
+              <div
+                id="badge-camera-status"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md border bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shrink-0"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="whitespace-nowrap">{t.cameraActive}</span>
+              </div>
+            )}
+
+            {fps > 0 && !demoMode && (
+              <div
+                id="badge-camera-fps"
+                className="px-2 py-1 rounded-full text-[10px] sm:text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700 whitespace-nowrap shrink-0"
+              >
+                {fps} {t.fps}
+              </div>
+            )}
           </div>
 
-          {demoMode && (
-            <div
-              id="badge-simulator-active"
-              className={`flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold border shadow-sm shrink-0 ${
-                isPaused
-                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse"
-              }`}
-            >
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400 shrink-0" />
-              <span className="whitespace-nowrap">
-                {isPaused ? t.pausedBanner : t.studioModeActive}
-              </span>
-            </div>
-          )}
-
-          {fps > 0 && !demoMode && (
-            <div
-              id="badge-camera-fps"
-              className="px-1.5 py-1 sm:px-2 sm:py-1 rounded-full text-[10px] sm:text-xs font-mono bg-black/60 text-neutral-200 border border-neutral-700 whitespace-nowrap shrink-0"
-            >
-              {fps} {t.fps}
-            </div>
-          )}
-        </div>
-
-        {/* Przyciski operacyjne po prawej stronie — gwarantowane miejsce dla przycisku symulatora */}
-        <div
-          id="camera-control-buttons"
-          className="flex items-center gap-1 sm:gap-1.5 shrink-0 pointer-events-auto ml-auto"
-        >
-          <button
-            id="btn-toggle-camera-power"
-            type="button"
-            tabIndex={0}
-            data-tv-focusable="true"
-            onKeyDown={handleNavKeyDown}
-            onClick={() => {
-              if (cameraActive) {
-                stopCamera();
-              } else {
-                startCamera();
-              }
-            }}
-            className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1.5 shrink-0 ${
-              cameraActive && !demoMode
-                ? "bg-emerald-600/80 hover:bg-emerald-500 text-white border-emerald-400"
-                : "bg-black/60 hover:bg-black/80 text-neutral-300 border-neutral-700"
-            }`}
-            title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
-            aria-label={cameraActive ? t.turnCameraOff : t.turnCameraOn}
+          {/* Przyciski operacyjne po prawej stronie — czysty pojedynczy rząd bez kolizji */}
+          <div
+            id="camera-control-buttons"
+            className="flex items-center gap-1.5 shrink-0 pointer-events-auto ml-auto"
           >
-            {cameraActive && !demoMode ? (
-              <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
-            ) : (
-              <CameraOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+            {/* Przełącznik kamery — pokazuje się tylko gdy kamera faktycznie działa */}
+            {cameraActive && !tvEnv.isTvLike && (
+              <button
+                id="btn-flip-camera"
+                type="button"
+                tabIndex={0}
+                data-tv-focusable="true"
+                onKeyDown={handleNavKeyDown}
+                onClick={toggleFacingMode}
+                className="p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5 shrink-0"
+                title={t.switchCamera}
+                aria-label={t.switchCamera}
+              >
+                <SwitchCamera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
+                <span className="text-[10px] font-mono hidden xl:inline whitespace-nowrap">
+                  {facingMode === "user" ? t.frontCamera : t.backCamera}
+                </span>
+              </button>
             )}
-            <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap">
-              {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
-            </span>
-          </button>
 
-          {!tvEnv.isTvLike && (
+            {/* Włącznik / wyłącznik kamery fizycznej */}
             <button
-              id="btn-flip-camera"
+              id="btn-toggle-camera-power"
               type="button"
               tabIndex={0}
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
-              onClick={toggleFacingMode}
-              className="p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1.5 shrink-0"
-              title={t.switchCamera}
-              aria-label={t.switchCamera}
+              onClick={() => {
+                if (cameraActive) {
+                  stopCamera();
+                } else {
+                  if (demoMode) stopSimulation();
+                  startCamera();
+                }
+              }}
+              className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1.5 shrink-0 ${
+                cameraActive && !demoMode
+                  ? "bg-emerald-600/80 hover:bg-emerald-500 text-white border-emerald-400"
+                  : "bg-black/60 hover:bg-black/80 text-neutral-300 border-neutral-700"
+              }`}
+              title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
+              aria-label={cameraActive ? t.turnCameraOff : t.turnCameraOn}
             >
-              <SwitchCamera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
-              <span className="text-[10px] font-mono hidden xl:inline whitespace-nowrap">
-                {facingMode === "user" ? t.frontCamera : t.backCamera}
+              {cameraActive && !demoMode ? (
+                <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
+              ) : (
+                <CameraOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+              )}
+              <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap">
+                {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
               </span>
             </button>
-          )}
 
-          <button
-            id="btn-toggle-skeleton"
-            type="button"
-            tabIndex={0}
-            data-tv-focusable="true"
-            onKeyDown={handleNavKeyDown}
-            onClick={() => setShowSkeleton((prev) => !prev)}
-            className="p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors shrink-0"
-            title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
-            aria-label={showSkeleton ? t.hideSkeleton : t.showSkeleton}
-          >
-            {showSkeleton ? (
-              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-            ) : (
-              <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 shrink-0" />
-            )}
-          </button>
+            {/* Przełącznik widoczności szkieletu */}
+            <button
+              id="btn-toggle-skeleton"
+              type="button"
+              tabIndex={0}
+              data-tv-focusable="true"
+              onKeyDown={handleNavKeyDown}
+              onClick={() => setShowSkeleton((prev) => !prev)}
+              className="p-1.5 sm:p-2 rounded-xl bg-black/60 hover:bg-black/90 text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors shrink-0"
+              title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
+              aria-label={showSkeleton ? t.hideSkeleton : t.showSkeleton}
+            >
+              {showSkeleton ? (
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+              ) : (
+                <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 shrink-0" />
+              )}
+            </button>
 
-          <button
-            id="btn-toggle-demo"
-            type="button"
-            tabIndex={0}
-            data-tv-focusable="true"
-            onKeyDown={handleNavKeyDown}
-            onClick={toggleDemoSimulator}
-            className={`px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              demoMode
-                ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30"
-                : "bg-black/60 hover:bg-black/80 text-neutral-200 border-neutral-700"
-            }`}
-            title={t.studioModeDesc}
-            aria-label={demoMode ? t.stopSimulator : t.studioMode}
-          >
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
-            <span className="whitespace-nowrap">
-              {demoMode ? t.stopSimulator : t.studioMode}
-            </span>
-          </button>
+            {/* Przycisk aktywacji / zatrzymania symulatora */}
+            <button
+              id="btn-toggle-demo"
+              type="button"
+              tabIndex={0}
+              data-tv-focusable="true"
+              onKeyDown={handleNavKeyDown}
+              onClick={toggleDemoSimulator}
+              className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+                demoMode
+                  ? "bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30"
+                  : "bg-black/60 hover:bg-black/80 text-neutral-200 border-neutral-700"
+              }`}
+              title={t.studioModeDesc}
+              aria-label={demoMode ? t.stopSimulator : t.studioMode}
+            >
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+              <span className="whitespace-nowrap">
+                {demoMode ? t.stopSimulator : t.studioMode}
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* Wycentrowany ekran powitalny/błędu kamery — zero wiszących na nim kontrolek */}
       {!cameraActive && !demoMode && (
         <div
           id="camera-inactive-overlay"
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 bg-neutral-950/85 backdrop-blur-sm text-center"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 bg-neutral-950/90 backdrop-blur-sm text-center"
         >
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-3 sm:mb-4">
-            <Camera className="w-6 h-6 sm:w-7 sm:h-7" />
+          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-neutral-800/80 border border-neutral-700 flex items-center justify-center text-amber-400 mb-2.5 sm:mb-3">
+            <Camera className="w-5 h-5 sm:w-7 sm:h-7" />
           </div>
-          {/* Poprawka WCAG: h2 zamiast h3 bez przeskakiwania poziomów */}
-          <h2 className="text-base sm:text-lg font-bold text-white mb-2">
+          <h2 className="text-sm sm:text-lg font-bold text-white mb-1.5">
             {hasCameraError
               ? cameraFailureReason === "no-device"
                 ? t.cameraNoDevice
@@ -853,17 +848,15 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                   : t.cameraInactive
               : t.cameraPromptTitle}
           </h2>
-          <p className="text-neutral-300 text-xs sm:text-sm max-w-md mb-5 sm:mb-6 leading-relaxed">
+          <p className="text-neutral-300 text-[11px] sm:text-sm max-w-sm sm:max-w-md mb-3 sm:mb-4 leading-relaxed">
             {cameraFailureReason === "no-device" && hasCameraError
               ? t.cameraNoDeviceDesc
               : t.cameraPromptDesc}
           </p>
-          {hasCameraError && cameraFailureReason === "denied" && (
-            <p className="mb-5 text-xs sm:text-sm text-amber-300/90 max-w-md leading-relaxed">
-              {t.studioModeDesc}
-            </p>
-          )}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+          <p className="mb-4 text-[11px] sm:text-xs text-amber-300/90 max-w-xs sm:max-w-sm leading-relaxed font-medium">
+            {t.studioModeDesc}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full max-w-xs sm:max-w-md">
             <button
               id="btn-retry-camera"
               type="button"
@@ -871,9 +864,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={() => startCamera()}
-              className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4 shrink-0" />
               <span>{t.enableCameraBtn}</span>
             </button>
             <button
@@ -884,13 +877,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
-              className={`flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border transition-all shadow-lg active:scale-95 ${
-                hasCameraError && cameraFailureReason === "denied"
-                  ? "border-amber-300 shadow-amber-400/30 ring-2 ring-amber-300/60"
-                  : "border-indigo-400 shadow-indigo-600/25"
-              }`}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border border-indigo-400 shadow-lg shadow-indigo-600/25 transition-all active:scale-95"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
               <span>{t.studioMode}</span>
             </button>
           </div>
