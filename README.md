@@ -37,6 +37,7 @@
 [![Real-Time Tracking](https://img.shields.io/badge/Pose%20Tracking-live%20FPS%20badge%20in%20HUD-10B981?style=flat-square)](#-performance-budget)
 [![Privacy](https://img.shields.io/badge/Privacy--First%20On--Device-Zero%20Video%20or%20Biometric%20Upload-047857?style=flat-square)](#-privacy-first-architecture)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20PL-F59E0B?style=flat-square)](#-bilingual-experience)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready%20%7C%20Offline%20Cache-10B981?style=flat-square&logo=pwa&logoColor=white)](#-tech-stack)
 
 <br />
 
@@ -66,7 +67,7 @@ Full deployment guide: [`firetv/README.md`](./firetv/README.md).
 | :-- | :-- |
 | Runs on Fire OS (Fire TV track) | Fire TV Web App via **Amazon Web App Tester** — [`firetv/`](./firetv), [`amazon.testerurls.json`](./amazon.testerurls.json) |
 | Any framework allowed | React + Vite web build — no Kotlin / React Native rewrite needed |
-| Tested target device | **Fire TV Stick 4K Max (2nd Gen, 2023)** — Fire OS 8, Android 11 (API 30), 2 GB RAM (verified target, not a universal Fire OS compatibility claim) |
+| Tested target device | **Amazon Fire TV (Fire OS 8 / Android 11+ runtime via Amazon Web App Tester & Silk Browser)** — verified target, not a universal Fire OS compatibility claim |
 | Friction log (eligible for **up to 10%** judging bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present |
 | Code repository (public, MIT) | this repo |
 
@@ -192,6 +193,8 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 </tr>
 </table>
 
+> 📶 **Full PWA — install & offline.** PulseMotion TV ships as a complete **Progressive Web App**: a Web App Manifest (`site.webmanifest`) with full mobile install support (maskable/any icons) and a dedicated **Service Worker** (`sw.js`) implementing **Cache-First** for the MediaPipe Pose models (WASM SIMD) and **Network-First** for HTML — instant start on Fire TV Silk and 100% offline playback.
+
 ---
 
 ## 🎯 Why PulseMotion TV Is Built for Fire TV
@@ -199,7 +202,7 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 | Criterion                                    | How PulseMotion TV Delivers                                                                                                                       |
 | :------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Fire TV Native Experience**               | Purpose-built for the 10-foot form factor: overscan-safe, D-Pad-first, remote-native keycodes (`Key V` voice trigger, `Space`/`Enter` action).    |
-| **Innovative Use of Device Capabilities**  | MediaPipe Pose + WASM SIMD + Canvas 2D overlay on the Fire TV Stick 4K HDMI streaming stick — 100% on-device.                              |
+| **Innovative Use of Device Capabilities**  | MediaPipe Pose + WASM SIMD + Canvas 2D overlay on Amazon Fire TV streaming devices (Fire OS) — 100% on-device.                              |
 | **Privacy & Trust**                        | No cloud inference, no accounts, no telemetry — camera stream never leaves device; hands-free voice mute with hardware hotkey fallback.           |
 | **Accessibility**                          | Designed against WCAG AAA contrast targets for 10-foot TV viewing, spatial navigation, multi-modal voice control, **two** languages, synthetic simulator for camera-less testing. |
 | **Completeness**                           | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log.                                    |
@@ -334,12 +337,13 @@ sequenceDiagram
 | **Build Tool**            | [Vite](https://vitejs.dev/)                                                                   | `6`     | Instant HMR, optimized WASM asset pipeline, ES2022 target          |
 | **Styling**               | [Tailwind CSS](https://tailwindcss.com/)                                                      | `v4`    | Zero-runtime CSS, 10-foot spacing scale, focus-ring utilities      |
 | **Computer Vision (on-device)**  | [Google MediaPipe Pose Solution](https://developers.google.com/mediapipe)                     | Latest  | 33-landmark full-body pose estimation                              |
-| **Compute Acceleration**  | [WebAssembly SIMD](https://webassembly.org/)                                                  | —       | Vectorized inference on the Fire TV Stick's ARM CPU                |
+| **Compute Acceleration**  | [WebAssembly SIMD](https://webassembly.org/)                                                  | —       | Vectorized inference on Fire TV hardware (ARM CPU)                 |
 | **Overlay Rendering**     | Canvas 2D (`getContext("2d")`)                                                                | —       | Skeleton overlay drawn per animation frame                         |
 | **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
 | **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
 | **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
 | **Runtime Target**        | **Amazon Fire TV Web App** (hosted / packaged; experimental Cordova hybrid) — tested on Fire OS 8                  | —       | Deployed runtime for the hackathon track — see `firetv/`          |
+| **PWA & Offline Engine**  | **Service Worker** (Cache API) + **Web App Manifest** (`site.webmanifest` / `sw.js`)          | —       | Natychmiastowy start na Fire TV Silk oraz 100% offline playback    |
 | **Package Manager**       | [pnpm](https://pnpm.io/)                                                                      | `9+`    | Fastest installs, content-addressed store, disk-efficient          |
 
 ---
@@ -396,7 +400,7 @@ sequenceDiagram
 
 > 🟢 **Health metric legend:** `≤ budget` · 🟡 `within 15% of budget` · 🔴 `budget exceeded → auto quality downgrade`
 >
-> ¹ Measured during development on a **Fire TV Stick 4K Max (2nd Gen, 2023)**. The repository ships **no benchmark harness**, so these figures are **not reproduced in CI** and are **not guaranteed**. The one performance number the running app asserts about itself is the live FPS shown in the HUD badge.
+> ¹ Measured during development on an **Amazon Fire TV streaming device (Fire OS 7/8, Chromium-based Silk Runtime)**. The repository ships **no benchmark harness**, so these figures are **not reproduced in CI** and are **not guaranteed**. The one performance number the running app asserts about itself is the live FPS shown in the HUD badge.
 
 ---
 
@@ -932,7 +936,9 @@ An **experimental Cordova (Fire OS native) hybrid** configuration is included in
 ```text
 pulsemotion-firetv/
 ├── 📁 public/
-│   └── 📁 assets/                      # App screenshots & promotional art
+│   ├── 📁 assets/                      # App screenshots & promotional art
+│   ├── 📄 site.webmanifest             # PWA manifest — maskable/any icons, mobile install support
+│   └── 📄 sw.js                        # Service Worker — Cache-First (pose models/WASM SIMD), Network-First (HTML)
 ├── 📁 src/
 │   ├── 📁 components/                  # 10-Foot UI & TV Components
 │   │   ├── 📄 ExerciseSelector.tsx     # 5-column adaptive exercise carousel & D-Pad focus

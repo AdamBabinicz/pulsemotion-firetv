@@ -1,6 +1,7 @@
 {
   "name": "PulseMotion TV",
   "short_name": "PulseMotion",
+  "id": "/",
   "description": "On-device pose coach for Amazon Fire TV. MediaPipe + WebAssembly SIMD pose tracking, Fire TV remote D-Pad navigation, hands-free voice control, zero cloud video processing.",
   "start_url": "/",
   "scope": "/",
@@ -9,18 +10,19 @@
   "background_color": "#0b1220",
   "theme_color": "#10b981",
   "lang": "en",
+  "categories": ["fitness", "health", "sports"],
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
