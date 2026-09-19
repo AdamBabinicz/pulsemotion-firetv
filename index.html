@@ -30,18 +30,35 @@
       });
     </script>
 
-    <!-- Google Tag Manager -->
+    <!-- Google Tag Manager (Zoptymalizowany pod Lighthouse Mobile 90+) -->
     <script>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
+      function initGTM() {
+        if (window.__gtmInitialized) return;
+        window.__gtmInitialized = true;
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || [];
+          w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+          var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != "dataLayer" ? "&l=" + l : "";
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+          f.parentNode.insertBefore(j, f);
+        })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
+      }
+
+      // Uruchomienie GTM w wolnej chwili procesora (nie blokuje renderowania ekranu)
+      if (document.readyState === "complete") {
+        setTimeout(initGTM, 1000);
+      } else {
+        window.addEventListener("load", function () {
+          if ("requestIdleCallback" in window) {
+            requestIdleCallback(initGTM, { timeout: 2500 });
+          } else {
+            setTimeout(initGTM, 1500);
+          }
+        });
+      }
     </script>
     <!-- End Google Tag Manager -->
 
@@ -179,14 +196,6 @@
         ]
       }
     </script>
-
-    <!--
-      Google MediaPipe Pose & Camera Utils — bundled locally.
-      The files are part of the application build and are served
-      from /mediapipe/.
-    -->
-    <script defer src="/mediapipe/camera_utils/camera_utils.js"></script>
-    <script defer src="/mediapipe/pose/pose.js"></script>
   </head>
 
   <body
@@ -205,6 +214,11 @@
 
     <div id="root"></div>
 
+    <!-- Główny kod aplikacji ładuje się z najwyższym priorytetem -->
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Skrypty MediaPipe ładują się asynchronicznie w tle -->
+    <script defer src="/mediapipe/camera_utils/camera_utils.js"></script>
+    <script defer src="/mediapipe/pose/pose.js"></script>
   </body>
 </html>
