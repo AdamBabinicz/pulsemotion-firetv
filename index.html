@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google Consent Mode v2 Default Setup (Musi być ściśle PRZED skryptem GTM) -->
+    <!-- Google Consent Mode v2 Default Setup -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -30,7 +30,7 @@
       });
     </script>
 
-    <!-- Google Tag Manager (Zoptymalizowany pod Lighthouse Mobile 90+) -->
+    <!-- Google Tag Manager (Zoptymalizowany pod Lighthouse Mobile) -->
     <script>
       function initGTM() {
         if (window.__gtmInitialized) return;
@@ -47,15 +47,14 @@
         })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
       }
 
-      // Uruchomienie GTM w wolnej chwili procesora (nie blokuje renderowania ekranu)
       if (document.readyState === "complete") {
-        setTimeout(initGTM, 1000);
+        setTimeout(initGTM, 1200);
       } else {
         window.addEventListener("load", function () {
           if ("requestIdleCallback" in window) {
             requestIdleCallback(initGTM, { timeout: 2500 });
           } else {
-            setTimeout(initGTM, 1500);
+            setTimeout(initGTM, 1200);
           }
         });
       }
@@ -74,21 +73,8 @@
       content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com; connect-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com; frame-src 'self' https://www.googletagmanager.com; worker-src 'self' blob:; media-src 'self' blob: data:;"
     />
 
-    <!--
-      CSP 2.0+: 'wasm-unsafe-eval' (Chromium 95+, Fire OS 7+) allows
-      WASM compilation required by MediaPipe without enabling full
-      'unsafe-eval'.
-
-      MediaPipe is bundled locally and is not loaded from a CDN.
-      All required files are served from /mediapipe/ as part of the
-      application build. See public/mediapipe/ and locateFile in
-      PoseCamera.tsx.
-    -->
-
     <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
-
     <link rel="manifest" href="/site.webmanifest" />
-
     <meta name="theme-color" content="#10b981" />
 
     <!-- Browser & PWA Icons -->
@@ -109,7 +95,7 @@
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Android & Apple Mobile Web App Settings -->
+    <!-- Mobile Web App Settings -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
@@ -118,55 +104,47 @@
     />
     <meta name="apple-mobile-web-app-title" content="PulseMotion TV" />
 
-    <!-- Open Graph (Facebook, LinkedIn, Discord, Slack) -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pulsemotion-firetv.netlify.app/" />
     <meta property="og:site_name" content="PulseMotion TV" />
-
     <meta
       property="og:title"
       content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
     />
-
     <meta
       property="og:description"
       content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
     />
-
     <meta
       property="og:image"
       content="https://pulsemotion-firetv.netlify.app/assets/1.png"
     />
-
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="720" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="pl_PL" />
 
-    <!-- Twitter / X Cards -->
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-
     <meta
       name="twitter:url"
       content="https://pulsemotion-firetv.netlify.app/"
     />
-
     <meta
       name="twitter:title"
       content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
     />
-
     <meta
       name="twitter:description"
       content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
     />
-
     <meta
       name="twitter:image"
       content="https://pulsemotion-firetv.netlify.app/assets/1.png"
     />
 
-    <!-- Schema.org JSON-LD Structured Data for Hackathon & Rich Snippets -->
+    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -207,18 +185,45 @@
         src="https://www.googletagmanager.com/ns.html?id=GTM-5HMW9V4B"
         height="0"
         width="0"
-        style="display: none; visibility: hidden"
       ></iframe
     ></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
     <div id="root"></div>
 
-    <!-- Główny kod aplikacji ładuje się z najwyższym priorytetem -->
+    <!-- Główny kod aplikacji ładuje się natychmiast z najwyższym priorytetem -->
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Skrypty MediaPipe ładują się asynchronicznie w tle -->
-    <script defer src="/mediapipe/camera_utils/camera_utils.js"></script>
-    <script defer src="/mediapipe/pose/pose.js"></script>
+    <!-- Skrypty MediaPipe doładowują się w tle po wyświetleniu interfejsu (nie blokują LCP) -->
+    <script>
+      (function () {
+        function loadMediaPipe() {
+          if (window.__mpLoaded) return;
+          window.__mpLoaded = true;
+
+          var s1 = document.createElement("script");
+          s1.src = "/mediapipe/camera_utils/camera_utils.js";
+          s1.async = true;
+          document.body.appendChild(s1);
+
+          var s2 = document.createElement("script");
+          s2.src = "/mediapipe/pose/pose.js";
+          s2.async = true;
+          document.body.appendChild(s2);
+        }
+
+        if (document.readyState === "complete") {
+          setTimeout(loadMediaPipe, 800);
+        } else {
+          window.addEventListener("load", function () {
+            if ("requestIdleCallback" in window) {
+              requestIdleCallback(loadMediaPipe, { timeout: 2000 });
+            } else {
+              setTimeout(loadMediaPipe, 800);
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
