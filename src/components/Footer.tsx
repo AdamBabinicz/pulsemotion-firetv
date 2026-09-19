@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({
   return (
     <footer
       id="app-footer"
-      className={`w-full mt-12 border-t py-8 px-4 md:px-8 transition-colors duration-300 ${
+      className={`w-full mt-12 border-t pt-8 pb-24 sm:pb-12 md:py-8 px-4 md:px-8 transition-colors duration-300 ${
         isDark
           ? "bg-neutral-950/90 border-neutral-800 text-neutral-400"
           : "bg-white border-neutral-200 text-neutral-600 shadow-sm"

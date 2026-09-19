@@ -30,12 +30,12 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
   const isDark = theme === "dark";
 
   return (
-    <div className="relative flex items-center gap-2">
+    <div className="relative flex items-center gap-1 sm:gap-2">
       {/* Voice Recognition Status Pill — 10-Foot UI ready with focus rings */}
       <button
         id="btn-toggle-voice"
         onClick={onToggleListening}
-        className={`flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
+        className={`flex items-center gap-1.5 sm:gap-2 p-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-400 ${
           isListening
             ? "bg-rose-500/20 text-rose-400 border-rose-500/50 ring-2 ring-rose-500/30 shadow-lg shadow-rose-500/20"
             : isDark
@@ -43,6 +43,11 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
               : "bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-300"
         }`}
         title={
+          isListening
+            ? `${t.voiceControlActive} (Klawisz V)`
+            : `${t.voiceControlOff} (Klawisz V)`
+        }
+        aria-label={
           isListening
             ? `${t.voiceControlActive} (Klawisz V)`
             : `${t.voiceControlOff} (Klawisz V)`
@@ -58,7 +63,7 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
             <MicOff className="w-4 h-4 opacity-70" />
           )}
         </div>
-        <span className="inline-block whitespace-nowrap">
+        <span className="hidden sm:inline-block whitespace-nowrap">
           {isListening ? t.voiceControlActive : t.voiceControlTitle}
         </span>
         <span
@@ -87,6 +92,7 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
             : "bg-neutral-100 hover:bg-neutral-200 text-neutral-600 border-neutral-300"
         }`}
         title={t.voiceCommandsHelpTitle}
+        aria-label={t.voiceCommandsHelpTitle}
       >
         <HelpCircle className="w-4 h-4" />
       </button>
@@ -105,7 +111,7 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
       {showHelp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div
-            className={`w-full max-w-lg rounded-3xl p-6 border shadow-2xl relative max-h-[90vh] flex flex-col ${
+            className={`w-full max-w-lg rounded-3xl p-4 sm:p-6 border shadow-2xl relative max-h-[90vh] flex flex-col ${
               isDark
                 ? "bg-neutral-900 border-neutral-700 text-white"
                 : "bg-white border-neutral-200 text-neutral-900"
@@ -115,16 +121,17 @@ export const VoiceControlBadge: React.FC<VoiceControlBadgeProps> = ({
               id="btn-close-voice-help"
               onClick={() => setShowHelp(false)}
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-500/20 text-neutral-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              aria-label="Zamknij"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
                 <Volume2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold tracking-tight">
+                <h3 className="text-base sm:text-lg font-bold tracking-tight">
                   {t.voiceCommandsHelpTitle}
                 </h3>
                 <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">

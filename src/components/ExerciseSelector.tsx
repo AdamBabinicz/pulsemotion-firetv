@@ -89,7 +89,6 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
       const prevEl = document.getElementById(`exercise-tab-${prevExercise.id}`);
       if (prevEl) setTvFocus(prevEl);
     }
-    // ArrowUp oraz ArrowDown przechodzą do centralnego silnika 2D w App.tsx
   };
 
   return (
@@ -144,12 +143,12 @@ export const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
         </div>
       </div>
 
-      {/* Karuzela ćwiczeń z obsługą D-pad TV */}
+      {/* Karuzela ćwiczeń z obsługą D-pad TV i buforem scroll-p-2 dla pełnej widoczności obwódek */}
       <div
         ref={scrollContainerRef}
         role="tablist"
         aria-label={t.selectExerciseLabel}
-        className="grid grid-flow-col auto-cols-max sm:grid-flow-row sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-2.5 overflow-x-auto sm:overflow-x-visible pb-2 sm:pb-0 scroll-smooth snap-x touch-pan-x tv-scroll-smooth tv-hide-scrollbar"
+        className="grid grid-flow-col auto-cols-max sm:grid-flow-row sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-2.5 overflow-x-auto sm:overflow-x-visible p-2 sm:p-0 scroll-p-2 scroll-smooth snap-x touch-pan-x tv-scroll-smooth tv-hide-scrollbar"
       >
         {EXERCISES.map((ex, index) => {
           const isSelected = ex.id === currentExercise.id;
