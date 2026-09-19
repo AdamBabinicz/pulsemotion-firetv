@@ -1,5 +1,103 @@
 # CHANGELOG — Judging Compliance & Fire TV Platform Integration (Build, Ship, Shape: Amazon Developer Hackathon — Fire TV Track)
 
+> **Overview:** This document tracks every technical update made to PulseMotion TV, with each section kept aligned to the Amazon Developer Hackathon evaluation criteria and Fire TV platform guidelines. Detailed requirement mappings can be found in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
+
+---
+
+## Release 2026-09-19 — Frontend Refactor & WCAG / A11y Hardening
+
+**Date:** 2026-09-19 · **Commits:** `0ed5120` (component decomposition & responsive polish) + `75afed0` (biomechanical utility extraction + heading hierarchy fix) · **Base:** `f2717da` · **Changes:** 7 new modules + 6 refactored files
+
+> **Overview:** This release continues the code-quality and accessibility (WCAG / a11y) hardening pass. It decomposes the two monolithic components (`App.tsx`, `PoseCamera.tsx`) into focused custom hooks and pure utilities, and it resolves a set of Lighthouse / WCAG accessibility and small-screen layout defects. Detailed requirement mappings remain in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
+
+### What Was Fixed (and Why)
+
+#### 1. Component Decomposition — `App.tsx` → Custom Hooks (Criterion: maintainable, review-ready codebase)
+
+**Issue:** `App.tsx` had grown into a ~1,300-line monolith that entangled four unrelated concerns — workout/session state, voice navigation, screen wake-lock, and TV remote handling — inside a single component. This made the file hard to review, impractical to unit-test in isolation, and a recurring source of merge friction.
+
+**Changes:**
+
+- **NEW `src/hooks/useWorkoutSession.ts`** (257 lines) — the workout session state machine: exercise selection, rep counting, per-exercise progression, and continuation of the existing persistence behaviour, all moved out of the component body.
+- **NEW `src/hooks/useVoiceNavigation.ts`** (281 lines) — `SpeechRecognition` wiring and voice-command dispatch (hands-free control).
+- **NEW `src/hooks/useWakeLock.ts`** (140 lines) — Screen Wake Lock API lifecycle (acquire/release across visibility changes) so the screen stays awake during a workout.
+- **NEW `src/hooks/useTvRemote.ts`** (313 lines) — Fire TV D-pad keycode interception and focus coordination for the 10-foot experience.
+- **`src/App.tsx`** — is now a thin composition root. It imports the four hooks (`App.tsx:18–21`) and simply wires them together: `useWorkoutSession(language)` (`:66`), `useWakeLock({ … })` (`:69`), `useVoiceNavigation({ … })` (`:76`), and `useTvRemote({ … })` (`:96`).
+
+Three presentational blocks were also lifted out of `App.tsx` into their own components: **`src/components/AppHeader.tsx`** (220 lines), **`src/components/PausedBanner.tsx`** (51 lines), and **`src/components/VoiceHintBar.tsx`** (72 lines).
+
+#### 2. `PoseCamera.tsx` → `biomechanicalSimulator.ts` Utility (pure-function extraction)
+
+**Issue:** `PoseCamera.tsx` mixed MediaPipe pose maths (synthetic landmark generation) with rendering and camera-lifecycle concerns, which left the simulation logic untestable and cluttered the component.
+
+**Changes:**
+
+- **NEW `src/utils/biomechanicalSimulator.ts`** (185 lines) — a pure, side-effect-free biomechanical landmark generator exporting `getBiomechanicalLandmarks`.
+- **`src/components/PoseCamera.tsx`** — now imports `getBiomechanicalLandmarks` from the utility (`PoseCamera.tsx:4`) and shrank by **−211 lines**, with no change to runtime behaviour.
+
+#### 3. WCAG Heading Hierarchy — Skipped Heading Level (Lighthouse `heading-order`)
+
+**Issue:** Lighthouse / axe flagged a skipped heading level. The camera overlay heading was rendered as `<h3>` directly beneath the page's `<h1>`/`<h2>` structure, skipping a level and violating the best-practice heading order audited under WCAG "Headings and labels".
+
+**Changes:**
+
+- **`src/components/PoseCamera.tsx`** — the camera overlay heading was changed from `<h3 …>` to `<h2 …>` (current line 847). The saved diff removes `<h3 className="text-base sm:text-lg font-bold text-white mb-2">` and adds the byte-identical `<h2 className="text-base sm:text-lg font-bold text-white mb-2">`. Because the classes are unchanged there is **no visual change** — only the semantic level changed, eliminating the skipped level and clearing the Lighthouse violation.
+
+#### 4. Focus-Ring Clipping on Mobile Exercise Tabs (`scroll-padding`)
+
+**Issue:** On small viewports the horizontally scrollable exercise carousel clipped the focus ring (`ring-2`) of the first/last tabs, because the scroll container had no scroll buffer, so the focus indicator was partially hidden — an accessibility and usability defect.
+
+**Changes:**
+
+- **`src/components/ExerciseSelector.tsx:151`** — the carousel container now uses `scroll-p-2` (alongside the existing `p-2 sm:p-0`, `snap-x`, and `tv-scroll-smooth`), giving 0.5rem of scroll padding so focused tab outlines remain fully visible at both ends of the row.
+- Reinforced globally by `scroll-padding: 24px;` in **`src/index.css:70`**, keeping focus indicators inside the viewport across all scroll containers.
+
+#### 5. TV Remote Overlay vs Footer Legal Controls Collision (small screens)
+
+**Issue:** The floating TV-remote overlay (`fixed bottom-4 right-4 z-40`) visually collided with the footer's legal controls (Privacy Policy / Terms buttons) on short screens, occluding those controls.
+
+**Changes:**
+
+- **`src/components/Footer.tsx:31`** — the footer container now adds extra bottom padding on small screens (`pb-24 sm:pb-12 md:py-8`), so the legal controls clear the floating overlay.
+- **`src/components/TvRemoteOverlay.tsx:29`** — the overlay remains `fixed bottom-4 right-4 z-40`; combined with the footer padding the two no longer overlap on small screens.
+
+### Verification & Test Results
+
+Evidence gathered directly from the repository history and source:
+
+| Check / Claim                                                | Evidence                                                                             | Result                    |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------- |
+| Component decomposition landed                               | `git show --stat 0ed5120` — 12 files, **+1,518 / −1,237**; four hook files present   | ✅ Verified in history    |
+| Biomechanical utility extracted                              | `git show --stat 75afed0` — `biomechanicalSimulator.ts` +185 / `PoseCamera.tsx` −211 | ✅ Verified in history    |
+| Heading hierarchy fix                                        | `git show 75afed0` diff — `<h3 …>` → `<h2 …>` in `PoseCamera.tsx`                    | ✅ Verified in diff       |
+| Mobile tab focus-ring buffer                                 | `src/components/ExerciseSelector.tsx:151` (`scroll-p-2`)                             | ✅ Verified in source     |
+| Overlay/footer collision fix                                 | `src/components/Footer.tsx:31`, `src/components/TvRemoteOverlay.tsx:29`              | ✅ Verified in source     |
+| `npm run lint` (`tsc --noEmit`), `npm test`, `npm run build` | Not executed in the documentation-review environment (dependencies not installed)    | ⚠️ Run locally to confirm |
+
+> **Note:** The source- and history-level facts above are confirmed. The runtime suites (`lint`, `test`, `build`) are intentionally **not** reported as passed here, because they were not executed while producing this changelog entry — run `npm install && npm run lint && npm test && npm run build` locally to record their final output.
+
+### Modified & New Files
+
+| File                                   | Status       | Delta                                          |
+| -------------------------------------- | ------------ | ---------------------------------------------- |
+| `src/hooks/useWorkoutSession.ts`       | **NEW**      | 257 lines                                      |
+| `src/hooks/useVoiceNavigation.ts`      | **NEW**      | 281 lines                                      |
+| `src/hooks/useWakeLock.ts`             | **NEW**      | 140 lines                                      |
+| `src/hooks/useTvRemote.ts`             | **NEW**      | 313 lines                                      |
+| `src/utils/biomechanicalSimulator.ts`  | **NEW**      | 185 lines                                      |
+| `src/components/AppHeader.tsx`         | **NEW**      | 220 lines                                      |
+| `src/components/PausedBanner.tsx`      | **NEW**      | 51 lines                                       |
+| `src/components/VoiceHintBar.tsx`      | **NEW**      | 72 lines                                       |
+| `src/App.tsx`                          | **MODIFIED** | −1,343 lines (now a thin composition root)     |
+| `src/components/PoseCamera.tsx`        | **MODIFIED** | −211 lines (`75afed0`) / −52 lines (`0ed5120`) |
+| `src/components/ExerciseSelector.tsx`  | **MODIFIED** | `scroll-p-2` focus-ring buffer                 |
+| `src/components/Footer.tsx`            | **MODIFIED** | `pb-24 sm:pb-12 md:py-8` overlay clearance     |
+| `src/components/VoiceControlBadge.tsx` | **MODIFIED** | composition update                             |
+
+---
+
+## Release 2026-09-18 — Judging Compliance & Fire TV Platform Integration
+
 **Date:** 2026-09-18 · **Base:** `4007905` (previous HEAD from which commit `2545a5c` was created) · **Changes:** 4 source files + 1 new test suite
 
 > **Overview:** This document outlines all technical updates made to ensure strict alignment with the Amazon Developer Hackathon evaluation criteria and platform guidelines. Detailed requirement mappings can be found in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).

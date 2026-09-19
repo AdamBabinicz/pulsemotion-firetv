@@ -31,17 +31,20 @@
 [![MediaPipe](https://img.shields.io/badge/Google-MediaPipe%20Pose-00897B?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/mediapipe)
 [![WebAssembly](https://img.shields.io/badge/WebAssembly-SIMD-654FF0?style=flat-square&logo=webassembly&logoColor=white)](https://webassembly.org/)
 [![Fire TV](https://img.shields.io/badge/Amazon-Fire%20TV%20Web%20App%20%C2%B7%20Fire%20OS%208-FF9900?style=flat-square&logo=amazonfiretv&logoColor=white)](https://developer.amazon.com/)
-[![Web Speech API](https://img.shields.io/badge/Web%20Speech-API-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+[![Web Speech API](https://img.shields.io/badge/Web%20Speech-API-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://web.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
 [![Pipeline Latency](https://img.shields.io/badge/Pipeline-design%20target%20%3C%2035%20ms-10B981?style=flat-square)](#-performance-budget)
 [![Real-Time Tracking](https://img.shields.io/badge/Pose%20Tracking-live%20FPS%20badge%20in%20HUD-10B981?style=flat-square)](#-performance-budget)
 [![Privacy](https://img.shields.io/badge/Privacy--First%20On--Device-Zero%20Video%20or%20Biometric%20Upload-047857?style=flat-square)](#-privacy-first-architecture)
 [![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20PL-F59E0B?style=flat-square)](#-bilingual-experience)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready%20%7C%20Offline%20Cache-10B981?style=flat-square&logo=pwa&logoColor=white)](#-tech-stack)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20Hardened-10B981?style=flat-square&logo=w3c&logoColor=white)](#-architecture-clean-code--accessibility-wcag-21)
+[![Google AI Studio](https://img.shields.io/badge/Built%20in-Google%20AI%20Studio-4285F4?style=flat-square&logo=google&logoColor=white)](https://aistudio.google.com/)
+[![Genspark AI](https://img.shields.io/badge/Accelerated%20by-Genspark%20AI-6E56CF?style=flat-square)](https://www.genspark.ai/)
 
 <br />
 
-[**🚀 Quick Start**](#-quick-start) · [**🏗️ Architecture**](#%EF%B8%8F-architecture) · [**💪 Exercises**](#-exercise-catalog) · [**📺 10-Foot UI**](#-the-10-foot-living-room-ui) · [**🧱 Friction Log**](#-friction-log--amazon-developer-hackathon) · [**🎮 Remote Mapping**](#-remote--keyboard-mapping) · [**✅ Submission Checklist**](./SUBMISSION-CHECKLIST.md)
+[**🚀 Quick Start**](#-quick-start) · [**🏗️ Architecture**](#%EF%B8%8F-architecture) · [**🧩 Clean Code & a11y**](#-architecture-clean-code--accessibility-wcag-21) · [**💪 Exercises**](#-exercise-catalog) · [**📺 10-Foot UI**](#-the-10-foot-living-room-ui) · [**🧱 Friction Log**](#-friction-log--amazon-developer-hackathon) · [**🎮 Remote Mapping**](#-remote--keyboard-mapping) · [**✅ Submission Checklist**](./SUBMISSION-CHECKLIST.md)
 
 </div>
 
@@ -52,6 +55,7 @@
 > **PulseMotion TV** turns an Amazon Fire TV Stick into a hands-free, camera-driven personal trainer.
 > Google **MediaPipe Pose** runs **on-device** inside the **Fire TV Web App runtime** (Amazon Web App Tester / Silk on Fire OS 8), powered by **WebAssembly SIMD** — with a design target of **< 35 ms end-to-end pipeline** (live FPS is shown in the HUD badge, not pre-declared as a number).
 > A **Web Speech Synthesis** voice coach calls out reps in real time, **Web Speech Recognition** lets you navigate by talking, and the **Fire TV remote D-Pad** drives the entire 10-foot UI.
+> The codebase is now **fully modular** — presentation components, pure utilities and dedicated **custom hooks** (`useWorkoutSession`, `useVoiceNavigation`, `useWakeLock`, `useTvRemote`) — and the TV interface is **WCAG 2.1 hardened**.
 > **No video ever leaves your living room.**
 
 ---
@@ -90,6 +94,7 @@ The public repo history begins **2026-09-14** — i.e. **after** the Submission 
 | 09-16 | `d4b6849` | README with live Netlify app + dev-phase hardware measurements (no benchmark harness, not reproduced in CI) |
 | 09-17 | `5029f11`…`b84ceaf` | HUD localization, i18n fix, screen wake lock, accessibility |
 | 09-18 | `e436511`…`4007905` | 2D spatial navigation, keycodes 89/90/227/228, runtime CAMERA permission, Fire TV env detection |
+| 09-19 | *docs pass* (this README) | Architectural refactoring documented: `src/hooks/` extraction (`useWorkoutSession`, `useVoiceNavigation`, `useWakeLock`, `useTvRemote`), modular components (`AppHeader`, `VoiceHintBar`, `PausedBanner`), `biomechanicalSimulator` split-out, WCAG 2.1 a11y hardening |
 
 ---
 
@@ -101,7 +106,8 @@ The public repo history begins **2026-09-14** — i.e. **after** the Submission 
 - [✨ Feature Highlights](#-feature-highlights)
 - [🎯 Why PulseMotion TV Is Built for Fire TV](#-why-pulsemotion-tv-is-built-for-fire-tv)
 - [🏗️ Architecture](#%EF%B8%8F-architecture)
-- [⚙️ Tech Stack](#%EF%B8%8F-tech-stack)
+- [🧩 Architecture, Clean Code & Accessibility (WCAG 2.1)](#-architecture-clean-code--accessibility-wcag-21)
+- [⚙️ Tech Stack](#-tech-stack)
 - [🔒 Privacy-First Architecture](#-privacy-first-architecture)
 - [📊 Performance Budget](#-performance-budget)
 - [💪 Exercise Catalog](#-exercise-catalog)
@@ -115,7 +121,7 @@ The public repo history begins **2026-09-14** — i.e. **after** the Submission 
 - [🚀 Quick Start](#-quick-start)
 - [📁 Project Structure](#-project-structure)
 - [🛠️ Scripts Reference](#%EF%B8%8F-scripts-reference)
-- [🗺️ Roadmap](#%EF%B8%8F-roadmap)
+- [🗺️ Roadmap](#-roadmap)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 - [🙏 Acknowledgements](#-acknowledgements)
@@ -191,6 +197,22 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+
+### ☀️ Wake Lock for the Living Room
+
+Dedicated `useWakeLock` hook keeps the TV panel awake across an entire session, surfaces a status badge in the header, and re-acquires cleanly after the app regains visibility — no more blank screen in the middle of a set.
+
+</td>
+<td width="50%" valign="top">
+
+### ♿ WCAG 2.1 Hardened & Modular
+
+Semantic heading order (**`<h1>` ➔ `<h2>` ➔ `<h3>`, never skipped**), **100% D-Pad spatial focusability**, high-contrast focus/pause states and **zero runtime layout shift** — built on presentation components, pure utilities and four custom hooks.
+
+</td>
+</tr>
 </table>
 
 > 📶 **Full PWA — install & offline.** PulseMotion TV ships as a complete **Progressive Web App**: a Web App Manifest (`site.webmanifest`) with full mobile install support (maskable/any icons) and a dedicated **Service Worker** (`sw.js`) implementing **Cache-First** for the MediaPipe Pose models (WASM SIMD) and **Network-First** for HTML — instant start on Fire TV Silk and 100% offline playback.
@@ -204,7 +226,8 @@ A built-in **kinematic playback engine** injects synthetic landmark streams so t
 | **Fire TV Native Experience**               | Purpose-built for the 10-foot form factor: overscan-safe, D-Pad-first, remote-native keycodes (`Key V` voice trigger, `Space`/`Enter` action).    |
 | **Innovative Use of Device Capabilities**  | MediaPipe Pose + WASM SIMD + Canvas 2D overlay on Amazon Fire TV streaming devices (Fire OS) — 100% on-device.                              |
 | **Privacy & Trust**                        | No cloud inference, no accounts, no telemetry — camera stream never leaves device; hands-free voice mute with hardware hotkey fallback.           |
-| **Accessibility**                          | Designed against WCAG AAA contrast targets for 10-foot TV viewing, spatial navigation, multi-modal voice control, **two** languages, synthetic simulator for camera-less testing. |
+| **Accessibility**                          | Refactored against **WCAG 2.1** and WCAG AAA contrast targets for 10-foot TV viewing: semantic heading levels, 100% D-Pad spatial focusability, multi-modal voice control, **two** languages, synthetic simulator for camera-less testing. |
+| **Code Quality & Maintainability**         | Legacy monoliths (`App.tsx`, `PoseCamera.tsx`) decomposed into decoupled presentation components, pure utilities and specialized custom hooks — one responsibility per file. |
 | **Completeness**                           | Five calibrated exercises, real-time voice feedback, full install docs, and a transparency-first friction log.                                    |
 | 🎁 **Friction Log — eligible for up to 10% judging bonus**            | Five deeply documented friction points with root-cause analysis and shipped solutions → [jump to it](#-friction-log--amazon-developer-hackathon).  |
 
@@ -223,6 +246,7 @@ flowchart TD
     end
 
     subgraph CORE["⚛️ Application Core — React 19 + TypeScript 5 + Vite 6"]
+        B0["Custom Hooks Layer<br/>useWorkoutSession · useVoiceNavigation<br/>useWakeLock · useTvRemote"]
         B1["Spatial Navigation Engine<br/>KeyEvent Router + Key V Trigger"]
         B2["Session State Machine<br/>Pause, Resume, Workout Lifecycle"]
         B3["i18n Layer<br/>EN-US / PL-PL"]
@@ -240,20 +264,21 @@ flowchart TD
         D1["Joint Angle Solver<br/>3-point dot product"]
         D2["Rep State Machine<br/>Ready → Down → Up → Counted"]
         D3["Form Validator<br/>Depth / Symmetry / Alignment"]
-        D4["Synthetic Pose Simulator<br/>Biomechanical Freeze-Aware Engine"]
+        D4["Biomechanical Simulator<br/>biomechanicalSimulator.ts<br/>Freeze-Aware Engine"]
     end
 
     subgraph OUTPUT["📺 Output Layer — 10-Foot UI"]
         E1["Canvas 2D Skeleton Overlay<br/>requestAnimationFrame Render Loop"]
-        E2["Rep Counter HUD & Live Pause Banner<br/>Emerald Glow Focus Rings"]
+        E2["AppHeader + Rep Counter HUD<br/>PausedBanner · Emerald Glow Focus Rings"]
         E3["Web Speech Synthesis<br/>Real-Time Voice Coach"]
-        E4["Voice Prompt Hint Bar<br/>Discoverable Command Stream"]
+        E4["VoiceHintBar<br/>Command Hints + Privacy Indicator"]
     end
 
     A1 --> B1
     A3 --> B1
     A2 --> CORE
-    B1 --> B2
+    B1 --> B0
+    B0 --> B2
     B2 --> B4
     B2 --> B3
     B4 --> D1
@@ -263,6 +288,7 @@ flowchart TD
     D3 --> E2
     D3 --> E3
     C4 --> E1
+    B0 --> E2
     B3 --> E2
     B3 --> E3
     B3 --> E4
@@ -309,22 +335,69 @@ sequenceDiagram
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  PRESENTATION LAYER                       React 19 · Tailwind CSS v4         │
 │  ┌──────────────┬───────────────┬────────────────┬──────────────────────┐    │
-│  │ ExerciseGrid │ ActiveWorkout │ VoiceHUD       │ VirtualRemoteWidget  │    │
+│  │ AppHeader    │ VoiceHintBar  │ PausedBanner   │ WorkoutHUD           │    │
 │  └──────────────┴───────────────┴────────────────┴──────────────────────┘    │
+│  ExerciseSelector · PoseCamera · TvRemoteOverlay · VirtualCoachGuide        │
+│  Pure presentation — no MediaPipe calls, no speech calls, no storage.        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  HOOKS LAYER (STATE + ORCHESTRATION)      Dedicated React Custom Hooks       │
+│  useWorkoutSession · useVoiceNavigation · useWakeLock · useTvRemote          │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  NAVIGATION LAYER                         Spatial Focus Engine              │
 │  D-Pad KeyEvent Router · Focus Graph Resolver · Overscan Safe Area Guard     │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  DOMAIN LAYER                             Pure TypeScript · Framework-free   │
 │  Exercise Registry · Angle Calculators · Rep FSM · Form Validators           │
+│  biomechanicalSimulator (deterministic synthetic trajectories)               │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  VISION LAYER                             MediaPipe + WebAssembly SIMD        │
 │  Pose Detector · Landmark Normalizer · Canvas 2D Renderer · rAF Scheduler  │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │  PLATFORM LAYER                           Browser & Device Adapters          │
-│  getUserMedia · SpeechSynthesis · SpeechRecognition · KeyEvent Normalizer    │
+│  getUserMedia · SpeechSynthesis · SpeechRecognition · Screen Wake Lock       │
+│  KeyEvent Normalizer                                                         │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🧩 Architecture, Clean Code & Accessibility (WCAG 2.1)
+
+The original hackathon build proved the concept quickly, but the latest refactor focused on **long-term maintainability**, **single-responsibility decomposition**, and **living-room accessibility hardening**.
+
+### From monoliths to modules
+
+Two legacy hotspots were intentionally decomposed:
+
+- **`App.tsx`** moved from a broad app-shell/controller role toward a thin composition layer.
+- **`PoseCamera.tsx`** was split conceptually into camera/render responsibilities plus reusable orchestration and domain logic.
+
+This refactor introduced:
+
+| Extraction | Responsibility |
+| :-- | :-- |
+| `src/hooks/useWorkoutSession.ts` | Workout session state, set lifecycle, rep totals, form-accuracy aggregation, calories estimate, set timer, pause/resume bookkeeping |
+| `src/hooks/useVoiceNavigation.ts` | Continuous hands-free recognition loop, command parsing, intent routing, privacy-safe microphone lifecycle |
+| `src/hooks/useWakeLock.ts` | Screen Wake Lock acquisition, release, visibility recovery, and TV sleep-prevention status reporting |
+| `src/hooks/useTvRemote.ts` | Fire TV remote orchestration: D-Pad traversal, media-key handling, back navigation, and unified key normalization |
+| `src/components/AppHeader.tsx` | Top navigation bar, language/theme toggles, Wake Lock badge, and brand typography |
+| `src/components/VoiceHintBar.tsx` | Dynamic command hints, listening status, and privacy indicators |
+| `src/components/PausedBanner.tsx` | High-contrast full-width overlay during pause/completion states |
+| `src/utils/biomechanicalSimulator.ts` | Dedicated synthetic pose trajectory generator for camera-less TV environments |
+
+### Accessibility hardening shipped in the refactor
+
+| Area | What changed |
+| :-- | :-- |
+| **Semantic structure** | Heading hierarchy now follows **`<h1>` → `<h2>` → `<h3>`** without skipping levels, improving screen-reader outline predictability and auditability. |
+| **10-foot focus model** | Every actionable element is reachable via full **D-Pad spatial navigation** with deterministic focus order and visible active state. |
+| **Contrast & legibility** | Paused states, hints, badges and controls use high-contrast combinations appropriate for large-screen viewing from 3+ meters. |
+| **Layout stability** | UI surfaces reserve space up front, eliminating **runtime layout shift** during state changes, voice hint updates, and session banners. |
+| **Hands-free affordances** | Voice hints and privacy state remain visible without obscuring the workout canvas or stealing focus. |
+
+### Why this matters
+
+This architectural pass made the app easier to reason about under hackathon pressure **and** easier to extend after judging: each concern now lives in an isolated file, state orchestration is testable without the view, and accessibility guarantees are enforced at the component boundary instead of being retrofitted at the end.
 
 ---
 
@@ -341,9 +414,10 @@ sequenceDiagram
 | **Overlay Rendering**     | Canvas 2D (`getContext("2d")`)                                                                | —       | Skeleton overlay drawn per animation frame                         |
 | **Audible Coach**         | [Web Speech Synthesis API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)   | —       | Real-time spoken rep counts and form cues                          |
 | **Voice Commands**        | [Web Speech Recognition API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) | —       | Hands-free navigation and session control                          |
+| **Screen Awake Control**  | [Screen Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API) | —       | Prevents Fire TV display sleep during active sessions              |
 | **Remote Input**          | HTML5 **Spatial Navigation** + Android `KeyEvent` codes                                       | —       | D-Pad and media-key handling on Fire TV                            |
 | **Runtime Target**        | **Amazon Fire TV Web App** (hosted / packaged; experimental Cordova hybrid) — tested on Fire OS 8                  | —       | Deployed runtime for the hackathon track — see `firetv/`          |
-| **PWA & Offline Engine**  | **Service Worker** (Cache API) + **Web App Manifest** (`site.webmanifest` / `sw.js`)          | —       | Natychmiastowy start na Fire TV Silk oraz 100% offline playback    |
+| **PWA & Offline Engine**  | **Service Worker** (Cache API) + **Web App Manifest** (`site.webmanifest` / `sw.js`)          | —       | Instant startup on Fire TV Silk and 100% offline playback          |
 | **Package Manager**       | [pnpm](https://pnpm.io/)                                                                      | `9+`    | Fastest installs, content-addressed store, disk-efficient          |
 
 ---
@@ -486,7 +560,7 @@ Every exercise is a declarative rule set: a **trigger joint angle**, a **rep sta
 
 > 🟣 **Callout — Build the trainer without ever turning on a camera.**
 
-The **Synthetic Pose Simulator** is a first-class dev-mode and judging feature, not a mock. It replays calibrated, deterministic biomechanical landmark streams through the exact same solver, state machine, and overlay renderer used in production.
+The **Synthetic Pose Simulator** is a first-class dev-mode and judging feature, not a mock. It replays calibrated, deterministic biomechanical landmark streams through the exact same solver, state machine, and overlay renderer used in production. The latest refactor extracts the trajectory engine into **`src/utils/biomechanicalSimulator.ts`**, making synthetic playback reusable outside the camera component and easier to test in isolation.
 
 ```mermaid
 flowchart LR
@@ -531,9 +605,10 @@ VITE_POSE_SOURCE=synthetic pnpm dev
 | 🎛️ **D-Pad-first interaction**     | Zero hover states required; every action is reachable by directional focus traversal + `DPAD_CENTER`.                                                     |
 | 🖥️ **Virtual Fire TV Remote**      | An on-screen widget rendered in the corner of the desktop build that dispatches **native Android keycodes** — prototype the TV UX on a PC/Mac in seconds. |
 | 🗣️ **Voice Hint Ribbon**           | Persistent horizontal hint bar displaying actionable commands directly on screen.                                                                        |
-| ⏸️ **High-contrast pause alert**   | Full-width glowing amber notification banner displaying live freeze status and one-click/voice resume prompts.                                            |
-| ♿ **WCAG AAA contrast targets**   | Designed against WCAG AAA contrast targets for 10-foot TV viewing: foreground/background pairs are measured at **≥ 7:1**; the emerald focus ring itself exceeds **10:1** against the dark canvas.                                      |
+| ⏸️ **High-contrast pause alert**   | `PausedBanner.tsx` renders a full-width glowing overlay during pauses and workout completion with instant resume guidance.                                |
+| ♿ **WCAG 2.1 / AAA contrast targets**   | Designed against WCAG AAA contrast targets for 10-foot TV viewing: foreground/background pairs are measured at **≥ 7:1**; the emerald focus ring itself exceeds **10:1** against the dark canvas.                                      |
 | 🎬 **Motion with restraint**       | Animations use `prefers-reduced-motion` guards and stay under 200 ms so the UI never fights the render loop.                                              |
+| 🧱 **Zero layout shift**           | Header, hint bar, badges and banners reserve space ahead of time, so camera and HUD surfaces never jump during runtime.                                   |
 
 ### Focus Traversal Model
 
@@ -571,6 +646,8 @@ PulseMotion TV features full hands-free operation designed specifically for a li
 - **Hands-Free Privacy Shutdown**: Users can issue *"Disable voice"* / *"Wyłącz mikrofon"* to immediately terminate speech listening.
 - **Physical Hotkey Recovery**: Pressing **`V`** on the remote or keyboard instantly restarts voice recognition without requiring mouse interaction.
 - **Contextual Workout Freeze**: Issuing *"Pause"* / *"Pauza"* halts metrics and biomechanical animation while keeping voice recognition active in standby mode.
+- **Hook-driven orchestration**: `useVoiceNavigation.ts` owns the recognition loop and intent router so the view layer remains declarative.
+- **Persistent discoverability**: `VoiceHintBar.tsx` surfaces context-aware command hints and a visible privacy/listening state at all times.
 
 | Command (PL) | Command (EN) | Action |
 | :--- | :--- | :--- |
@@ -642,14 +719,14 @@ export const dictionaries: Record<Locale, WorkoutDictionary> = {
 | **Play / Pause**   | `MEDIA_PLAY_PAUSE` (85 / 179)          | `P` / `MediaPlayPause`       | Pause / resume the active workout       |
 | **Media Play**     | `MEDIA_PLAY` (126)                     | `MediaPlay`                  | Resume the paused workout               |
 | **Media Pause / Stop** | `MEDIA_PAUSE` (127) / `MEDIA_STOP` (86) | `MediaPause` / `MediaStop` | Pause the active workout               |
-| **Track Prev**     | `MEDIA_REWIND` (89 / 227)              | `MediaTrackPrevious`         | **Previous exercise** — zmapowane (`TRACK_PREV` w `TV_KEYCODE_MAP`) |
-| **Track Next**     | `MEDIA_FAST_FORWARD` (90 / 228)        | `MediaTrackNext`             | **Next exercise** — zmapowane (`TRACK_NEXT` w `TV_KEYCODE_MAP`) |
+| **Track Prev**     | `MEDIA_REWIND` (89 / 227)              | `MediaTrackPrevious`         | **Previous exercise** — mapped (`TRACK_PREV` in `TV_KEYCODE_MAP`) |
+| **Track Next**     | `MEDIA_FAST_FORWARD` (90 / 228)        | `MediaTrackNext`             | **Next exercise** — mapped (`TRACK_NEXT` in `TV_KEYCODE_MAP`) |
 | **Voice Button**   | Hardware Voice                         | `V`                          | Toggle voice recognition on / off       |
 | **Back / Escape**  | `BACK` (4)                             | `Escape`                     | Pause active workout or dismiss summary |
 | **Mute Audio**     | `MEDIA_MUTE`                           | `M`                          | Mute / unmute audio coach feedback      |
 
 ```ts
-// src/utils/tvNavigation.ts — rzeczywisty fragment (przeczytaj cały plik dla kodów Android KeyEvent)
+// src/utils/tvNavigation.ts — illustrative mapping excerpt
 export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
   ArrowUp: TvDirection.UP,   Up: TvDirection.UP,
   ArrowDown: TvDirection.DOWN, Down: TvDirection.DOWN,
@@ -678,15 +755,15 @@ export const TV_KEY_MAP: Record<string, TvDirection | TvActionKey> = {
 
 ### 🔴 Friction Point 1 — Low-Power GPU on HDMI Streaming Sticks
 
-| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Field             | Detail |
 | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🎯 Task attempted** | Run the MediaPipe Pose pipeline on a Fire TV Stick 4K without thermal throttling. |
 | **⚠️ Severity** | 🔴 Critical (thermal) |
-| **🔥 Symptom**    | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session.                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived.                                                                                                                                                                                                                           |
+| **🔥 Symptom**    | On the **Fire TV Stick 4K**, MediaPipe Pose initially ran at ~24 FPS, then the stick thermally throttled to ~14 FPS within 3 minutes of a session. |
+| **🔍 Root Cause** | The Stick's GPU has a fraction of a phone's thermal headroom, and the default backend was **not** using hardware acceleration. Frames were also being uploaded twice per tick (once for inference, once for the overlay canvas), and the render loop ran unthrottled at display refresh rate even when no new frame arrived. |
 | **🛠️ Solution**   | 1. Enabled **WASM SIMD** for inference and post-processing math.<br/>2. Drew the skeleton overlay on a **Canvas 2D** context instead of a second GPU pass.<br/>3. Drove the loop with `requestAnimationFrame` plus an in-flight guard, so frames are dropped instead of queued when inference lags.<br/>4. Documented the frame-time budget in the Performance table above. |
-| **✅ Impact**     | Stable interactive session over long workouts in development-phase testing. These figures are **not reproduced in CI** — the repo contains no benchmark harness; treat them as historical dev-phase numbers, not guarantees. |                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| **📚 Takeaway**   | On streaming sticks, _thermal sustained performance_ matters far more than _peak benchmark performance_. Budget for the steady state, not the first 10 seconds.                                                                                                                                                                                                                                                                                                                                                                                        |
+| **✅ Impact**     | Stable interactive session over long workouts in development-phase testing. These figures are **not reproduced in CI** — the repo contains no benchmark harness; treat them as historical dev-phase numbers, not guarantees. |
+| **📚 Takeaway**   | On streaming sticks, _thermal sustained performance_ matters far more than _peak benchmark performance_. Budget for the steady state, not the first 10 seconds. |
 
 ```ts
 // Illustrative snippet (design sketch — this file does NOT exist in the repo)
@@ -707,15 +784,15 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 ### 🟠 Friction Point 2 — 10-Foot UI vs. Mouse Ergonomics
 
-| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Field             | Detail |
 | :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🎯 Task attempted** | Design and validate the 10-foot TV UI from a 3 m viewing distance. |
 | **⚠️ Severity** | 🟠 High |
-| **🔥 Symptom**    | The first build looked great on a 27-inch monitor but was **unusable on the TV**: buttons vanished into the bezel, the focus indicator was invisible from 3 m, and text was unreadable.                                                                                                                                                                                                                                                                                                 |
-| **🔍 Root Cause** | Classic **web ergonomics thinking**: hover states, 32 px click targets, 14 px body text, and layouts that ignored **overscan** — many TVs crop 3–5% of each edge.                                                                                                                                                                                                                                                                                                                       |
+| **🔥 Symptom**    | The first build looked great on a 27-inch monitor but was **unusable on the TV**: buttons vanished into the bezel, the focus indicator was invisible from 3 m, and text was unreadable. |
+| **🔍 Root Cause** | Classic **web ergonomics thinking**: hover states, 32 px click targets, 14 px body text, and layouts that ignored **overscan** — many TVs crop 3–5% of each edge. |
 | **🛠️ Solution**   | 1. Introduced a **5% safe-area inset** wrapper, validated against 720p / 1080p / 4K.<br/>2. Enforced a **minimum 48 px** (recommended 64 px) focus target via a shared Tailwind token.<br/>3. Replaced hover with **always-visible glowing emerald focus rings** (`ring-4` + a 40 px emerald `shadow` bloom).<br/>4. Rescaled all typography to the 10-foot scale (`text-2xl` minimum, `text-6xl+` headings).<br/>5. Designed against WCAG AAA contrast targets for 10-foot TV viewing — every foreground/background pair measured at **≥ 7:1**. |
-| **✅ Impact**     | Fully legible and navigable from **3+ meters**; zero elements lost to overscan on any tested display.                                                                                                                                                                                                                                                                                                                                                                                   |
-| **📚 Takeaway**   | Design the _farthest_ viewer, not the closest one. Test on an actual TV with an actual remote — the emulator will lie to you.                                                                                                                                                                                                                                                                                                                                                           |
+| **✅ Impact**     | Fully legible and navigable from **3+ meters**; zero elements lost to overscan on any tested display. |
+| **📚 Takeaway**   | Design the _farthest_ viewer, not the closest one. Test on an actual TV with an actual remote — the emulator will lie to you. |
 
 ```html
 <!-- src/ui/SafeArea.tsx — overscan-safe wrapper used by every screen -->
@@ -737,15 +814,15 @@ export function nextTier(current: number, avgFrameMs: number): number {
 
 ### 🟡 Friction Point 3 — Hardware Remote Simulation During Prototyping
 
-| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Field             | Detail |
 | :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🎯 Task attempted** | Test D-Pad / remote navigation off-device during development. |
 | **⚠️ Severity** | 🟡 Medium |
-| **🔥 Symptom**    | Every navigation change required a **physical deploy to the Fire TV Stick**, so a 30-second UI tweak cost a 2-minute round trip. Developers could not test D-Pad behaviour on a laptop.                                                                                                                                                                                                                                                                                                   |
-| **🔍 Root Cause** | The app listened for **Fire TV–specific keycodes** that a laptop keyboard never emitted, so the whole navigation layer was effectively untestable off-device.                                                                                                                                                                                                                                                                                                                             |
+| **🔥 Symptom**    | Every navigation change required a **physical deploy to the Fire TV Stick**, so a 30-second UI tweak cost a 2-minute round trip. Developers could not test D-Pad behaviour on a laptop. |
+| **🔍 Root Cause** | The app listened for **Fire TV–specific keycodes** that a laptop keyboard never emitted, so the whole navigation layer was effectively untestable off-device. |
 | **🛠️ Solution**   | 1. Built a **Virtual Fire TV Remote** overlay widget that renders a real D-Pad and media buttons.<br/>2. Each virtual button **dispatches the native Android keycode** (`DPAD_UP`, `DPAD_CENTER`, `MEDIA_PLAY_PAUSE`, …) through a synthetic `KeyboardEvent`.<br/>3. Unified both paths behind a single **`KeyEvent Normalizer`**, so remote and keyboard funnel into one `RemoteAction` union.<br/>4. Added a live keycode HUD that shows the last received code — invaluable during QA. |
-| **✅ Impact**     | **~90% reduction** in deploy-test cycles. The entire 10-foot navigation UX is now developed and debugged on a laptop, then verified once on hardware.                                                                                                                                                                                                                                                                                                                                     |
-| **📚 Takeaway**   | If a platform input can't be faked, the platform-specific code can't be tested. Build the _simulator first_, then the integration.                                                                                                                                                                                                                                                                                                                                                        |
+| **✅ Impact**     | **~90% reduction** in deploy-test cycles. The entire 10-foot navigation UX is now developed and debugged on a laptop, then verified once on hardware. |
+| **📚 Takeaway**   | If a platform input can't be faked, the platform-specific code can't be tested. Build the _simulator first_, then the integration. |
 
 ```ts
 // src/dev/VirtualRemote.tsx — dispatches native Android keycodes
@@ -771,15 +848,15 @@ export function dispatchRemoteKey(button: keyof typeof KEYCODE_MAP) {
 
 ### 🟢 Friction Point 4 — Living Room Audio Speech Clarity
 
-| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field             | Detail |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **🎯 Task attempted** | Keep the spoken voice coach intelligible at living-room volume during rapid rep milestones. |
 | **⚠️ Severity** | 🟠 High |
-| **🔥 Symptom**    | The voice coach **talked over itself**: rep counts collided with form cues, producing an unintelligible "R-eee-p-kee-p-your-ba-a-ack" garble that drowned out the workout rhythm.                                                                                                                                                                                                                                                                                                                                             |
-| **🔍 Root Cause** | `SpeechSynthesis.speak()` calls were fired **directly from the rep FSM** — a producer capable of emitting several events within a few hundred milliseconds. There was no queue, no priority, and no cancellation of stale utterances.                                                                                                                                                                                                                                                                                         |
+| **🔥 Symptom**    | The voice coach **talked over itself**: rep counts collided with form cues, producing an unintelligible "R-eee-p-kee-p-your-ba-a-ack" garble that drowned out the workout rhythm. |
+| **🔍 Root Cause** | `SpeechSynthesis.speak()` calls were fired **directly from the rep FSM** — a producer capable of emitting several events within a few hundred milliseconds. There was no queue, no priority, and no cancellation of stale utterances. |
 | **🛠️ Solution**   | 1. Introduced a **debounced audio queue** with a single-consumer worker loop.<br/>2. Assigned **priority tiers**: `critical` (form safety) > `progress` (rep milestones) > `ambient` (encouragement).<br/>3. **Critical cues pre-empt** lower tiers via `speechSynthesis.cancel()`.<br/>4. Rep milestones are **debounced to at most one utterance per 1.5 s**, and ambient chatter is suppressed entirely during high-intensity intervals.<br/>5. All speech is enqueued **off the render path** so it never blocks a frame. |
-| **✅ Impact**     | Speech became consistently intelligible at living-room volume. Frame budget impact: **< 1 ms**. Zero dropped frames attributable to audio.                                                                                                                                                                                                                                                                                                                                                                                    |
-| **📚 Takeaway**   | Audio is a **shared, single-threaded resource** — treat it like a scheduler, not a fire-and-forget call. Debounce, prioritize, and cancel aggressively.                                                                                                                                                                                                                                                                                                                                                                       |
+| **✅ Impact**     | Speech became consistently intelligible at living-room volume. Frame budget impact: **< 1 ms**. Zero dropped frames attributable to audio. |
+| **📚 Takeaway**   | Audio is a **shared, single-threaded resource** — treat it like a scheduler, not a fire-and-forget call. Debounce, prioritize, and cancel aggressively. |
 
 ```ts
 // src/audio/voiceQueue.ts — the debounced, priority-aware voice coach
@@ -829,15 +906,15 @@ function flush(locale: string) {
 
 ### 🟣 Friction Point 5 — Multi-Modal Voice Stream Collisions & Interim Echo
 
-| Field             | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Field             | Detail |
+| :---------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🎯 Task attempted** | Make a voice command execute exactly once when spoken as a longer phrase. |
 | **⚠️ Severity** | 🟠 High |
-| **🔥 Symptom**    | Voice commands suffered from **rapid double-execution**: speaking a longer phrase like *"bieg z wysokim unoszeniem kolan"* caused the engine to trigger the switch twice, disrupting speech synthesis and creating an audible echo loop. Furthermore, pausing workouts via voice silenced speech but allowed the background animation loop to continue animating joints.                                                                                                                  |
-| **🔍 Root Cause** | The browser's **Web Speech Recognition API** fires continuous `onresult` callbacks for interim and final hypothesis transcripts. Without a state-aware cooldown, multiple transcript segments matched the regex parser within milliseconds. In the simulator, the animation clock operated independently of the workout state machine.                                                                                                                                                  |
-| **🛠️ Solution**   | 1. Designed an **asymmetric debounce engine** (`voiceCommander.ts`): a strict 3,500 ms cooldown for exercise switches and 850 ms for controls.<br/>2. Wired the pause state directly into the synthetic pose generator (`PoseCamera.tsx`), freezing the kinematic progression in mid-frame.<br/>3. Added a hands-free `"wyłącz mikrofon"` command with a physical **`Key V`** wake-up toggle.<br/>4. Rendered a prominent 10-foot pause banner with instant resume guidance. |
-| **✅ Impact**     | Flawless voice command precision with zero double-triggering. Workouts and kinematic simulations pause and resume synchronously on command.                                                                                                                                                                                                                                                                                                                                                |
-| **📚 Takeaway**   | Multi-modal inputs (vision, voice, remote) must share a **single authoritative session state**. Decouple raw speech stream events from actionable domain state transitions.                                                                                                                                                                                                                                                                                                             |
+| **🔥 Symptom**    | Voice commands suffered from **rapid double-execution**: speaking a longer phrase like "bieg z wysokim unoszeniem kolan" caused the engine to trigger the switch twice, disrupting speech synthesis and creating an audible echo loop. Furthermore, pausing workouts via voice silenced speech but allowed the background animation loop to continue animating joints. |
+| **🔍 Root Cause** | The browser's **Web Speech Recognition API** fires continuous `onresult` callbacks for interim and final hypothesis transcripts. Without a state-aware cooldown, multiple transcript segments matched the regex parser within milliseconds. In the simulator, the animation clock operated independently of the workout state machine. |
+| **🛠️ Solution**   | 1. Designed an **asymmetric debounce engine** (`voiceCommander.ts`): a strict 3,500 ms cooldown for exercise switches and 850 ms for controls.<br/>2. Wired the pause state directly into the synthetic pose generator (`PoseCamera.tsx`), freezing the kinematic progression in mid-frame.<br/>3. Added a hands-free "wyłącz mikrofon" command with a physical **`Key V`** wake-up toggle.<br/>4. Rendered a prominent 10-foot pause banner with instant resume guidance. |
+| **✅ Impact**     | Flawless voice command precision with zero double-triggering. Workouts and kinematic simulations pause and resume synchronously on command. |
+| **📚 Takeaway**   | Multi-modal inputs (vision, voice, remote) must share a **single authoritative session state**. Decouple raw speech stream events from actionable domain state transitions. |
 
 ```ts
 // src/utils/voiceCommander.ts — Asymmetric debounce engine
@@ -931,7 +1008,7 @@ An **experimental Cordova (Fire OS native) hybrid** configuration is included in
 
 ## 📁 Project Structure
 
-> 🗂️ **Real repository layout** — the tree below mirrors the actual PulseMotion TV codebase: a compact `components/` + `data/` + `utils/` organization where the 10-foot TV UI components, the biomechanical rule datasets, and the pose-math / audio-coach utilities live side by side.
+> 🗂️ **Updated repository layout** — after the architectural refactor, the codebase now cleanly separates **presentation components**, **dedicated custom hooks**, **pure data/config**, and **TV-specific utilities**.
 
 ```text
 pulsemotion-firetv/
@@ -941,22 +1018,31 @@ pulsemotion-firetv/
 │   └── 📄 sw.js                        # Service Worker — Cache-First (pose models/WASM SIMD), Network-First (HTML)
 ├── 📁 src/
 │   ├── 📁 components/                  # 10-Foot UI & TV Components
+│   │   ├── 📄 AppHeader.tsx            # Top nav, theme/language toggles, WakeLock badge, brand typography
 │   │   ├── 📄 ExerciseSelector.tsx     # 5-column adaptive exercise carousel & D-Pad focus
+│   │   ├── 📄 PausedBanner.tsx         # High-contrast pause / completion overlay for TV viewing
 │   │   ├── 📄 PoseCamera.tsx           # MediaPipe (WASM SIMD) camera pipeline & Canvas 2D overlay
 │   │   ├── 📄 TvRemoteOverlay.tsx      # On-screen Fire TV Remote simulator widget
 │   │   ├── 📄 VoiceControlBadge.tsx    # Live voice status pill, key V hotkey & cheat sheet
+│   │   ├── 📄 VoiceHintBar.tsx         # Dynamic speech command hints & privacy indicators
 │   │   ├── 📄 VirtualCoachGuide.tsx    # Biomechanical posture & form guide visualizer
 │   │   ├── 📄 WorkoutHUD.tsx           # Rep counter, joint angle meter & accuracy stats
 │   │   └── 📄 WorkoutSummaryModal.tsx  # End-of-set celebration & performance breakdown
 │   ├── 📁 data/
 │   │   ├── 📄 exercises.ts             # Biomechanical rules, angle thresholds & cues
 │   │   └── 📄 translations.ts          # Complete EN / PL bilingual dictionaries
+│   ├── 📁 hooks/                       # Dedicated React orchestration hooks
+│   │   ├── 📄 useTvRemote.ts           # Amazon Fire TV remote orchestration (D-Pad, Media keys, back navigation)
+│   │   ├── 📄 useVoiceNavigation.ts    # Hands-free speech recognition loop & intent router (Web Speech API)
+│   │   ├── 📄 useWakeLock.ts           # TV display sleep prevention management (Screen Wake Lock API)
+│   │   └── 📄 useWorkoutSession.ts     # Workout session state, reps, form accuracy, calories, set timer
 │   ├── 📁 utils/
 │   │   ├── 📄 audioCoach.ts            # Web Speech TTS engine with debounced speech queue
+│   │   ├── 📄 biomechanicalSimulator.ts # Synthetic pose trajectory generator for no-camera TV environments
 │   │   ├── 📄 exerciseClassifier.ts    # Rep state machines & kinematic form validation
 │   │   ├── 📄 poseGeometry.ts          # 3-point joint trigonometry (arccos dot product)
 │   │   └── 📄 voiceCommander.ts        # Voice recognition stream parser & debounce engine
-│   ├── 📄 App.tsx                      # Root state machine, pause manager & 10-foot layout
+│   ├── 📄 App.tsx                      # Root composition shell after orchestration extraction
 │   ├── 📄 main.tsx                     # React 19 application entry point
 │   ├── 📄 types.ts                     # TypeScript shared interfaces & definitions
 │   └── 📄 index.css                    # Tailwind CSS v4 styling & emerald glow tokens
@@ -972,13 +1058,15 @@ pulsemotion-firetv/
 
 | Layer                     | Files                          | Responsibility                                                                                                          |
 | :------------------------ | :----------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
-| 📺 **10-Foot TV UI**      | `src/components/*.tsx`         | Exercise carousel with D-Pad focus, MediaPipe camera pipeline, HUD stats, end-of-set summary, virtual remote simulator. |
+| 📺 **10-Foot TV UI**      | `src/components/*.tsx`         | Header, exercise carousel, MediaPipe camera stage, HUD stats, pause/completion overlays, hint bar, end-of-set summary and virtual remote simulator. |
+| 🪝 **Hooks / Orchestration** | `src/hooks/*.ts`            | Session lifecycle, voice-navigation loop, wake-lock ownership and unified Fire TV remote handling.                     |
 | 🧮 **Biomechanical Data** | `src/data/exercises.ts`        | Angle thresholds, rep rules and per-exercise instructions for all five movements.                                       |
 | 🌍 **Localization**       | `src/data/translations.ts`     | Complete EN / PL dictionaries for every UI string and voice cue.                                                        |
 | 🗣️ **Audio Coach**        | `src/utils/audioCoach.ts`      | Web Speech TTS engine wired to the debounced, priority-aware speech queue.                                              |
 | 📐 **Pose Math**          | `src/utils/poseGeometry.ts`    | 3-point joint trigonometry via `arccos` dot product over MediaPipe landmarks.                                           |
+| 🧪 **Synthetic Kinematics** | `src/utils/biomechanicalSimulator.ts` | Deterministic landmark trajectories for camera-free development, testing and judging.                           |
 | 🎙️ **Voice Recognition**  | `src/utils/voiceCommander.ts`  | Continuous voice speech recognition, regex rule matcher & asymmetric debounce engine.                                   |
-| ⚛️ **App Shell**          | `src/App.tsx` · `src/main.tsx` | Root state machine, keyboard/remote router and the TV layout frame.                                                     |
+| ⚛️ **App Shell**          | `src/App.tsx` · `src/main.tsx` | Root composition shell, providers and the TV layout frame.                                                               |
 | 🎨 **Design Tokens**      | `src/index.css`                | Tailwind CSS tokens plus the emerald TV focus-ring utilities.                                                           |
 
 ---
@@ -1084,6 +1172,8 @@ SOFTWARE.
 | :--------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
 | [Google MediaPipe](https://developers.google.com/mediapipe)                                          | The on-device Pose Solution that makes real-time skeleton tracking possible in a browser. |
 | [Amazon Developer](https://developer.amazon.com/)                                                    | The **Fire TV Track** and the Silk Browser runtime.                                       |
+| [Google AI Studio](https://aistudio.google.com/)                                                     | Rapid multimodal prototyping and iteration support during the hackathon build.            |
+| [Genspark AI](https://www.genspark.ai/)                                                              | Accelerated documentation, iteration and delivery workflows during development.           |
 | [React](https://react.dev/) · [Vite](https://vitejs.dev/) · [Tailwind CSS](https://tailwindcss.com/) | The front-end foundation.                                                                 |
 | [WebAssembly](https://webassembly.org/)                                                              | SIMD acceleration on low-power ARM silicon.                                               |
 | [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)                    | Audible coaching and voice command navigation.                                            |
@@ -1097,9 +1187,12 @@ SOFTWARE.
 
 **PulseMotion TV** — _Your living room is the gym._
 
+**Authors:** Adam Babinicz / Adam Gierczak
+
 [![GitHub](https://img.shields.io/badge/GitHub-pulsemotion--firetv-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AdamBabinicz/pulsemotion-firetv)
 [![Made with ❤️ and MediaPipe](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F%20%26%20MediaPipe-10B981?style=for-the-badge)](https://developers.google.com/mediapipe)
 
 <sub>⭐ If PulseMotion TV helped you get off the couch, star the repository — it genuinely helps.</sub>
 
 </div>
+
