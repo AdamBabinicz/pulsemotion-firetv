@@ -683,16 +683,16 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
       )}
 
-      {/* Pasek kontrolek na górze kontenera kamery — responsywny z idealnym marginesem na telefonach */}
+      {/* Pasek kontrolek na górze kontenera kamery — responsywny, nie ucina przycisków na telefonach */}
       {(cameraActive || demoMode) && (
         <div
           id="camera-overlay-top-bar"
-          className="absolute top-2 inset-x-2 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-1 z-20 pointer-events-none"
+          className="absolute top-2 inset-x-2 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-1.5 z-20 pointer-events-none"
         >
           {/* Status po lewej stronie — zoptymalizowana szerokość i wysoki kontrast */}
           <div
             id="camera-status-badges"
-            className="flex items-center gap-1 shrink-0 pointer-events-auto"
+            className="flex items-center gap-1 shrink-0 pointer-events-auto min-w-0"
           >
             {demoMode ? (
               <div
@@ -704,7 +704,14 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 animate-pulse" />
-                <span className="whitespace-nowrap">
+                <span className="sm:hidden whitespace-nowrap">
+                  {isPaused
+                    ? lang === "pl"
+                      ? "Pauza"
+                      : "Paused"
+                    : "Studio AI"}
+                </span>
+                <span className="hidden sm:inline whitespace-nowrap">
                   {isPaused ? t.pausedBanner : t.studioModeActive}
                 </span>
               </div>
@@ -717,13 +724,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 <span className="hidden sm:inline whitespace-nowrap">
                   {t.cameraActive}
                 </span>
-                <span className="sm:hidden whitespace-nowrap font-bold">
-                  Kamera
+                <span className="sm:hidden whitespace-nowrap font-medium text-[11px]">
+                  {lang === "pl" ? "Kamera" : "Live"}
                 </span>
               </div>
             )}
 
-            {/* FPS ukryty na małych smartfonach, żeby zwolnić 55px dla przycisków */}
+            {/* FPS ukryty na małych smartfonach, żeby zwolnić miejsce dla przycisków */}
             {fps > 0 && !demoMode && (
               <div
                 id="badge-camera-fps"
@@ -748,12 +755,12 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 data-tv-focusable="true"
                 onKeyDown={handleNavKeyDown}
                 onClick={toggleFacingMode}
-                className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center gap-1 shrink-0 shadow-md"
+                className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center justify-center shrink-0 shadow-md"
                 title={t.switchCamera}
                 aria-label={t.switchCamera}
               >
                 <SwitchCamera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
-                <span className="text-[10px] font-mono hidden xl:inline whitespace-nowrap">
+                <span className="text-[10px] font-mono hidden xl:inline whitespace-nowrap ml-1">
                   {facingMode === "user" ? t.frontCamera : t.backCamera}
                 </span>
               </button>
@@ -774,7 +781,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                   startCamera();
                 }
               }}
-              className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1 shrink-0 shadow-md ${
+              className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center justify-center shrink-0 shadow-md ${
                 cameraActive && !demoMode
                   ? "bg-emerald-600/90 hover:bg-emerald-500 text-white border-emerald-400"
                   : "bg-black/80 hover:bg-black text-neutral-300 border-neutral-700"
@@ -787,7 +794,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               ) : (
                 <CameraOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
               )}
-              <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap">
+              <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap ml-1">
                 {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
               </span>
             </button>
@@ -800,7 +807,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={() => setShowSkeleton((prev) => !prev)}
-              className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors shrink-0 shadow-md"
+              className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center justify-center shrink-0 shadow-md"
               title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
               aria-label={showSkeleton ? t.hideSkeleton : t.showSkeleton}
             >
@@ -811,7 +818,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               )}
             </button>
 
-            {/* Przycisk aktywacji / zatrzymania symulatora */}
+            {/* Przycisk aktywacji / zatrzymania symulatora — na telefonie zgrabny przycisk z ikoną, na sm+ z pełnym tekstem */}
             <button
               id="btn-toggle-demo"
               type="button"
@@ -819,20 +826,17 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
-              className={`p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all flex items-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap shadow-md ${
+              className={`p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap shadow-md ${
                 demoMode
                   ? "bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30"
                   : "bg-black/80 hover:bg-black text-neutral-200 border-neutral-700"
               }`}
-              title={t.studioModeDesc}
+              title={demoMode ? t.stopSimulator : t.studioModeDesc}
               aria-label={demoMode ? t.stopSimulator : t.studioMode}
             >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span className="hidden sm:inline whitespace-nowrap">
                 {demoMode ? t.stopSimulator : t.studioMode}
-              </span>
-              <span className="sm:hidden font-medium text-[11px] whitespace-nowrap">
-                {demoMode ? "Stop" : "AI"}
               </span>
             </button>
           </div>
