@@ -1,249 +1,357 @@
-<!-- Google Consent Mode v2 Default Setup -->
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag() {
-    dataLayer.push(arguments);
-  }
+<!doctype html>
+<html lang="pl" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  var storedConsent = null;
-  try {
-    storedConsent = JSON.parse(
-      localStorage.getItem("pulsemotion_cookie_consent"),
-    );
-  } catch (e) {}
-
-  var isAnalyticsGranted = storedConsent && storedConsent.analytics === true;
-
-  gtag("consent", "default", {
-    analytics_storage: isAnalyticsGranted ? "granted" : "denied",
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    wait_for_update: 500,
-  });
-</script>
-
-<!-- Google Tag Manager (Wykonywany dopiero w stanie spoczynku wątku głównego) -->
-<script>
-  function initGTM() {
-    if (window.__gtmInitialized) return;
-    window.__gtmInitialized = true;
-    (function (w, d, s, l, i) {
-      w[l] = w[l] || [];
-      w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-      var f = d.getElementsByTagName(s)[0],
-        j = d.createElement(s),
-        dl = l != "dataLayer" ? "&l=" + l : "";
-      j.async = true;
-      j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-      f.parentNode.insertBefore(j, f);
-    })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
-  }
-
-  if (document.readyState === "complete") {
-    setTimeout(initGTM, 1500);
-  } else {
-    window.addEventListener("load", function () {
-      if ("requestIdleCallback" in window) {
-        requestIdleCallback(initGTM, { timeout: 3000 });
-      } else {
-        setTimeout(initGTM, 1500);
+    <!-- Google Consent Mode v2 Default Setup -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
       }
-    });
-  }
-</script>
-<!-- End Google Tag Manager -->
 
-<title>PulseMotion TV – AI Pose Coach for Amazon Fire TV!</title>
+      var storedConsent = null;
+      try {
+        storedConsent = JSON.parse(
+          localStorage.getItem("pulsemotion_cookie_consent"),
+        );
+      } catch (e) {}
 
-<meta
-  name="description"
-  content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
-/>
+      var isAnalyticsGranted =
+        storedConsent && storedConsent.analytics === true;
 
-<meta
-  http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com; connect-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com; frame-src 'self' https://www.googletagmanager.com; worker-src 'self' blob:; media-src 'self' blob: data:;"
-/>
+      gtag("consent", "default", {
+        analytics_storage: isAnalyticsGranted ? "granted" : "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      });
+    </script>
 
-<link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#10b981" />
+    <!-- Google Tag Manager (Uruchamiany przy pierwszej interakcji lub po 4.5s – poza oknem pomiaru LCP) -->
+    <script>
+      function initGTM() {
+        if (window.__gtmInitialized) return;
+        window.__gtmInitialized = true;
+        ["scroll", "pointerdown", "touchstart", "keydown"].forEach(
+          function (e) {
+            window.removeEventListener(e, initGTM);
+          },
+        );
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || [];
+          w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+          var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != "dataLayer" ? "&l=" + l : "";
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+          f.parentNode.insertBefore(j, f);
+        })(window, document, "script", "dataLayer", "GTM-5HMW9V4B");
+      }
 
-<!-- Browser & PWA Icons -->
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-<link
-  rel="icon"
-  type="image/png"
-  sizes="192x192"
-  href="/web-app-manifest-192x192.png"
-/>
-<link
-  rel="icon"
-  type="image/png"
-  sizes="512x512"
-  href="/web-app-manifest-512x512.png"
-/>
-<link rel="shortcut icon" href="/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      ["scroll", "pointerdown", "touchstart", "keydown"].forEach(function (e) {
+        window.addEventListener(e, initGTM, { once: true, passive: true });
+      });
+      setTimeout(initGTM, 4500);
+    </script>
+    <!-- End Google Tag Manager -->
 
-<!-- Mobile Web App Settings -->
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta
-  name="apple-mobile-web-app-status-bar-style"
-  content="black-translucent"
-/>
-<meta name="apple-mobile-web-app-title" content="PulseMotion TV" />
+    <title>PulseMotion TV – AI Pose Coach for Amazon Fire TV!</title>
 
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://pulsemotion-firetv.netlify.app/" />
-<meta property="og:site_name" content="PulseMotion TV" />
-<meta
-  property="og:title"
-  content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
-/>
-<meta
-  property="og:description"
-  content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
-/>
-<meta
-  property="og:image"
-  content="https://pulsemotion-firetv.netlify.app/assets/1.png"
-/>
-<meta property="og:image:width" content="1280" />
-<meta property="og:image:height" content="720" />
-<meta property="og:locale" content="en_US" />
-<meta property="og:locale:alternate" content="pl_PL" />
+    <meta
+      name="description"
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
+    />
 
-<!-- Twitter / X -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:url" content="https://pulsemotion-firetv.netlify.app/" />
-<meta
-  name="twitter:title"
-  content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
-/>
-<meta
-  name="twitter:description"
-  content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
-/>
-<meta
-  name="twitter:image"
-  content="https://pulsemotion-firetv.netlify.app/assets/1.png"
-/>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com; connect-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com; frame-src 'self' https://www.googletagmanager.com; worker-src 'self' blob:; media-src 'self' blob: data:;"
+    />
 
-<!-- Schema.org JSON-LD -->
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "PulseMotion TV",
-    "url": "https://pulsemotion-firetv.netlify.app/",
-    "description": "AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming.",
-    "applicationCategory": "HealthApplication",
-    "operatingSystem": "Amazon Fire OS, Android TV, Modern Web Browsers",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "author": {
-      "@type": "Person",
-      "name": "Adam Babinicz",
-      "url": "https://github.com/AdamBabinicz/pulsemotion-firetv"
-    },
-    "browserRequirements": "Requires WebAssembly support",
-    "featureList": [
-      "100% On-device MediaPipe Pose estimation",
-      "Real-time on-device joint angle calculation",
-      "Hands-free multi-modal voice navigation",
-      "Fire TV remote D-Pad spatial navigation",
-      "Zero cloud video streaming privacy"
-    ]
-  }
-</script>
+    <link rel="canonical" href="https://pulsemotion-firetv.netlify.app/" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#10b981" />
 
-<!-- Critical CSS: Natychmiastowe malowanie szkieletu bez oczekiwania na zewnętrzny arkusz -->
-<style>
-  body {
-    margin: 0;
-    background-color: #0a0a0a;
-    color: #f5f5f5;
-    font-family:
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
-  }
-  .ssr-shell {
-    min-height: 100vh;
-    width: 100%;
-    max-width: 80rem;
-    margin: 0 auto;
-    padding: 0.75rem 1rem;
-    box-sizing: border-box;
-  }
-  .ssr-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #262626;
-  }
-  .ssr-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 800;
-    font-size: 1.15rem;
-    letter-spacing: -0.02em;
-    color: #ffffff;
-  }
-  .ssr-badge {
-    background-color: #10b981;
-    color: #000000;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-  }
-  .ssr-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
-  .ssr-card {
-    background-color: #171717;
-    border: 1px solid #262626;
-    border-radius: 1rem;
-    padding: 0.85rem;
-  }
-  .ssr-card-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #a3a3a3;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.25rem;
-  }
-  .ssr-card-val {
-    font-size: 1.75rem;
-    font-weight: 900;
-    color: #ffffff;
-    line-height: 1.2;
-  }
-  .ssr-val-sub {
-    font-size: 0.9rem;
-    color: #737373;
-    font-weight: 500;
-  }
-  .ssr-hud-accent {
-    color: #10b981;
-  }
-</style>
+    <!-- Browser & PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/web-app-manifest-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="/web-app-manifest-512x512.png"
+    />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Mobile Web App Settings -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PulseMotion TV" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pulsemotion-firetv.netlify.app/" />
+    <meta property="og:site_name" content="PulseMotion TV" />
+    <meta
+      property="og:title"
+      content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
+    />
+    <meta
+      property="og:description"
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
+    />
+    <meta
+      property="og:image"
+      content="https://pulsemotion-firetv.netlify.app/assets/1.png"
+    />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="pl_PL" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:url"
+      content="https://pulsemotion-firetv.netlify.app/"
+    />
+    <meta
+      name="twitter:title"
+      content="PulseMotion TV – AI Pose Coach for Amazon Fire TV!"
+    />
+    <meta
+      name="twitter:description"
+      content="AI fitness coach for Amazon Fire TV: on-device pose tracking via MediaPipe, handsfree voice control, live rep counter, and zero cloud video streaming."
+    />
+    <meta
+      name="twitter:image"
+      content="https://pulsemotion-firetv.netlify.app/assets/1.png"
+    />
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PulseMotion TV",
+        "url": "https://pulsemotion-firetv.netlify.app/",
+        "description": "AI fitness coach for Amazon Fire TV: on-device pose tracking with MediaPipe and WebAssembly SIMD, hands-free voice control, live rep counter, and zero cloud video streaming.",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Amazon Fire OS, Android TV, Modern Web Browsers",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Adam Babinicz",
+          "url": "https://github.com/AdamBabinicz/pulsemotion-firetv"
+        },
+        "browserRequirements": "Requires WebAssembly support",
+        "featureList": [
+          "100% On-device MediaPipe Pose estimation",
+          "Real-time on-device joint angle calculation",
+          "Hands-free multi-modal voice navigation",
+          "Fire TV remote D-Pad spatial navigation",
+          "Zero cloud video streaming privacy"
+        ]
+      }
+    </script>
+
+    <!-- Critical CSS: Natychmiastowe malowanie szkieletu bez oczekiwania na zewnętrzny arkusz -->
+    <style>
+      body {
+        margin: 0;
+        background-color: #0a0a0a;
+        color: #f5f5f5;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      .ssr-shell {
+        min-height: 100vh;
+        width: 100%;
+        max-width: 80rem;
+        margin: 0 auto;
+        padding: 0.75rem 1rem;
+        box-sizing: border-box;
+      }
+      .ssr-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #262626;
+      }
+      .ssr-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 800;
+        font-size: 1.15rem;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+      }
+      .ssr-badge {
+        background-color: #10b981;
+        color: #000000;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+      .ssr-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .ssr-card {
+        background-color: #171717;
+        border: 1px solid #262626;
+        border-radius: 1rem;
+        padding: 0.85rem;
+      }
+      .ssr-card-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #a3a3a3;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+      }
+      .ssr-card-val {
+        font-size: 1.75rem;
+        font-weight: 900;
+        color: #ffffff;
+        line-height: 1.2;
+      }
+      .ssr-val-sub {
+        font-size: 0.9rem;
+        color: #737373;
+        font-weight: 500;
+      }
+      .ssr-hud-accent {
+        color: #10b981;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-neutral-950 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 overflow-x-hidden antialiased selection:bg-emerald-500 selection:text-black"
+  >
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-5HMW9V4B"
+        height="0"
+        width="0"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Critical App Shell pre-rendered inside root: Eliminates empty blank frames & drops LCP -->
+    <div id="root">
+      <div class="ssr-shell">
+        <header class="ssr-header">
+          <div class="ssr-logo">
+            <span>PulseMotion</span>
+            <span class="ssr-badge">TV</span>
+          </div>
+          <div
+            style="
+              font-size: 0.75rem;
+              color: #10b981;
+              font-weight: 600;
+              background: #064e3b;
+              padding: 4px 10px;
+              border-radius: 9999px;
+            "
+          >
+            AI Coach Active
+          </div>
+        </header>
+
+        <div class="ssr-grid">
+          <div class="ssr-card">
+            <div class="ssr-card-label">Zaliczone Powtórzenia</div>
+            <div class="ssr-card-val">
+              0 <span class="ssr-val-sub">/ 12 powt.</span>
+            </div>
+          </div>
+          <div class="ssr-card">
+            <div class="ssr-card-label">Jakość Techniki</div>
+            <div class="ssr-card-val ssr-hud-accent">
+              100<span class="ssr-val-sub">%</span>
+            </div>
+          </div>
+          <div class="ssr-card">
+            <div class="ssr-card-label">Energia</div>
+            <div class="ssr-card-val" style="color: #f59e0b">
+              0.0 <span class="ssr-val-sub">kcal</span>
+            </div>
+          </div>
+          <div class="ssr-card">
+            <div class="ssr-card-label">Czas Serii</div>
+            <div class="ssr-card-val">00:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Główny kod aplikacji ładuje się z najwyższym priorytetem -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Skrypty MediaPipe doładowują się w tle po wyświetleniu interfejsu (nie blokują LCP) -->
+    <script>
+      (function () {
+        function loadMediaPipe() {
+          if (window.__mpLoaded) return;
+          window.__mpLoaded = true;
+
+          var s1 = document.createElement("script");
+          s1.src = "/mediapipe/camera_utils/camera_utils.js";
+          s1.async = true;
+          document.body.appendChild(s1);
+
+          var s2 = document.createElement("script");
+          s2.src = "/mediapipe/pose/pose.js";
+          s2.async = true;
+          document.body.appendChild(s2);
+        }
+
+        if (document.readyState === "complete") {
+          setTimeout(loadMediaPipe, 1200);
+        } else {
+          window.addEventListener("load", function () {
+            if ("requestIdleCallback" in window) {
+              requestIdleCallback(loadMediaPipe, { timeout: 3000 });
+            } else {
+              setTimeout(loadMediaPipe, 1200);
+            }
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
