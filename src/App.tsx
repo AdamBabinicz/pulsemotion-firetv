@@ -1,26 +1,101 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { ScrollToTopButton } from "./components/ScrollToTopButton";
-import { ExerciseSelector } from "./components/ExerciseSelector";
-import { WorkoutHUD } from "./components/WorkoutHUD";
-import { PoseCamera } from "./components/PoseCamera";
-import { VirtualCoachGuide } from "./components/VirtualCoachGuide";
-import { WorkoutSummaryModal } from "./components/WorkoutSummaryModal";
-import { TvRemoteOverlay } from "./components/TvRemoteOverlay";
-import { Footer } from "./components/Footer";
-import { CookieConsentBanner } from "./components/CookieConsentBanner";
-import { PrivacyPolicyModal } from "./components/PrivacyPolicyModal";
-import { TermsModal } from "./components/TermsModal";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 
-// Nowo wydzielone komponenty i hooki
+// Komponenty krytyczne (renderowane synchronicznie dla natychmiastowego LCP i Speed Index)
 import { AppHeader } from "./components/AppHeader";
 import { VoiceHintBar } from "./components/VoiceHintBar";
 import { PausedBanner } from "./components/PausedBanner";
+import { ExerciseSelector } from "./components/ExerciseSelector";
+import { WorkoutHUD } from "./components/WorkoutHUD";
+import { Footer } from "./components/Footer";
+
+// Hooki sesji i środowiska
 import { useWakeLock } from "./hooks/useWakeLock";
 import { useWorkoutSession } from "./hooks/useWorkoutSession";
 import { useVoiceNavigation } from "./hooks/useVoiceNavigation";
 import { useTvRemote } from "./hooks/useTvRemote";
 
 import { Language, ThemeMode, translations } from "./data/translations";
+
+// Code-splitting (React.lazy) dla ciężkich komponentów i modali:
+// Eliminuje ~170 KiB nieużywanego JS przy starcie i drastycznie skraca LCP
+const PoseCamera = lazy(() =>
+  import("./components/PoseCamera").then((m) => ({ default: m.PoseCamera })),
+);
+
+const VirtualCoachGuide = lazy(() =>
+  import("./components/VirtualCoachGuide").then((m) => ({
+    default: m.VirtualCoachGuide,
+  })),
+);
+
+const WorkoutSummaryModal = lazy(() =>
+  import("./components/WorkoutSummaryModal").then((m) => ({
+    default: m.WorkoutSummaryModal,
+  })),
+);
+
+const TvRemoteOverlay = lazy(() =>
+  import("./components/TvRemoteOverlay").then((m) => ({
+    default: m.TvRemoteOverlay,
+  })),
+);
+
+const CookieConsentBanner = lazy(() =>
+  import("./components/CookieConsentBanner").then((m) => ({
+    default: m.CookieConsentBanner,
+  })),
+);
+
+const PrivacyPolicyModal = lazy(() =>
+  import("./components/PrivacyPolicyModal").then((m) => ({
+    default: m.PrivacyPolicyModal,
+  })),
+);
+
+const TermsModal = lazy(() =>
+  import("./components/TermsModal").then((m) => ({ default: m.TermsModal })),
+);
+
+const ScrollToTopButton = lazy(() =>
+  import("./components/ScrollToTopButton").then((m) => ({
+    default: m.ScrollToTopButton,
+  })),
+);
+
+// Lekkie szkielety rezerwowe zapobiegające Cumulative Layout Shift (CLS = 0.00)
+const CameraSkeleton: React.FC<{ isDark: boolean }> = ({ isDark }) => (
+  <div
+    className={`w-full aspect-[4/3] sm:aspect-video min-h-[300px] sm:min-h-[360px] md:min-h-[420px] max-h-[560px] rounded-2xl border flex flex-col items-center justify-center gap-3 animate-pulse shadow-2xl ${
+      isDark
+        ? "bg-neutral-900/70 border-neutral-800 text-neutral-500"
+        : "bg-neutral-100 border-neutral-200 text-neutral-400"
+    }`}
+  >
+    <div className="w-12 h-12 rounded-2xl bg-neutral-800/40 border border-neutral-700/50 flex items-center justify-center">
+      <div className="w-5 h-5 rounded-full border-2 border-emerald-500/50 border-t-emerald-400 animate-spin" />
+    </div>
+    <span className="text-xs font-mono tracking-wide opacity-75">
+      Inicjalizacja modułu AI...
+    </span>
+  </div>
+);
+
+const CoachSkeleton: React.FC<{ isDark: boolean }> = ({ isDark }) => (
+  <div
+    className={`w-full min-h-[220px] sm:min-h-[280px] rounded-2xl border p-4 sm:p-6 flex flex-col justify-between animate-pulse shadow-md ${
+      isDark
+        ? "bg-neutral-900/60 border-neutral-800 text-neutral-600"
+        : "bg-neutral-100/80 border-neutral-200 text-neutral-400"
+    }`}
+  >
+    <div className="space-y-3">
+      <div className="h-4 w-1/3 rounded-md bg-neutral-700/40" />
+      <div className="h-6 w-3/4 rounded-md bg-neutral-700/50" />
+      <div className="h-4 w-full rounded-md bg-neutral-700/30" />
+    </div>
+    <div className="h-10 w-full rounded-xl bg-neutral-700/20" />
+  </div>
+);
 
 export default function App() {
   const [language, setLanguageState] = useState<Language>(() => {
@@ -194,29 +269,33 @@ export default function App() {
 
         <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-6 items-stretch w-full max-w-full">
           <div className="order-1 lg:order-2 lg:col-span-7 w-full max-w-full flex flex-col">
-            <PoseCamera
-              onPoseDetected={workout.handlePoseDetected}
-              formQuality={workout.metrics.formQuality}
-              currentAngle={workout.metrics.currentAngle ?? 180}
-              exerciseId={workout.currentExercise.id}
-              lang={language}
-              theme={theme}
-              externalDemoTrigger={externalDemoTrigger}
-              onDemoModeChange={(isActive) => {
-                if (!isActive) setExternalDemoTrigger(false);
-              }}
-              isWorkoutCompleted={workout.isCompleted}
-              isPaused={workout.isPaused}
-            />
+            <Suspense fallback={<CameraSkeleton isDark={isDark} />}>
+              <PoseCamera
+                onPoseDetected={workout.handlePoseDetected}
+                formQuality={workout.metrics.formQuality}
+                currentAngle={workout.metrics.currentAngle ?? 180}
+                exerciseId={workout.currentExercise.id}
+                lang={language}
+                theme={theme}
+                externalDemoTrigger={externalDemoTrigger}
+                onDemoModeChange={(isActive) => {
+                  if (!isActive) setExternalDemoTrigger(false);
+                }}
+                isWorkoutCompleted={workout.isCompleted}
+                isPaused={workout.isPaused}
+              />
+            </Suspense>
           </div>
 
           <div className="order-2 lg:order-1 lg:col-span-5 w-full max-w-full flex flex-col">
-            <VirtualCoachGuide
-              exercise={workout.currentExercise}
-              stage={workout.metrics.stage ?? ""}
-              lang={language}
-              theme={theme}
-            />
+            <Suspense fallback={<CoachSkeleton isDark={isDark} />}>
+              <VirtualCoachGuide
+                exercise={workout.currentExercise}
+                stage={workout.metrics.stage ?? ""}
+                lang={language}
+                theme={theme}
+              />
+            </Suspense>
           </div>
         </div>
       </main>
@@ -229,55 +308,71 @@ export default function App() {
         onOpenCookieSettings={() => setIsCookieSettingsOpen(true)}
       />
 
-      <TvRemoteOverlay
-        onPrev={workout.handlePrevExercise}
-        onNext={workout.handleNextExercise}
-        onAction={
-          workout.isCompleted
-            ? workout.handleNextExercise
-            : workout.handleResetSet
-        }
-        onToggleSound={workout.handleToggleMute}
-        isMuted={workout.isMuted}
-        lang={language}
-        theme={theme}
-      />
-
-      {workout.isCompleted && (
-        <WorkoutSummaryModal
-          exercise={workout.currentExercise}
-          metrics={workout.metrics}
-          onNextExercise={workout.handleNextExercise}
-          onRepeat={workout.handleResetSet}
-          onClose={workout.handleCloseModal}
+      <Suspense fallback={null}>
+        <TvRemoteOverlay
+          onPrev={workout.handlePrevExercise}
+          onNext={workout.handleNextExercise}
+          onAction={
+            workout.isCompleted
+              ? workout.handleNextExercise
+              : workout.handleResetSet
+          }
+          onToggleSound={workout.handleToggleMute}
+          isMuted={workout.isMuted}
           lang={language}
           theme={theme}
         />
+      </Suspense>
+
+      {workout.isCompleted && (
+        <Suspense fallback={null}>
+          <WorkoutSummaryModal
+            exercise={workout.currentExercise}
+            metrics={workout.metrics}
+            onNextExercise={workout.handleNextExercise}
+            onRepeat={workout.handleResetSet}
+            onClose={workout.handleCloseModal}
+            lang={language}
+            theme={theme}
+          />
+        </Suspense>
       )}
 
-      <CookieConsentBanner
-        t={t}
-        theme={theme}
-        isSettingsOpen={isCookieSettingsOpen}
-        onCloseSettings={() => setIsCookieSettingsOpen(false)}
-        onOpenSettings={() => setIsCookieSettingsOpen(true)}
-      />
+      <Suspense fallback={null}>
+        <CookieConsentBanner
+          t={t}
+          theme={theme}
+          isSettingsOpen={isCookieSettingsOpen}
+          onCloseSettings={() => setIsCookieSettingsOpen(false)}
+          onOpenSettings={() => setIsCookieSettingsOpen(true)}
+        />
+      </Suspense>
 
-      <PrivacyPolicyModal
-        isOpen={isPrivacyOpen}
-        onClose={() => setIsPrivacyOpen(false)}
-        t={t}
-        theme={theme}
-      />
+      {isPrivacyOpen && (
+        <Suspense fallback={null}>
+          <PrivacyPolicyModal
+            isOpen={isPrivacyOpen}
+            onClose={() => setIsPrivacyOpen(false)}
+            t={t}
+            theme={theme}
+          />
+        </Suspense>
+      )}
 
-      <TermsModal
-        isOpen={isTermsOpen}
-        onClose={() => setIsTermsOpen(false)}
-        t={t}
-        theme={theme}
-      />
+      {isTermsOpen && (
+        <Suspense fallback={null}>
+          <TermsModal
+            isOpen={isTermsOpen}
+            onClose={() => setIsTermsOpen(false)}
+            t={t}
+            theme={theme}
+          />
+        </Suspense>
+      )}
 
-      <ScrollToTopButton lang={language} theme={theme} />
+      <Suspense fallback={null}>
+        <ScrollToTopButton lang={language} theme={theme} />
+      </Suspense>
     </div>
   );
 }
