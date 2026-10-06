@@ -174,7 +174,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, []);
 
-  // Super-zoptymalizowany silnik renderowania szkieletu bez shadowBlur (akceleracja GPU)
   const drawPose = useCallback(
     (landmarks: Landmark[], width: number, height: number) => {
       const canvas = canvasRef.current;
@@ -191,7 +190,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       const jointColor = getJointColor(formQualityRef.current);
       const glowColor = getJointGlowColor(formQualityRef.current);
 
-      // 1. Warstwa poświaty: szybka linia 8px bez powolnego filtru Gaussa
+      // 1. Akcelerowana poświata (bez shadowBlur)
       ctx.lineWidth = 8;
       ctx.lineCap = "round";
       ctx.strokeStyle = glowColor;
@@ -213,7 +212,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         }
       }
 
-      // 2. Warstwa ostra szkieletu
+      // 2. Ostra linia szkieletu
       ctx.lineWidth = 3.5;
       ctx.strokeStyle = jointColor;
 
@@ -234,7 +233,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         }
       }
 
-      // 3. Stawy (punkty)
+      // 3. Stawy
       for (let i = 0; i < landmarks.length; i++) {
         const lm = landmarks[i];
         if (!lm || (lm.visibility !== undefined && lm.visibility < 0.4)) {
@@ -255,7 +254,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         ctx.stroke();
       }
 
-      // 4. Etykieta kąta z bezpiecznym rysowaniem zaokrąglenia
+      // 4. Etykieta kąta
       if (!isWorkoutCompletedRef.current) {
         let targetJointIndex: number = POSE_LANDMARKS.RIGHT_KNEE;
         if (exerciseIdRef.current === "arm_raises") {
@@ -282,11 +281,10 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           const ry = y - 18;
           const rw = 76;
           const rh = 28;
-          const radius = 6;
 
           ctx.beginPath();
           if (typeof ctx.roundRect === "function") {
-            ctx.roundRect(rx, ry, rw, rh, radius);
+            ctx.roundRect(rx, ry, rw, rh, 6);
           } else {
             ctx.rect(rx, ry, rw, rh);
           }
@@ -311,6 +309,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, []);
 
+  // NOWA, BŁYSKAWICZNA PĘTLA SYMULATORA Z DELTA TIME
   const startSimulation = useCallback(() => {
     demoModeRef.current = true;
     setDemoMode(true);
@@ -320,8 +319,15 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       simulationFrameRef.current = null;
     }
 
+    let lastTickTime = performance.now();
+
     const simulateLoop = () => {
       if (!demoModeRef.current) return;
+
+      const now = performance.now();
+      // Delta time w sekundach (chroni przed przeskokami)
+      const dt = Math.min((now - lastTickTime) / 1000, 0.1);
+      lastTickTime = now;
 
       if (isPausedRef.current) {
         simulationFrameRef.current = requestAnimationFrame(simulateLoop);
@@ -345,16 +351,26 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         return;
       }
 
-      let cadenceStep = 0.021;
-      if (exerciseIdRef.current === "jumping_jacks") {
-        cadenceStep = 0.028;
+      // Kalibracja prędkości (1 pełny obrót = 2 * Math.PI radiana ≈ 6.28 rad):
+      // - squats: 2 * Math.PI / 2.0s = 3.14 rad/s (1 przysiad co 2 sekundy!)
+      // - jumping_jacks: 2 * Math.PI / 1.0s = 6.28 rad/s (1 pajacyk co sekundę!)
+      // - high_knees: 2 * Math.PI / 1.2s = 5.23 rad/s (szybki bieg)
+      // - arm_raises: 2 * Math.PI / 1.8s = 3.49 rad/s (kontrolowane wznosy)
+      let radPerSec = 3.14; // domyślnie 2.0s na powtórzenie
+      if (exerciseIdRef.current === "squats") {
+        radPerSec = (2 * Math.PI) / 2.0; // 2.0s na przysiad
+      } else if (exerciseIdRef.current === "jumping_jacks") {
+        radPerSec = (2 * Math.PI) / 1.0; // 1.0s na pajacyk
       } else if (exerciseIdRef.current === "high_knees") {
-        cadenceStep = 0.016;
+        radPerSec = (2 * Math.PI) / 1.2; // 1.2s na pełen cykl biegu
       } else if (exerciseIdRef.current === "tree_pose") {
-        cadenceStep = 0.025;
+        radPerSec = (2 * Math.PI) / 4.0; // spokojny balans
+      } else if (exerciseIdRef.current === "arm_raises") {
+        radPerSec = (2 * Math.PI) / 1.8; // 1.8s na wznos
       }
 
-      simulationProgressRef.current += cadenceStep;
+      // Dynamiczny przyrost niezależny od FPS telewizora
+      simulationProgressRef.current += radPerSec * dt;
 
       const syntheticLandmarks = getBiomechanicalLandmarks(
         exerciseIdRef.current,
@@ -434,7 +450,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setCameraFailureReason("none");
     if (!videoRef.current) return;
 
-    // Szybka weryfikacja dostępności urządzeń wideo (chroni Fire TV przed błędem zawieszenia)
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -442,16 +457,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         if (!hasVideoInput) {
           setCameraFailureReason("no-device");
           setHasCameraError(true);
-          // Na Fire TV bez kamery automatycznie uruchom płynny symulator!
           if (tvEnv.isTvLike && !demoModeRef.current) {
             startSimulation();
           }
           return;
         }
       }
-    } catch {
-      // Ignorujemy błąd enumeracji w restrykcyjnych przeglądarkach
-    }
+    } catch {}
 
     const permissionGranted = await requestCameraRuntimePermission();
     if (!permissionGranted) {
@@ -536,7 +548,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             try {
               await poseInstanceRef.current.send({ image: videoRef.current });
             } catch {
-              // Upuszczona klatka
             } finally {
               isProcessingFrame = false;
             }
@@ -590,7 +601,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     async function initMediaPipe() {
       if (typeof window === "undefined") return;
 
-      // Jeśli jesteśmy na Fire TV bez kamery, od razu przełącz w tryb symulatora
       if (tvEnv.isTvLike) {
         try {
           const devices = await navigator.mediaDevices?.enumerateDevices();
@@ -603,9 +613,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             }
             return;
           }
-        } catch {
-          // Kontynuuj standardowy flow
-        }
+        } catch {}
       }
 
       let retries = 0;
@@ -739,9 +747,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               {isPaused
                 ? t.pausedBanner
                 : tvEnv.isTvLike
-                  ? lang === "pl"
-                    ? "Trening Fire TV (Asystent AI)"
-                    : "Fire TV Workout (AI Assistant)"
+                  ? t.tvWorkoutStudio
                   : t.studioMode}
             </span>
           </div>
@@ -768,7 +774,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
       />
 
-      {/* Nakładka wizualna w stanie pauzy */}
       {isPaused && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none z-20">
           <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black/90 border border-amber-500/60 text-amber-400 font-bold text-base shadow-2xl animate-pulse">
@@ -778,13 +783,11 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
       )}
 
-      {/* Pasek kontrolek na górze kontenera */}
       {(cameraActive || demoMode) && (
         <div
           id="camera-overlay-top-bar"
           className="absolute top-2 inset-x-2 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-1.5 z-20 pointer-events-none"
         >
-          {/* Status po lewej stronie */}
           <div
             id="camera-status-badges"
             className="flex items-center gap-1 shrink-0 pointer-events-auto min-w-0"
@@ -800,11 +803,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="sm:hidden whitespace-nowrap">
-                  {isPaused
-                    ? lang === "pl"
-                      ? "Pauza"
-                      : "Paused"
-                    : "Studio AI"}
+                  {isPaused ? t.pausedBanner : t.studioMode}
                 </span>
                 <span className="hidden sm:inline whitespace-nowrap">
                   {isPaused ? t.pausedBanner : t.studioModeActive}
@@ -820,7 +819,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                   {t.cameraActive}
                 </span>
                 <span className="sm:hidden whitespace-nowrap font-medium text-xs">
-                  {lang === "pl" ? "Kamera" : "Live"}
+                  {t.cameraActive}
                 </span>
               </div>
             )}
@@ -835,12 +834,10 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             )}
           </div>
 
-          {/* Przyciski operacyjne po prawej stronie */}
           <div
             id="camera-control-buttons"
             className="flex items-center gap-1 sm:gap-1.5 shrink-0 pointer-events-auto ml-auto"
           >
-            {/* Przełącznik kamery (ukryty na TV) */}
             {cameraActive && !tvEnv.isTvLike && (
               <button
                 id="btn-flip-camera"
@@ -860,7 +857,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               </button>
             )}
 
-            {/* Włącznik kamery (na TV tylko jeśli jest dostępna) */}
             {(!tvEnv.isTvLike || cameraActive) && (
               <button
                 id="btn-toggle-camera-power"
@@ -895,7 +891,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               </button>
             )}
 
-            {/* Przełącznik widoczności szkieletu */}
             <button
               id="btn-toggle-skeleton"
               type="button"
@@ -914,7 +909,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               )}
             </button>
 
-            {/* Przycisk aktywacji symulatora */}
             <button
               id="btn-toggle-demo"
               type="button"
@@ -939,7 +933,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
       )}
 
-      {/* Ekran gotowości / braku kamery zoptymalizowany pod Fire TV */}
       {!cameraActive && !demoMode && (
         <div
           id="camera-inactive-overlay"
@@ -954,9 +947,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           </div>
           <h2 className="text-base sm:text-xl font-bold text-white mb-1.5">
             {tvEnv.isTvLike
-              ? lang === "pl"
-                ? "Tryb Treningu Fire TV"
-                : "Fire TV Workout Mode"
+              ? t.tvWorkoutModeTitle
               : hasCameraError
                 ? cameraFailureReason === "no-device"
                   ? t.cameraNoDevice
@@ -967,9 +958,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           </h2>
           <p className="text-neutral-300 text-xs sm:text-sm max-w-sm sm:max-w-md mb-3 leading-relaxed">
             {tvEnv.isTvLike
-              ? lang === "pl"
-                ? "Wykryto urządzenie Fire TV. Używaj pilota TV (D-pad i przycisk OK) do sterowania treningiem i powtórzeniami z asystentem ruchu AI."
-                : "Fire TV device detected. Use your TV remote (D-pad and OK button) to navigate your workout with the AI motion assistant."
+              ? t.tvWorkoutModeDesc
               : cameraFailureReason === "no-device" && hasCameraError
                 ? t.cameraNoDeviceDesc
                 : t.cameraPromptDesc}
@@ -1000,13 +989,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm border border-indigo-400 shadow-xl shadow-indigo-600/30 transition-all active:scale-95 ring-2 ring-indigo-400/50"
             >
               <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
-              <span>
-                {tvEnv.isTvLike
-                  ? lang === "pl"
-                    ? "Uruchom Trening na TV"
-                    : "Start TV Workout"
-                  : t.studioMode}
-              </span>
+              <span>{tvEnv.isTvLike ? t.tvWorkoutModeBtn : t.studioMode}</span>
             </button>
           </div>
         </div>
