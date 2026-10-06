@@ -6,12 +6,43 @@ class AudioCoachService {
   private lastSpokenRepNumber: number = 0;
   private lastSpokenTime: number = 0;
   private minIntervalForGeneralFeedbackMs: number = 2000;
+  private isAudioUnlocked: boolean = false;
 
   constructor() {
-    // Lazy initialized on user interaction
+    this.registerAutoUnlockListeners();
   }
 
-  private initAudio() {
+  /**
+   * Zgodność z Fire TV & Web Autoplay Policy:
+   * Wybudza AudioContext przy pierwszej interakcji z pilotem lub ekranem.
+   */
+  private registerAutoUnlockListeners() {
+    if (typeof window === "undefined") return;
+
+    const unlock = () => {
+      this.initAudio();
+      if (this.audioCtx && this.audioCtx.state === "suspended") {
+        this.audioCtx
+          .resume()
+          .then(() => {
+            this.isAudioUnlocked = true;
+          })
+          .catch(() => {});
+      } else if (this.audioCtx) {
+        this.isAudioUnlocked = true;
+      }
+
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+
+    window.addEventListener("keydown", unlock, { passive: true });
+    window.addEventListener("click", unlock, { passive: true });
+    window.addEventListener("touchstart", unlock, { passive: true });
+  }
+
+  public initAudio() {
     if (!this.audioCtx && typeof window !== "undefined") {
       const AudioContextClass =
         window.AudioContext ||
@@ -20,6 +51,9 @@ class AudioCoachService {
       if (AudioContextClass) {
         this.audioCtx = new AudioContextClass();
       }
+    }
+    if (this.audioCtx && this.audioCtx.state === "suspended") {
+      this.audioCtx.resume().catch(() => {});
     }
   }
 
@@ -39,7 +73,42 @@ class AudioCoachService {
   }
 
   /**
-   * Instant low-latency chime when rep is registered (0ms delay)
+   * Progresywny ton powtórzenia na Fire TV (0 ms opóźnienia):
+   * Każde powtórzenie ma unikalną, wznoszącą się częstotliwość, co daje
+   * natychmiastowe akustyczne potwierdzenie zaliczonego ruchu w głośnikach TV.
+   */
+  public playRepToneForNumber(repNumber: number) {
+    if (this.isMuted) return;
+    this.initAudio();
+    if (!this.audioCtx) return;
+
+    try {
+      const now = this.audioCtx.currentTime;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      // Skala pentatoniczna dla powtórzeń (wznosząca się energia serii)
+      const baseFreq = 440; // A4
+      const step = ((repNumber - 1) % 10) * 40;
+      const freq = baseFreq + step;
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.12);
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch {}
+  }
+
+  /**
+   * Dźwięk sukcesu powtórzenia
    */
   public playRepSuccessTone() {
     if (this.isMuted) return;
@@ -55,7 +124,7 @@ class AudioCoachService {
       osc.frequency.setValueAtTime(587.33, now);
       osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
 
-      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.setValueAtTime(0.22, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
 
       osc.connect(gain);
@@ -66,6 +135,9 @@ class AudioCoachService {
     } catch {}
   }
 
+  /**
+   * Dźwięk ostrzegawczy przy niepoprawnej formie
+   */
   public playFormWarningTone() {
     if (this.isMuted) return;
     this.initAudio();
@@ -91,6 +163,9 @@ class AudioCoachService {
     } catch {}
   }
 
+  /**
+   * Fanfara ukończenia serii ćwiczenia
+   */
   public playWorkoutCompleteChime() {
     if (this.isMuted) return;
     this.initAudio();
@@ -119,53 +194,52 @@ class AudioCoachService {
   }
 
   /**
-   * Perfectly synchronized rep counting:
-   * Fast, crisp Polish number pronunciation that stays 1:1 with movement.
+   * Zliczanie powtórzeń 1:1:
+   * Zawsze emituje krystaliczny ton powtórzenia na TV,
+   * a na urządzeniach z silnikiem TTS równolegle wymawia numer.
    */
   public speakRep(repNumber: number) {
-    if (
-      this.isMuted ||
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window)
-    ) {
-      return;
-    }
+    if (this.isMuted) return;
 
     if (repNumber === this.lastSpokenRepNumber) {
       return;
     }
     this.lastSpokenRepNumber = repNumber;
 
-    try {
-      // Clear any lagging speech so trainer is always in real-time
-      window.speechSynthesis.cancel();
+    // 1. Natychmiastowy, niezawodny dźwięk powtórzenia na głośnikach Fire TV
+    this.playRepToneForNumber(repNumber);
 
-      const utterance = new SpeechSynthesisUtterance(String(repNumber));
-      utterance.rate = 1.35; // Crisp, clear pace
-      utterance.pitch = 1.05;
-      utterance.lang = this.currentLang === "pl" ? "pl-PL" : "en-US";
+    // 2. Jeśli przeglądarka obsługuje mowę (np. Chrome/Edge/Safari), wymawia liczbę
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
 
-      const voices = window.speechSynthesis.getVoices();
-      const targetLangPrefix = this.currentLang === "pl" ? "pl" : "en";
-      const matchedVoice = voices.find((v) =>
-        v.lang.toLowerCase().startsWith(targetLangPrefix),
-      );
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
-      }
+        const utterance = new SpeechSynthesisUtterance(String(repNumber));
+        utterance.rate = 1.35;
+        utterance.pitch = 1.05;
+        utterance.lang = this.currentLang === "pl" ? "pl-PL" : "en-US";
 
-      window.speechSynthesis.speak(utterance);
-    } catch {}
+        const voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          const targetLangPrefix = this.currentLang === "pl" ? "pl" : "en";
+          const matchedVoice = voices.find((v) =>
+            v.lang.toLowerCase().startsWith(targetLangPrefix),
+          );
+          if (matchedVoice) {
+            utterance.voice = matchedVoice;
+          }
+        }
+
+        window.speechSynthesis.speak(utterance);
+      } catch {}
+    }
   }
 
+  /**
+   * Wypowiadanie wskazówki trenera lub sygnał dźwiękowy na TV
+   */
   public speak(text: string, force: boolean = false) {
-    if (
-      this.isMuted ||
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window)
-    ) {
-      return;
-    }
+    if (this.isMuted) return;
 
     const now = Date.now();
     if (
@@ -175,27 +249,36 @@ class AudioCoachService {
       return;
     }
 
-    try {
-      if (force) {
-        window.speechSynthesis.cancel();
-      }
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.25;
-      utterance.pitch = 1.0;
-      utterance.lang = this.currentLang === "pl" ? "pl-PL" : "en-US";
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        if (force) {
+          window.speechSynthesis.cancel();
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.25;
+        utterance.pitch = 1.0;
+        utterance.lang = this.currentLang === "pl" ? "pl-PL" : "en-US";
 
-      const voices = window.speechSynthesis.getVoices();
-      const targetLangPrefix = this.currentLang === "pl" ? "pl" : "en";
-      const matchedVoice = voices.find((v) =>
-        v.lang.toLowerCase().startsWith(targetLangPrefix),
-      );
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
-      }
+        const voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          const targetLangPrefix = this.currentLang === "pl" ? "pl" : "en";
+          const matchedVoice = voices.find((v) =>
+            v.lang.toLowerCase().startsWith(targetLangPrefix),
+          );
+          if (matchedVoice) {
+            utterance.voice = matchedVoice;
+          }
+        }
 
-      window.speechSynthesis.speak(utterance);
-      this.lastSpokenTime = now;
-    } catch {}
+        window.speechSynthesis.speak(utterance);
+        this.lastSpokenTime = now;
+        return;
+      } catch {}
+    }
+
+    // Fallback dźwiękowy dla urządzeń TV bez syntezy mowy
+    this.playRepSuccessTone();
+    this.lastSpokenTime = now;
   }
 
   public resetQueue() {

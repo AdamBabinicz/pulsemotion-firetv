@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { voiceCommander, VoiceCommandEvent } from "../utils/voiceCommander";
 import { audioCoach } from "../utils/audioCoach";
 import { EXERCISES } from "../data/exercises";
 import { ExerciseDefinition } from "../types";
 import { Language } from "../data/translations";
+import { detectTvEnvironment } from "../utils/fireTvEnvironment";
 
 interface UseVoiceNavigationProps {
   language: Language;
@@ -47,8 +48,18 @@ export function useVoiceNavigation({
   const [isVoiceListening, setIsVoiceListening] = useState<boolean>(false);
   const [lastVoiceCommand, setLastVoiceCommand] = useState<string | null>(null);
   const voiceTimeoutRef = useRef<number | null>(null);
-  // Zabezpieczenie przed samowyzwoleniem 'start' przez echo głośników lektora
   const lastPauseTimeRef = useRef<number>(0);
+
+  const tvEnv = useMemo(() => detectTvEnvironment(), []);
+  const isVoiceSupported = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const hasSpeech = !!(
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition
+    );
+    // Na Fire TV Silk Browser Web Speech API nie ma dostępu do mikrofonu pilota
+    return hasSpeech && !tvEnv.isTvLike;
+  }, [tvEnv.isTvLike]);
 
   useEffect(() => {
     voiceCommander.setLanguage(language);
@@ -174,7 +185,6 @@ export function useVoiceNavigation({
           );
           break;
         case "start":
-          // Jeśli pauza nastąpiła mniej niż 2 sekundy temu, ignorujemy echo lektora
           if (Date.now() - lastPauseTimeRef.current < 2000) {
             return;
           }
@@ -205,10 +215,9 @@ export function useVoiceNavigation({
             ...prev,
             feedbackMessage:
               language === "pl"
-                ? "Trening wstrzymany (Pauza). Powiedz 'Start', aby wznowić."
-                : "Workout paused. Say 'Start' to resume.",
+                ? "Trening wstrzymany (Pauza). Naciśnij OK na pilocie lub powiedz Start."
+                : "Workout paused. Press OK on remote or say Start to resume.",
           }));
-          // Usunięto wyraz 'Start' z mowy lektora, aby głośnik nie wyzwalał mikrofonu
           audioCoach.speak(
             language === "pl"
               ? "Przerwa w treningu. Trening wstrzymany."
@@ -245,6 +254,16 @@ export function useVoiceNavigation({
   }, [handleVoiceAction]);
 
   const handleToggleVoice = useCallback(() => {
+    // Na Fire TV informujemy o sterowaniu pilotem
+    if (!isVoiceSupported) {
+      audioCoach.speak(
+        language === "pl"
+          ? "Na Fire TV steruj pilotem: strzałki D-pad, przycisk OK oraz Play/Pause."
+          : "On Fire TV use your remote: D-pad arrows, OK button, and Play/Pause.",
+      );
+      return;
+    }
+
     if (isVoiceListening) {
       voiceCommander.stop();
       setIsVoiceListening(false);
@@ -263,8 +282,8 @@ export function useVoiceNavigation({
             setIsVoiceListening(false);
             audioCoach.speak(
               language === "pl"
-                ? "Brak uprawnień do mikrofonu. Sprawdź ustawienia przeglądarki."
-                : "Microphone permission denied. Check browser settings.",
+                ? "Brak uprawnień do mikrofonu."
+                : "Microphone permission denied.",
             );
           }
         },
@@ -279,10 +298,11 @@ export function useVoiceNavigation({
           : "Voice control active. Listening for commands.",
       );
     }
-  }, [isVoiceListening, language]);
+  }, [isVoiceListening, isVoiceSupported, language]);
 
   return {
     isVoiceListening,
+    isVoiceSupported,
     lastVoiceCommand,
     handleToggleVoice,
   };

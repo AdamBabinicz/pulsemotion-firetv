@@ -12,6 +12,7 @@ import {
   SwitchCamera,
   Activity,
   PauseCircle,
+  Tv,
 } from "lucide-react";
 import { Language, ThemeMode, translations } from "../data/translations";
 import {
@@ -116,7 +117,10 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
   }, [demoMode]);
 
   useEffect(() => {
-    if (hasCameraError && cameraFailureReason === "denied") {
+    if (
+      hasCameraError &&
+      (cameraFailureReason === "denied" || cameraFailureReason === "no-device")
+    ) {
       demoButtonRef.current?.focus();
     }
   }, [hasCameraError, cameraFailureReason]);
@@ -157,6 +161,20 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, []);
 
+  const getJointGlowColor = useCallback((quality: FormQuality) => {
+    switch (quality) {
+      case "perfect":
+        return "rgba(16, 185, 129, 0.25)";
+      case "needs_correction":
+        return "rgba(239, 68, 68, 0.25)";
+      case "good":
+        return "rgba(2, 132, 199, 0.25)";
+      default:
+        return "rgba(156, 163, 175, 0.2)";
+    }
+  }, []);
+
+  // Super-zoptymalizowany silnik renderowania szkieletu bez shadowBlur (akceleracja GPU)
   const drawPose = useCallback(
     (landmarks: Landmark[], width: number, height: number) => {
       const canvas = canvasRef.current;
@@ -171,12 +189,12 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       }
 
       const jointColor = getJointColor(formQualityRef.current);
+      const glowColor = getJointGlowColor(formQualityRef.current);
 
-      ctx.lineWidth = 4;
+      // 1. Warstwa poświaty: szybka linia 8px bez powolnego filtru Gaussa
+      ctx.lineWidth = 8;
       ctx.lineCap = "round";
-      ctx.strokeStyle = jointColor;
-      ctx.shadowColor = jointColor;
-      ctx.shadowBlur = 12;
+      ctx.strokeStyle = glowColor;
 
       for (const [startIndex, endIndex] of POSE_CONNECTIONS) {
         const start = landmarks[startIndex];
@@ -195,8 +213,28 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         }
       }
 
-      ctx.shadowBlur = 0;
+      // 2. Warstwa ostra szkieletu
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = jointColor;
 
+      for (const [startIndex, endIndex] of POSE_CONNECTIONS) {
+        const start = landmarks[startIndex];
+        const end = landmarks[endIndex];
+
+        if (
+          start &&
+          end &&
+          (start.visibility === undefined || start.visibility > 0.4) &&
+          (end.visibility === undefined || end.visibility > 0.4)
+        ) {
+          ctx.beginPath();
+          ctx.moveTo((1 - start.x) * width, start.y * height);
+          ctx.lineTo((1 - end.x) * width, end.y * height);
+          ctx.stroke();
+        }
+      }
+
+      // 3. Stawy (punkty)
       for (let i = 0; i < landmarks.length; i++) {
         const lm = landmarks[i];
         if (!lm || (lm.visibility !== undefined && lm.visibility < 0.4)) {
@@ -209,7 +247,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         const y = lm.y * height;
 
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.arc(x, y, 5.5, 0, 2 * Math.PI);
         ctx.fillStyle = "#FFFFFF";
         ctx.fill();
         ctx.lineWidth = 2.5;
@@ -217,6 +255,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         ctx.stroke();
       }
 
+      // 4. Etykieta kąta z bezpiecznym rysowaniem zaokrąglenia
       if (!isWorkoutCompletedRef.current) {
         let targetJointIndex: number = POSE_LANDMARKS.RIGHT_KNEE;
         if (exerciseIdRef.current === "arm_raises") {
@@ -234,12 +273,23 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           const y = targetLm.y * height;
 
           ctx.fillStyle = isDarkRef.current
-            ? "rgba(10, 10, 10, 0.88)"
-            : "rgba(255, 255, 255, 0.92)";
+            ? "rgba(10, 10, 10, 0.92)"
+            : "rgba(255, 255, 255, 0.95)";
           ctx.strokeStyle = jointColor;
           ctx.lineWidth = 1.5;
+
+          const rx = x - 6;
+          const ry = y - 18;
+          const rw = 76;
+          const rh = 28;
+          const radius = 6;
+
           ctx.beginPath();
-          ctx.roundRect(x - 6, y - 18, 76, 28, 6);
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(rx, ry, rw, rh, radius);
+          } else {
+            ctx.rect(rx, ry, rw, rh);
+          }
           ctx.fill();
           ctx.stroke();
 
@@ -249,7 +299,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         }
       }
     },
-    [getJointColor],
+    [getJointColor, getJointGlowColor],
   );
 
   const stopSimulation = useCallback(() => {
@@ -384,10 +434,32 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setCameraFailureReason("none");
     if (!videoRef.current) return;
 
+    // Szybka weryfikacja dostępności urządzeń wideo (chroni Fire TV przed błędem zawieszenia)
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasVideoInput = devices.some((d) => d.kind === "videoinput");
+        if (!hasVideoInput) {
+          setCameraFailureReason("no-device");
+          setHasCameraError(true);
+          // Na Fire TV bez kamery automatycznie uruchom płynny symulator!
+          if (tvEnv.isTvLike && !demoModeRef.current) {
+            startSimulation();
+          }
+          return;
+        }
+      }
+    } catch {
+      // Ignorujemy błąd enumeracji w restrykcyjnych przeglądarkach
+    }
+
     const permissionGranted = await requestCameraRuntimePermission();
     if (!permissionGranted) {
       setCameraFailureReason("denied");
       setHasCameraError(true);
+      if (tvEnv.isTvLike && !demoModeRef.current) {
+        startSimulation();
+      }
       return;
     }
 
@@ -402,16 +474,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         },
         audio: false,
       };
-
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const hasVideoInput = devices.some((d) => d.kind === "videoinput");
-        if (!hasVideoInput) {
-          setCameraFailureReason("no-device");
-          setHasCameraError(true);
-          return;
-        }
-      } catch {}
 
       let stream: MediaStream | null = null;
       try {
@@ -474,7 +536,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             try {
               await poseInstanceRef.current.send({ image: videoRef.current });
             } catch {
-              // Dropped frame
+              // Upuszczona klatka
             } finally {
               isProcessingFrame = false;
             }
@@ -489,6 +551,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     } catch {
       setHasCameraError(true);
       setCameraActive(false);
+      if (tvEnv.isTvLike && !demoModeRef.current) {
+        startSimulation();
+      }
     }
   };
 
@@ -525,6 +590,24 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     async function initMediaPipe() {
       if (typeof window === "undefined") return;
 
+      // Jeśli jesteśmy na Fire TV bez kamery, od razu przełącz w tryb symulatora
+      if (tvEnv.isTvLike) {
+        try {
+          const devices = await navigator.mediaDevices?.enumerateDevices();
+          const hasCam = devices?.some((d) => d.kind === "videoinput");
+          if (!hasCam) {
+            if (isMounted) {
+              setHasCameraError(true);
+              setCameraFailureReason("no-device");
+              startSimulation();
+            }
+            return;
+          }
+        } catch {
+          // Kontynuuj standardowy flow
+        }
+      }
+
       let retries = 0;
       while (!window.Pose && retries < 25) {
         await new Promise((res) => setTimeout(res, 200));
@@ -532,7 +615,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       }
 
       if (!window.Pose) {
-        setHasCameraError(true);
+        if (isMounted) {
+          setHasCameraError(true);
+        }
         return;
       }
 
@@ -594,7 +679,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         cancelAnimationFrame(simulationFrameRef.current);
       }
     };
-  }, [drawPose]);
+  }, [drawPose, startSimulation, tvEnv.isTvLike]);
 
   const handleNavKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     const currentTarget = e.currentTarget;
@@ -644,11 +729,21 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
           className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden bg-neutral-950 flex flex-col items-center justify-center z-0"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 via-neutral-900/60 to-black pointer-events-none" />
-          <div className="w-32 h-32 rounded-full border border-emerald-500/20 animate-ping absolute opacity-20 pointer-events-none" />
-          <div className="w-64 h-64 rounded-full border border-emerald-500/10 absolute opacity-30 pointer-events-none" />
-          <div className="absolute bottom-6 sm:bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800 text-neutral-400 text-xs font-mono">
-            <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isPaused ? t.pausedBanner : t.studioMode}</span>
+          <div className="absolute bottom-6 sm:bottom-8 flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900/90 border border-neutral-800 text-neutral-400 text-xs font-mono">
+            {tvEnv.isTvLike ? (
+              <Tv className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+            )}
+            <span>
+              {isPaused
+                ? t.pausedBanner
+                : tvEnv.isTvLike
+                  ? lang === "pl"
+                    ? "Trening Fire TV (Asystent AI)"
+                    : "Fire TV Workout (AI Assistant)"
+                  : t.studioMode}
+            </span>
           </div>
         </div>
       )}
@@ -675,21 +770,21 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
 
       {/* Nakładka wizualna w stanie pauzy */}
       {isPaused && (
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none z-20">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-black/80 border border-amber-500/50 text-amber-400 font-bold text-sm shadow-xl animate-pulse">
-            <PauseCircle className="w-5 h-5 text-amber-400" />
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none z-20">
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-black/90 border border-amber-500/60 text-amber-400 font-bold text-base shadow-2xl animate-pulse">
+            <PauseCircle className="w-6 h-6 text-amber-400" />
             <span>{t.pausedBanner}</span>
           </div>
         </div>
       )}
 
-      {/* Pasek kontrolek na górze kontenera kamery — responsywny, nie ucina przycisków na telefonach */}
+      {/* Pasek kontrolek na górze kontenera */}
       {(cameraActive || demoMode) && (
         <div
           id="camera-overlay-top-bar"
           className="absolute top-2 inset-x-2 sm:top-3 sm:inset-x-3 flex items-center justify-between gap-1.5 z-20 pointer-events-none"
         >
-          {/* Status po lewej stronie — zoptymalizowana szerokość i wysoki kontrast */}
+          {/* Status po lewej stronie */}
           <div
             id="camera-status-badges"
             className="flex items-center gap-1 shrink-0 pointer-events-auto min-w-0"
@@ -697,13 +792,13 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             {demoMode ? (
               <div
                 id="badge-simulator-active"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border shadow-md bg-black/80 backdrop-blur-md shrink-0 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-md bg-neutral-900/95 shrink-0 ${
                   isPaused
                     ? "text-amber-300 border-amber-500/50"
                     : "text-emerald-300 border-emerald-500/50"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="sm:hidden whitespace-nowrap">
                   {isPaused
                     ? lang === "pl"
@@ -718,35 +813,34 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
             ) : (
               <div
                 id="badge-camera-status"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold backdrop-blur-md border bg-black/80 text-emerald-300 border-emerald-500/40 shadow-md shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-neutral-900/95 text-emerald-300 border-emerald-500/40 shadow-md shrink-0"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                 <span className="hidden sm:inline whitespace-nowrap">
                   {t.cameraActive}
                 </span>
-                <span className="sm:hidden whitespace-nowrap font-medium text-[11px]">
+                <span className="sm:hidden whitespace-nowrap font-medium text-xs">
                   {lang === "pl" ? "Kamera" : "Live"}
                 </span>
               </div>
             )}
 
-            {/* FPS ukryty na małych smartfonach, żeby zwolnić miejsce dla przycisków */}
             {fps > 0 && !demoMode && (
               <div
                 id="badge-camera-fps"
-                className="hidden sm:inline-flex px-2 py-1 rounded-full text-[10px] sm:text-xs font-mono bg-black/80 text-neutral-200 border border-neutral-700 whitespace-nowrap shrink-0 shadow-md"
+                className="hidden sm:inline-flex px-2.5 py-1 rounded-full text-xs font-mono bg-neutral-900/95 text-neutral-200 border border-neutral-700 whitespace-nowrap shrink-0 shadow-md"
               >
                 {fps} {t.fps}
               </div>
             )}
           </div>
 
-          {/* Przyciski operacyjne po prawej stronie — mieszczą się z zapasem na każdym smartfonie */}
+          {/* Przyciski operacyjne po prawej stronie */}
           <div
             id="camera-control-buttons"
             className="flex items-center gap-1 sm:gap-1.5 shrink-0 pointer-events-auto ml-auto"
           >
-            {/* Przełącznik kamery (przednia / tylna) */}
+            {/* Przełącznik kamery (ukryty na TV) */}
             {cameraActive && !tvEnv.isTvLike && (
               <button
                 id="btn-flip-camera"
@@ -755,49 +849,51 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
                 data-tv-focusable="true"
                 onKeyDown={handleNavKeyDown}
                 onClick={toggleFacingMode}
-                className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center justify-center shrink-0 shadow-md"
+                className="p-2 rounded-xl bg-neutral-900/95 hover:bg-black text-neutral-200 border border-neutral-700 transition-colors flex items-center justify-center shrink-0 shadow-md"
                 title={t.switchCamera}
                 aria-label={t.switchCamera}
               >
-                <SwitchCamera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
+                <SwitchCamera className="w-4 h-4 text-sky-400 shrink-0" />
                 <span className="text-[10px] font-mono hidden xl:inline whitespace-nowrap ml-1">
                   {facingMode === "user" ? t.frontCamera : t.backCamera}
                 </span>
               </button>
             )}
 
-            {/* Włącznik / wyłącznik kamery */}
-            <button
-              id="btn-toggle-camera-power"
-              type="button"
-              tabIndex={0}
-              data-tv-focusable="true"
-              onKeyDown={handleNavKeyDown}
-              onClick={() => {
-                if (cameraActive) {
-                  stopCamera();
-                } else {
-                  if (demoMode) stopSimulation();
-                  startCamera();
-                }
-              }}
-              className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center justify-center shrink-0 shadow-md ${
-                cameraActive && !demoMode
-                  ? "bg-emerald-600/90 hover:bg-emerald-500 text-white border-emerald-400"
-                  : "bg-black/80 hover:bg-black text-neutral-300 border-neutral-700"
-              }`}
-              title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
-              aria-label={cameraActive ? t.turnCameraOff : t.turnCameraOn}
-            >
-              {cameraActive && !demoMode ? (
-                <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0" />
-              ) : (
-                <CameraOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
-              )}
-              <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap ml-1">
-                {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
-              </span>
-            </button>
+            {/* Włącznik kamery (na TV tylko jeśli jest dostępna) */}
+            {(!tvEnv.isTvLike || cameraActive) && (
+              <button
+                id="btn-toggle-camera-power"
+                type="button"
+                tabIndex={0}
+                data-tv-focusable="true"
+                onKeyDown={handleNavKeyDown}
+                onClick={() => {
+                  if (cameraActive) {
+                    stopCamera();
+                  } else {
+                    if (demoMode) stopSimulation();
+                    startCamera();
+                  }
+                }}
+                className={`p-2 rounded-xl border transition-all flex items-center justify-center shrink-0 shadow-md ${
+                  cameraActive && !demoMode
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400"
+                    : "bg-neutral-900/95 hover:bg-black text-neutral-300 border-neutral-700"
+                }`}
+                title={cameraActive ? t.turnCameraOff : t.turnCameraOn}
+                aria-label={cameraActive ? t.turnCameraOff : t.turnCameraOn}
+              >
+                {cameraActive && !demoMode ? (
+                  <Camera className="w-4 h-4 text-white shrink-0" />
+                ) : (
+                  <CameraOff className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
+                <span className="text-xs font-semibold hidden xl:inline whitespace-nowrap ml-1">
+                  {cameraActive && !demoMode ? t.turnCameraOff : t.turnCameraOn}
+                </span>
+              </button>
+            )}
 
             {/* Przełącznik widoczności szkieletu */}
             <button
@@ -807,18 +903,18 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={() => setShowSkeleton((prev) => !prev)}
-              className="p-1.5 sm:p-2 rounded-xl bg-black/80 hover:bg-black text-neutral-200 border border-neutral-700 backdrop-blur-md transition-colors flex items-center justify-center shrink-0 shadow-md"
+              className="p-2 rounded-xl bg-neutral-900/95 hover:bg-black text-neutral-200 border border-neutral-700 transition-colors flex items-center justify-center shrink-0 shadow-md"
               title={showSkeleton ? t.hideSkeleton : t.showSkeleton}
               aria-label={showSkeleton ? t.hideSkeleton : t.showSkeleton}
             >
               {showSkeleton ? (
-                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+                <Eye className="w-4 h-4 text-emerald-400 shrink-0" />
               ) : (
-                <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 shrink-0" />
+                <EyeOff className="w-4 h-4 text-neutral-400 shrink-0" />
               )}
             </button>
 
-            {/* Przycisk aktywacji / zatrzymania symulatora — na telefonie zgrabny przycisk z ikoną, na sm+ z pełnym tekstem */}
+            {/* Przycisk aktywacji symulatora */}
             <button
               id="btn-toggle-demo"
               type="button"
@@ -826,15 +922,15 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
-              className={`p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border backdrop-blur-md transition-all flex items-center justify-center gap-1 sm:gap-1.5 shrink-0 whitespace-nowrap shadow-md ${
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap shadow-md ${
                 demoMode
                   ? "bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30"
-                  : "bg-black/80 hover:bg-black text-neutral-200 border-neutral-700"
+                  : "bg-neutral-900/95 hover:bg-black text-neutral-200 border-neutral-700"
               }`}
               title={demoMode ? t.stopSimulator : t.studioModeDesc}
               aria-label={demoMode ? t.stopSimulator : t.studioMode}
             >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
               <span className="hidden sm:inline whitespace-nowrap">
                 {demoMode ? t.stopSimulator : t.studioMode}
               </span>
@@ -843,45 +939,56 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         </div>
       )}
 
-      {/* Ekran błędu / braku kamery (czysty, bez wiszących przycisków) */}
+      {/* Ekran gotowości / braku kamery zoptymalizowany pod Fire TV */}
       {!cameraActive && !demoMode && (
         <div
           id="camera-inactive-overlay"
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 bg-neutral-950/90 backdrop-blur-sm text-center"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 bg-neutral-950/95 text-center"
         >
-          <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-neutral-800/80 border border-neutral-700 flex items-center justify-center text-amber-400 mb-2.5 sm:mb-3">
-            <Camera className="w-5 h-5 sm:w-7 sm:h-7" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400 mb-3 shadow-lg">
+            {tvEnv.isTvLike ? (
+              <Tv className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
+            ) : (
+              <Camera className="w-6 h-6 sm:w-8 sm:h-8" />
+            )}
           </div>
-          <h2 className="text-sm sm:text-lg font-bold text-white mb-1.5">
-            {hasCameraError
-              ? cameraFailureReason === "no-device"
-                ? t.cameraNoDevice
-                : cameraFailureReason === "denied"
-                  ? t.cameraDenied
-                  : t.cameraInactive
-              : t.cameraPromptTitle}
+          <h2 className="text-base sm:text-xl font-bold text-white mb-1.5">
+            {tvEnv.isTvLike
+              ? lang === "pl"
+                ? "Tryb Treningu Fire TV"
+                : "Fire TV Workout Mode"
+              : hasCameraError
+                ? cameraFailureReason === "no-device"
+                  ? t.cameraNoDevice
+                  : cameraFailureReason === "denied"
+                    ? t.cameraDenied
+                    : t.cameraInactive
+                : t.cameraPromptTitle}
           </h2>
-          <p className="text-neutral-300 text-[11px] sm:text-sm max-w-sm sm:max-w-md mb-3 sm:mb-4 leading-relaxed">
-            {cameraFailureReason === "no-device" && hasCameraError
-              ? t.cameraNoDeviceDesc
-              : t.cameraPromptDesc}
+          <p className="text-neutral-300 text-xs sm:text-sm max-w-sm sm:max-w-md mb-3 leading-relaxed">
+            {tvEnv.isTvLike
+              ? lang === "pl"
+                ? "Wykryto urządzenie Fire TV. Używaj pilota TV (D-pad i przycisk OK) do sterowania treningiem i powtórzeniami z asystentem ruchu AI."
+                : "Fire TV device detected. Use your TV remote (D-pad and OK button) to navigate your workout with the AI motion assistant."
+              : cameraFailureReason === "no-device" && hasCameraError
+                ? t.cameraNoDeviceDesc
+                : t.cameraPromptDesc}
           </p>
-          <p className="mb-4 text-[11px] sm:text-xs text-amber-300/90 max-w-xs sm:max-w-sm leading-relaxed font-medium">
-            {t.studioModeDesc}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full max-w-xs sm:max-w-md">
-            <button
-              id="btn-retry-camera"
-              type="button"
-              tabIndex={0}
-              data-tv-focusable="true"
-              onKeyDown={handleNavKeyDown}
-              onClick={() => startCamera()}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
-            >
-              <RefreshCw className="w-4 h-4 shrink-0" />
-              <span>{t.enableCameraBtn}</span>
-            </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3.5 w-full max-w-xs sm:max-w-md">
+            {!tvEnv.isTvLike && (
+              <button
+                id="btn-retry-camera"
+                type="button"
+                tabIndex={0}
+                data-tv-focusable="true"
+                onKeyDown={handleNavKeyDown}
+                onClick={() => startCamera()}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-xl text-xs sm:text-sm transition-all shadow-lg active:scale-95"
+              >
+                <RefreshCw className="w-4 h-4 shrink-0" />
+                <span>{t.enableCameraBtn}</span>
+              </button>
+            )}
             <button
               id="btn-launch-demo"
               ref={demoButtonRef}
@@ -890,10 +997,16 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
               data-tv-focusable="true"
               onKeyDown={handleNavKeyDown}
               onClick={toggleDemoSimulator}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl text-xs sm:text-sm border border-indigo-400 shadow-lg shadow-indigo-600/25 transition-all active:scale-95"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm border border-indigo-400 shadow-xl shadow-indigo-600/30 transition-all active:scale-95 ring-2 ring-indigo-400/50"
             >
-              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>{t.studioMode}</span>
+              <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
+              <span>
+                {tvEnv.isTvLike
+                  ? lang === "pl"
+                    ? "Uruchom Trening na TV"
+                    : "Start TV Workout"
+                  : t.studioMode}
+              </span>
             </button>
           </div>
         </div>

@@ -51,6 +51,10 @@ export interface TranslationSchema {
   studioMode: string;
   studioModeActive: string;
   studioModeDesc: string;
+  tvWorkoutModeTitle: string;
+  tvWorkoutModeDesc: string;
+  tvWorkoutModeBtn: string;
+  tvWorkoutStudio: string;
   cameraPromptTitle: string;
   cameraPromptDesc: string;
   enableCameraBtn: string;
@@ -110,6 +114,12 @@ export interface TranslationSchema {
   voiceControlTooltip: string;
   voiceHintBar: string;
   voiceMicMutedHint: string;
+  voiceReadyLabel: string;
+  voiceLabel: string;
+  voiceActiveKeyV: string;
+  voiceEnableKeyV: string;
+  tvRemoteHintBar: string;
+  tvRemoteActionShort: string;
   voiceCommandsHelpTitle: string;
   voiceCommandsList: VoiceCommandHelpItem[];
   recognizedBadge: string;
@@ -219,6 +229,11 @@ export const translations: Record<Language, TranslationSchema> = {
     studioMode: "Symulator AI",
     studioModeActive: "Symulacja AI",
     studioModeDesc: "Wirtualny ruch bez konieczności używania kamery",
+    tvWorkoutModeTitle: "Tryb Treningu Fire TV",
+    tvWorkoutModeDesc:
+      "Wykryto urządzenie Fire TV. Używaj pilota TV (D-pad i przycisk OK) do sterowania treningiem i powtórzeniami z asystentem ruchu AI.",
+    tvWorkoutModeBtn: "Uruchom Trening na TV",
+    tvWorkoutStudio: "Trening Fire TV (Asystent AI)",
     cameraPromptTitle: "Uruchom Kamerę do Treningu",
     cameraPromptDesc:
       "Aplikacja analizuje Twoją sylwetkę w 100% lokalnie na Twoim urządzeniu. Wideo nigdy nie opuszcza urządzenia.",
@@ -286,6 +301,13 @@ export const translations: Record<Language, TranslationSchema> = {
       "Spróbuj powiedzieć: „Symulator”, „Pajacyki”, „Bieg”, „Pauza”, „Start”, „Zamknij” lub „Wyłącz mikrofon” (skrót V)",
     voiceMicMutedHint:
       "Mikrofon wyłączony dla prywatności. Włącz kliknięciem lub klawiszem V.",
+    voiceReadyLabel: "Głos gotowy:",
+    voiceLabel: "Głos:",
+    voiceActiveKeyV: "Odsłuch aktywny (klawisz V)",
+    voiceEnableKeyV: "Włącz odsłuch (klawisz V)",
+    tvRemoteHintBar:
+      "Sterowanie pilotem Fire TV: D-pad nawigacja, OK zatwierdzenie, Play/Pause pauza",
+    tvRemoteActionShort: "Sterowanie Pilotem TV",
     voiceCommandsHelpTitle: "Dostępne Komendy Głosowe",
     voiceCommandsList: [
       {
@@ -530,9 +552,15 @@ export const translations: Record<Language, TranslationSchema> = {
     studioMode: "AI Simulator",
     studioModeActive: "AI Simulation",
     studioModeDesc: "Test workouts with virtual movement without camera",
+    tvWorkoutModeTitle: "Fire TV Workout Mode",
+    tvWorkoutModeDesc:
+      "Fire TV device detected. Use your TV remote (D-pad and OK button) to navigate your workout with the AI motion assistant.",
+    tvWorkoutModeBtn: "Start TV Workout",
+    tvWorkoutStudio: "Fire TV Workout (AI Assistant)",
     cameraPromptTitle: "Enable Camera for Real-Time Coaching",
     cameraPromptDesc:
-      "Your posture is computed 100% locally on your device. Video frames are processed in-browser and never uploaded.",    enableCameraBtn: "Allow & Start Camera",
+      "Your posture is computed 100% locally on your device. Video frames are processed in-browser and never uploaded.",
+    enableCameraBtn: "Allow & Start Camera",
     useSimulatorBtn: "Start Motion Simulation",
     readyPrompt: "Ready to start",
     selectExerciseLabel: "Select Exercise (Navigate or Click)",
@@ -596,6 +624,13 @@ export const translations: Record<Language, TranslationSchema> = {
       'Try saying: "Simulator", "Squats", "High Knees", "Pause", "Resume", "Close" or "Stop listening" (key V)',
     voiceMicMutedHint:
       "Microphone off for privacy. Turn on by clicking or pressing V key.",
+    voiceReadyLabel: "Voice Ready:",
+    voiceLabel: "Voice:",
+    voiceActiveKeyV: "Voice Active (Key V)",
+    voiceEnableKeyV: "Enable Voice (Key V)",
+    tvRemoteHintBar:
+      "Fire TV Remote Navigation: D-pad navigate, OK select, Play/Pause toggle",
+    tvRemoteActionShort: "TV Remote Navigation",
     voiceCommandsHelpTitle: "Supported Voice Commands",
     voiceCommandsList: [
       {
