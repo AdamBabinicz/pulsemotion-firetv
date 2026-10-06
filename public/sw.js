@@ -3,7 +3,7 @@
  * Optimized for Amazon Fire TV (Silk Browser) and Mobile Browsers.
  */
 
-const CACHE_NAME = "pulsemotion-tv-v1";
+const CACHE_NAME = "pulsemotion-tv-v2";
 
 // Kluczowe zasoby startowe (App Shell)
 const PRECACHE_ASSETS = [
@@ -20,19 +20,22 @@ const PRECACHE_ASSETS = [
   "/mediapipe/pose/pose.js",
 ];
 
-// Instalacja Service Workera i precache podstawowych plików
+// Natychmiastowa instalacja i przejęcie kontroli (skipWaiting)
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => {
         return cache.addAll(PRECACHE_ASSETS);
       })
-      .then(() => self.skipWaiting()),
+      .catch((err) => {
+        console.warn("Precache failed:", err);
+      }),
   );
 });
 
-// Aktywacja i czyszczenie starych wersji cache
+// Aktywacja i bezwzględne czyszczenie starej wersji cache v1
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
@@ -54,14 +57,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Obsługujemy wyłącznie zapytania protokołów HTTP/HTTPS metodą GET
+  // Obsługujemy wyłącznie zapytania HTTP/HTTPS metodą GET
   if (request.method !== "GET" || !request.url.startsWith("http")) {
     return;
   }
 
-  // 1. Zasoby MediaPipe oraz statyczne pliki (Cache First + dynamiczny zapis)
-  // Gwarantuje działanie silnika wizji AI bez połączenia z Internetem
-  if (request.url.includes("/mediapipe/") || request.url.includes("/assets/")) {
+  // 1. Ciężkie modele MediaPipe (Cache First dla oszczędności transferu i trybu offline)
+  if (request.url.includes("/mediapipe/")) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         if (cachedResponse) {
@@ -81,20 +83,28 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Nawigacja HTML (Network First z fallbackiem do Cache)
-  // Sprawia, że każda nowa wersja deployu na Netlify pojawia się od razu po odświeżeniu
-  if (request.mode === "navigate") {
+  // 2. Kod JavaScript / CSS aplikacji oraz nawigacja HTML (Network First)
+  // Gwarantuje, że każda zmiana w kodzie aplikacji pojawia się natychmiast na Fire TV
+  if (request.mode === "navigate" || request.url.includes("/assets/")) {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          const responseClone = networkResponse.clone();
-          caches
-            .open(CACHE_NAME)
-            .then((cache) => cache.put(request, responseClone));
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(request, responseClone));
+          }
           return networkResponse;
         })
         .catch(() => {
-          return caches.match("/index.html") || caches.match("/");
+          // Fallback do pamięci podręcznej, jeśli Fire TV jest offline
+          return caches.match(request).then((cached) => {
+            if (cached) return cached;
+            if (request.mode === "navigate") {
+              return caches.match("/index.html") || caches.match("/");
+            }
+          });
         }),
     );
     return;
@@ -113,9 +123,7 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         })
-        .catch(() => {
-          /* cichy fallback */
-        });
+        .catch(() => {});
 
       return cachedResponse || fetchPromise;
     }),
