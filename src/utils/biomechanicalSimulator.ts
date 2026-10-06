@@ -1,6 +1,18 @@
 import { Landmark } from "../types";
 
 /**
+ * Zdefiniowane prędkości kątowe (rad/s) dla naturalnego tempa treningu.
+ * 1 pełny cykl (góra-dół-góra) = 2 * Math.PI radiana (~6.283 rad).
+ */
+export const EXERCISE_CADENCE_RAD_PER_SEC: Record<string, number> = {
+  squats: (2 * Math.PI) / 2.2, // 1 przysiad co 2.2 sekundy
+  jumping_jacks: (2 * Math.PI) / 1.1, // 1 pajacyk co 1.1 sekundy
+  high_knees: (2 * Math.PI) / 1.3, // dynamiczny bieg z kolanami
+  tree_pose: (2 * Math.PI) / 4.0, // spokojny oddech w pozycji drzewa
+  arm_raises: (2 * Math.PI) / 2.0, // 1 wznos co 2.0 sekundy
+};
+
+/**
  * Generator syntetycznych punktów biometrycznych dla symulatora ćwiczeń AI.
  * Oblicza biomechaniczne trajektorie stawów w czasie rzeczywistym.
  */
