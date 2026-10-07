@@ -69,6 +69,30 @@ export function useTvRemote({
         return;
       }
 
+      // 0. Obsługa przycisku Hamburger / Menu (trzy poziome kreski ☰ na pilocie Fire TV)
+      // Kody klawisza Menu na Fire OS / Silk Browser:
+      // - e.key: "ContextMenu", "Menu"
+      // - e.keyCode: 82 (Android KEYCODE_MENU), 93 (ContextMenu), 209
+      const isMenuKey =
+        e.key === "ContextMenu" ||
+        e.key === "Menu" ||
+        e.keyCode === 82 ||
+        e.keyCode === 93 ||
+        e.keyCode === 209;
+
+      if (isMenuKey) {
+        // Jeśli aplikacja jest w trybie pełnoekranowym, Silk Browser blokuje pasek menu/zakładek.
+        // Wyjście z pełnego ekranu natychmiast przywraca widoczność paska nawigacji Silk:
+        if (document.fullscreenElement) {
+          e.preventDefault();
+          document.exitFullscreen().catch(() => {});
+          return;
+        }
+        // W normalnym widoku natychmiast przepuszczamy zdarzenie do przeglądarki Silk
+        // (brak e.preventDefault()), dzięki czemu Silk otwiera swoje systemowe menu i zakładki:
+        return;
+      }
+
       const tvAction = getTvActionFromEvent(e);
 
       // 1. Przycisk Back (zgodnie z wytycznymi Amazon Fire TV)
