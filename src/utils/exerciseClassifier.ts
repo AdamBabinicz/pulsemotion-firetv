@@ -4,6 +4,7 @@ import {
   calculateDistance,
   POSE_LANDMARKS,
 } from "./poseGeometry";
+import { detectTvEnvironment } from "./fireTvEnvironment";
 
 export interface ClassificationResult {
   countedRep: boolean;
@@ -22,11 +23,14 @@ export class ExerciseTracker {
   private holdStartTime: number = 0;
   private minAngleSeenInRep: number = 180;
   private maxAngleSeenInRep: number = 0;
+  private lastRepTimestamp: number = 0;
   private language: "pl" | "en" = "pl";
+  private isTvDevice: boolean = false;
 
   constructor(exerciseId: ExerciseId, language: "pl" | "en" = "pl") {
     this.currentExercise = exerciseId;
     this.language = language;
+    this.isTvDevice = detectTvEnvironment().isTvLike;
     this.reset();
   }
 
@@ -44,6 +48,7 @@ export class ExerciseTracker {
     this.holdStartTime = 0;
     this.minAngleSeenInRep = 180;
     this.maxAngleSeenInRep = 0;
+    this.lastRepTimestamp = 0;
   }
 
   public processFrame(landmarks: Landmark[]): ClassificationResult {
@@ -58,8 +63,12 @@ export class ExerciseTracker {
         stage: isPl ? "Brak sylwetki" : "No person detected",
         formQuality: "idle",
         feedbackMessage: isPl
-          ? "Cofnij się o 1-2 kroki, aby kamera widziała całe ciało"
-          : "Step back so your full body is in the camera frame",
+          ? this.isTvDevice
+            ? "Stań przed telewizorem w pełnym kadrze kamery"
+            : "Cofnij się o 1-2 kroki, aby kamera widziała całe ciało"
+          : this.isTvDevice
+            ? "Step back in front of the TV to fit in frame"
+            : "Step back so your full body is in the camera frame",
       };
     }
 
@@ -82,10 +91,11 @@ export class ExerciseTracker {
   /**
    * Squats Classifier:
    * Knee angle: Hip (23/24) -> Knee (25/26) -> Ankle (27/28)
-   * Target: Standing > 160 deg; Deep squat <= 90-95 deg
+   * Target: Standing > 155-160 deg; Deep squat <= 90-95 deg
    */
   private processSquats(landmarks: Landmark[]): ClassificationResult {
     const isPl = this.language === "pl";
+    const now = Date.now();
     const leftHip = landmarks[POSE_LANDMARKS.LEFT_HIP];
     const leftKnee = landmarks[POSE_LANDMARKS.LEFT_KNEE];
     const leftAnkle = landmarks[POSE_LANDMARKS.LEFT_ANKLE];
@@ -105,26 +115,35 @@ export class ExerciseTracker {
       ? "Schodź powoli w dół"
       : "Lower your hips slowly";
 
-    // Track min angle reached in this down cycle
+    // Rejestrujemy najgłębszy osiągnięty kąt w trakcie przysiadu
     if (avgKneeAngle < this.minAngleSeenInRep) {
       this.minAngleSeenInRep = avgKneeAngle;
     }
 
-    // Check knee cave (distance between knees vs distance between ankles)
+    // Sprawdzenie koślawienia kolan (knee caving)
     const kneeDist = calculateDistance(leftKnee, rightKnee);
     const ankleDist = calculateDistance(leftAnkle, rightAnkle);
     const isKneeCaving = kneeDist < ankleDist * 0.75 && avgKneeAngle < 120;
 
-    if (avgKneeAngle > 155) {
-      // Standing position
+    // Próg pozycji stojącej: na laptopie (mniejszy kąt widzenia) 152°, na Fire TV 155°
+    const standingThreshold = this.isTvDevice ? 155 : 152;
+    const minSquatDepthThreshold = this.isTvDevice ? 95 : 100;
+    const minRepCooldownMs = this.isTvDevice ? 650 : 750;
+
+    if (avgKneeAngle > standingThreshold) {
+      // Powrót do pozycji stojącej
       if (this.stage === "down") {
-        // Rep completion
         const lowestAngle = this.minAngleSeenInRep;
         this.stage = "up";
         this.minAngleSeenInRep = 180;
 
-        if (lowestAngle <= 95) {
+        // Weryfikacja głębokości oraz minimalnego czasu trwania powtórzenia
+        if (
+          lowestAngle <= minSquatDepthThreshold &&
+          now - this.lastRepTimestamp > minRepCooldownMs
+        ) {
           countedRep = true;
+          this.lastRepTimestamp = now;
           repAccuracy = Math.min(
             100,
             Math.max(70, Math.round(100 - Math.abs(lowestAngle - 85) * 1.5)),
@@ -138,7 +157,7 @@ export class ExerciseTracker {
                 ? "Dobre powtórzenie! Wypchnij z pięt"
                 : "Good rep! Push through heels";
           formQuality = "perfect";
-        } else {
+        } else if (lowestAngle > minSquatDepthThreshold) {
           feedbackMessage = isPl
             ? `Zejdź głębiej! Było ${lowestAngle}°, potrzebujesz ≤90°`
             : `Squat deeper! Reached ${lowestAngle}°, need 90°`;
@@ -151,8 +170,8 @@ export class ExerciseTracker {
           : "Begin lowering into squat";
         formQuality = "idle";
       }
-    } else if (avgKneeAngle <= 95) {
-      // Bottom of squat
+    } else if (avgKneeAngle <= minSquatDepthThreshold) {
+      // Dół przysiadu
       this.stage = "down";
       if (isKneeCaving) {
         formQuality = "needs_correction";
@@ -166,7 +185,7 @@ export class ExerciseTracker {
           : "Perfect depth! Now drive up!";
       }
     } else {
-      // Transitioning
+      // Faza przejściowa
       if (this.stage === "down") {
         feedbackMessage = isPl
           ? "Wstawaj płynnie, plecy prosto"
@@ -203,6 +222,7 @@ export class ExerciseTracker {
    */
   private processJumpingJacks(landmarks: Landmark[]): ClassificationResult {
     const isPl = this.language === "pl";
+    const now = Date.now();
     const leftWrist = landmarks[POSE_LANDMARKS.LEFT_WRIST];
     const rightWrist = landmarks[POSE_LANDMARKS.RIGHT_WRIST];
     const leftShoulder = landmarks[POSE_LANDMARKS.LEFT_SHOULDER];
@@ -223,7 +243,12 @@ export class ExerciseTracker {
     let formQuality: FormQuality = "good";
     let feedbackMessage = isPl ? "Wyskok z wymachem rąk" : "Jump and open arms";
 
-    if (handsOverhead && feetRatio > 1.35) {
+    // Progi otwarcia i złączenia
+    const openRatio = this.isTvDevice ? 1.35 : 1.25;
+    const closedRatio = this.isTvDevice ? 1.1 : 1.15;
+    const minCooldownMs = this.isTvDevice ? 380 : 450;
+
+    if (handsOverhead && feetRatio > openRatio) {
       if (this.stage === "closed") {
         this.stage = "open";
       }
@@ -231,15 +256,18 @@ export class ExerciseTracker {
       feedbackMessage = isPl
         ? "Dłonie w górze, teraz złącz stopy"
         : "Arms high, now return together";
-    } else if (!handsOverhead && feetRatio < 1.1) {
+    } else if (!handsOverhead && feetRatio < closedRatio) {
       if (this.stage === "open") {
-        this.stage = "closed";
-        countedRep = true;
-        repAccuracy = 95;
-        feedbackMessage = isPl
-          ? "Świetne tempo! Kontynuuj pajacyki"
-          : "Great rhythm! Keep jumping";
-        formQuality = "perfect";
+        if (now - this.lastRepTimestamp > minCooldownMs) {
+          this.stage = "closed";
+          countedRep = true;
+          this.lastRepTimestamp = now;
+          repAccuracy = 95;
+          feedbackMessage = isPl
+            ? "Świetne tempo! Kontynuuj pajacyki"
+            : "Great rhythm! Keep jumping";
+          formQuality = "perfect";
+        }
       } else {
         this.stage = "closed";
         feedbackMessage = isPl
@@ -269,17 +297,51 @@ export class ExerciseTracker {
   }
 
   /**
-   * High Knees Classifier
+   * High Knees Classifier (Zabezpieczony przed pozycją siedzącą i szybkim jitterem)
    */
   private processHighKnees(landmarks: Landmark[]): ClassificationResult {
     const isPl = this.language === "pl";
+    const now = Date.now();
     const leftHip = landmarks[POSE_LANDMARKS.LEFT_HIP];
     const rightHip = landmarks[POSE_LANDMARKS.RIGHT_HIP];
     const leftKnee = landmarks[POSE_LANDMARKS.LEFT_KNEE];
     const rightKnee = landmarks[POSE_LANDMARKS.RIGHT_KNEE];
 
-    const leftKneeLifted = leftKnee.y <= leftHip.y + 0.05;
-    const rightKneeLifted = rightKnee.y <= rightHip.y + 0.05;
+    // Sprawdzenie, czy użytkownik nie siedzi na krześle/fotelu:
+    // W pozycji siedzącej OBA kolana są podciągnięte na wysokość bioder jednocześnie.
+    const bothKneesBentSitting =
+      leftKnee.y <= leftHip.y + 0.16 && rightKnee.y <= rightHip.y + 0.16;
+
+    if (bothKneesBentSitting) {
+      return {
+        countedRep: false,
+        repAccuracy: 0,
+        currentAngle: 45,
+        targetAngleMin: 85,
+        targetAngleMax: 105,
+        stage: isPl ? "Pozycja siedząca" : "Sitting Detected",
+        formQuality: "idle",
+        feedbackMessage: isPl
+          ? "Wstań przed kamerą, aby rozpocząć bieg w miejscu"
+          : "Stand up in front of camera to begin high knees sprint",
+      };
+    }
+
+    // W prawdziwym biegu jedna noga jest w górze, a DRUGA musi stać stabilnie na ziemi
+    const legGroundedDistance = this.isTvDevice ? 0.22 : 0.18;
+    const kneeLiftTolerance = this.isTvDevice ? 0.08 : 0.05;
+
+    const leftLegGrounded = leftKnee.y > leftHip.y + legGroundedDistance;
+    const rightLegGrounded = rightKnee.y > rightHip.y + legGroundedDistance;
+
+    const leftKneeLifted =
+      leftKnee.y <= leftHip.y + kneeLiftTolerance && rightLegGrounded;
+    const rightKneeLifted =
+      rightKnee.y <= rightHip.y + kneeLiftTolerance && leftLegGrounded;
+
+    // Minimalny bufor czasu między krokami sprinterskimi (anty-jitter)
+    // 250ms na Fire TV (do 4 kroków/sek), 300ms na laptopie
+    const minStepIntervalMs = this.isTvDevice ? 250 : 300;
 
     let countedRep = false;
     let repAccuracy = 0;
@@ -289,22 +351,31 @@ export class ExerciseTracker {
       : "Drive knee up to hip level";
 
     if (leftKneeLifted && this.stage !== "left_up") {
-      this.stage = "left_up";
-      countedRep = true;
-      repAccuracy = 90;
-      formQuality = "perfect";
-      feedbackMessage = isPl
-        ? "Lewe kolano wysoko! Zmiana nogi!"
-        : "Left knee high! Now switch!";
+      if (now - this.lastRepTimestamp > minStepIntervalMs) {
+        this.stage = "left_up";
+        this.lastRepTimestamp = now;
+        countedRep = true;
+        repAccuracy = 90;
+        formQuality = "perfect";
+        feedbackMessage = isPl
+          ? "Lewe kolano wysoko! Zmiana nogi!"
+          : "Left knee high! Now switch!";
+      }
     } else if (rightKneeLifted && this.stage !== "right_up") {
-      this.stage = "right_up";
-      countedRep = true;
-      repAccuracy = 90;
-      formQuality = "perfect";
-      feedbackMessage = isPl
-        ? "Prawe kolano wysoko! Trzymaj rytm!"
-        : "Right knee high! Keep cadence!";
+      if (now - this.lastRepTimestamp > minStepIntervalMs) {
+        this.stage = "right_up";
+        this.lastRepTimestamp = now;
+        countedRep = true;
+        repAccuracy = 90;
+        formQuality = "perfect";
+        feedbackMessage = isPl
+          ? "Prawe kolano wysoko! Trzymaj rytm!"
+          : "Right knee high! Keep cadence!";
+      }
     } else if (!leftKneeLifted && !rightKneeLifted) {
+      if (leftLegGrounded && rightLegGrounded) {
+        this.stage = "neutral";
+      }
       formQuality = "idle";
       feedbackMessage = isPl ? "Unieś kolana wyżej!" : "Lift knees higher!";
     }
@@ -383,6 +454,7 @@ export class ExerciseTracker {
    */
   private processArmRaises(landmarks: Landmark[]): ClassificationResult {
     const isPl = this.language === "pl";
+    const now = Date.now();
     const leftHip = landmarks[POSE_LANDMARKS.LEFT_HIP];
     const leftShoulder = landmarks[POSE_LANDMARKS.LEFT_SHOULDER];
     const leftElbow = landmarks[POSE_LANDMARKS.LEFT_ELBOW];
@@ -409,6 +481,8 @@ export class ExerciseTracker {
       this.maxAngleSeenInRep = avgArmAngle;
     }
 
+    const minArmCooldownMs = this.isTvDevice ? 500 : 650;
+
     if (avgArmAngle >= 80 && avgArmAngle <= 105) {
       this.stage = "raised";
       formQuality = "perfect";
@@ -417,20 +491,23 @@ export class ExerciseTracker {
         : "Hold briefly at 90° shoulder height";
     } else if (avgArmAngle < 40) {
       if (this.stage === "raised") {
-        countedRep = true;
-        repAccuracy = Math.min(
-          100,
-          Math.max(
-            75,
-            Math.round(100 - Math.abs(this.maxAngleSeenInRep - 90) * 1.5),
-          ),
-        );
-        feedbackMessage = isPl
-          ? "Wspaniała kontrola ramion!"
-          : "Great shoulder control!";
-        formQuality = "perfect";
-        this.stage = "lowered";
-        this.maxAngleSeenInRep = 0;
+        if (now - this.lastRepTimestamp > minArmCooldownMs) {
+          countedRep = true;
+          this.lastRepTimestamp = now;
+          repAccuracy = Math.min(
+            100,
+            Math.max(
+              75,
+              Math.round(100 - Math.abs(this.maxAngleSeenInRep - 90) * 1.5),
+            ),
+          );
+          feedbackMessage = isPl
+            ? "Wspaniała kontrola ramion!"
+            : "Great shoulder control!";
+          formQuality = "perfect";
+          this.stage = "lowered";
+          this.maxAngleSeenInRep = 0;
+        }
       } else {
         this.stage = "lowered";
         feedbackMessage = isPl
