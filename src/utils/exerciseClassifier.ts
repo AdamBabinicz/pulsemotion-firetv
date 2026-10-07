@@ -115,29 +115,24 @@ export class ExerciseTracker {
       ? "Schodź powoli w dół"
       : "Lower your hips slowly";
 
-    // Rejestrujemy najgłębszy osiągnięty kąt w trakcie przysiadu
     if (avgKneeAngle < this.minAngleSeenInRep) {
       this.minAngleSeenInRep = avgKneeAngle;
     }
 
-    // Sprawdzenie koślawienia kolan (knee caving)
     const kneeDist = calculateDistance(leftKnee, rightKnee);
     const ankleDist = calculateDistance(leftAnkle, rightAnkle);
     const isKneeCaving = kneeDist < ankleDist * 0.75 && avgKneeAngle < 120;
 
-    // Próg pozycji stojącej: na laptopie (mniejszy kąt widzenia) 152°, na Fire TV 155°
     const standingThreshold = this.isTvDevice ? 155 : 152;
     const minSquatDepthThreshold = this.isTvDevice ? 95 : 100;
     const minRepCooldownMs = this.isTvDevice ? 650 : 750;
 
     if (avgKneeAngle > standingThreshold) {
-      // Powrót do pozycji stojącej
       if (this.stage === "down") {
         const lowestAngle = this.minAngleSeenInRep;
         this.stage = "up";
         this.minAngleSeenInRep = 180;
 
-        // Weryfikacja głębokości oraz minimalnego czasu trwania powtórzenia
         if (
           lowestAngle <= minSquatDepthThreshold &&
           now - this.lastRepTimestamp > minRepCooldownMs
@@ -171,7 +166,6 @@ export class ExerciseTracker {
         formQuality = "idle";
       }
     } else if (avgKneeAngle <= minSquatDepthThreshold) {
-      // Dół przysiadu
       this.stage = "down";
       if (isKneeCaving) {
         formQuality = "needs_correction";
@@ -185,7 +179,6 @@ export class ExerciseTracker {
           : "Perfect depth! Now drive up!";
       }
     } else {
-      // Faza przejściowa
       if (this.stage === "down") {
         feedbackMessage = isPl
           ? "Wstawaj płynnie, plecy prosto"
@@ -243,7 +236,6 @@ export class ExerciseTracker {
     let formQuality: FormQuality = "good";
     let feedbackMessage = isPl ? "Wyskok z wymachem rąk" : "Jump and open arms";
 
-    // Progi otwarcia i złączenia
     const openRatio = this.isTvDevice ? 1.35 : 1.25;
     const closedRatio = this.isTvDevice ? 1.1 : 1.15;
     const minCooldownMs = this.isTvDevice ? 380 : 450;
@@ -297,7 +289,7 @@ export class ExerciseTracker {
   }
 
   /**
-   * High Knees Classifier (Zabezpieczony przed pozycją siedzącą i szybkim jitterem)
+   * High Knees Classifier (Zoptymalizowany pod symulator Fire TV i ruch na żywo)
    */
   private processHighKnees(landmarks: Landmark[]): ClassificationResult {
     const isPl = this.language === "pl";
@@ -307,10 +299,10 @@ export class ExerciseTracker {
     const leftKnee = landmarks[POSE_LANDMARKS.LEFT_KNEE];
     const rightKnee = landmarks[POSE_LANDMARKS.RIGHT_KNEE];
 
-    // Sprawdzenie, czy użytkownik nie siedzi na krześle/fotelu:
-    // W pozycji siedzącej OBA kolana są podciągnięte na wysokość bioder jednocześnie.
+    // Sprawdzenie, czy użytkownik nie siedzi:
+    // W pozycji siedzącej oba kolana są stale ugięte na wysokości bioder.
     const bothKneesBentSitting =
-      leftKnee.y <= leftHip.y + 0.16 && rightKnee.y <= rightHip.y + 0.16;
+      leftKnee.y <= leftHip.y + 0.14 && rightKnee.y <= rightHip.y + 0.14;
 
     if (bothKneesBentSitting) {
       return {
@@ -327,9 +319,10 @@ export class ExerciseTracker {
       };
     }
 
-    // W prawdziwym biegu jedna noga jest w górze, a DRUGA musi stać stabilnie na ziemi
-    const legGroundedDistance = this.isTvDevice ? 0.22 : 0.18;
-    const kneeLiftTolerance = this.isTvDevice ? 0.08 : 0.05;
+    // Skalibrowany próg uniesienia kolana i nogi opartej:
+    // Zapewnia zaliczanie powtórzeń zarówno w symulatorze AI na Fire TV, jak i podczas biegu przed kamerą.
+    const legGroundedDistance = 0.16;
+    const kneeLiftTolerance = 0.11;
 
     const leftLegGrounded = leftKnee.y > leftHip.y + legGroundedDistance;
     const rightLegGrounded = rightKnee.y > rightHip.y + legGroundedDistance;
@@ -339,9 +332,7 @@ export class ExerciseTracker {
     const rightKneeLifted =
       rightKnee.y <= rightHip.y + kneeLiftTolerance && leftLegGrounded;
 
-    // Minimalny bufor czasu między krokami sprinterskimi (anty-jitter)
-    // 250ms na Fire TV (do 4 kroków/sek), 300ms na laptopie
-    const minStepIntervalMs = this.isTvDevice ? 250 : 300;
+    const minStepIntervalMs = this.isTvDevice ? 240 : 280;
 
     let countedRep = false;
     let repAccuracy = 0;
