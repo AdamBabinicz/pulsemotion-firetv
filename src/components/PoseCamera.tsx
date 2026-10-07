@@ -309,7 +309,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, []);
 
-  // NOWA, BŁYSKAWICZNA PĘTLA SYMULATORA Z DELTA TIME
   const startSimulation = useCallback(() => {
     demoModeRef.current = true;
     setDemoMode(true);
@@ -325,7 +324,6 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       if (!demoModeRef.current) return;
 
       const now = performance.now();
-      // Delta time w sekundach (chroni przed przeskokami)
       const dt = Math.min((now - lastTickTime) / 1000, 0.1);
       lastTickTime = now;
 
@@ -351,25 +349,19 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         return;
       }
 
-      // Kalibracja prędkości (1 pełny obrót = 2 * Math.PI radiana ≈ 6.28 rad):
-      // - squats: 2 * Math.PI / 2.0s = 3.14 rad/s (1 przysiad co 2 sekundy!)
-      // - jumping_jacks: 2 * Math.PI / 1.0s = 6.28 rad/s (1 pajacyk co sekundę!)
-      // - high_knees: 2 * Math.PI / 1.2s = 5.23 rad/s (szybki bieg)
-      // - arm_raises: 2 * Math.PI / 1.8s = 3.49 rad/s (kontrolowane wznosy)
-      let radPerSec = 3.14; // domyślnie 2.0s na powtórzenie
+      let radPerSec = 3.14;
       if (exerciseIdRef.current === "squats") {
-        radPerSec = (2 * Math.PI) / 2.0; // 2.0s na przysiad
+        radPerSec = (2 * Math.PI) / 2.0;
       } else if (exerciseIdRef.current === "jumping_jacks") {
-        radPerSec = (2 * Math.PI) / 1.0; // 1.0s na pajacyk
+        radPerSec = (2 * Math.PI) / 1.0;
       } else if (exerciseIdRef.current === "high_knees") {
-        radPerSec = (2 * Math.PI) / 1.2; // 1.2s na pełen cykl biegu
+        radPerSec = (2 * Math.PI) / 1.2;
       } else if (exerciseIdRef.current === "tree_pose") {
-        radPerSec = (2 * Math.PI) / 4.0; // spokojny balans
+        radPerSec = (2 * Math.PI) / 4.0;
       } else if (exerciseIdRef.current === "arm_raises") {
-        radPerSec = (2 * Math.PI) / 1.8; // 1.8s na wznos
+        radPerSec = (2 * Math.PI) / 1.8;
       }
 
-      // Dynamiczny przyrost niezależny od FPS telewizora
       simulationProgressRef.current += radPerSec * dt;
 
       const syntheticLandmarks = getBiomechanicalLandmarks(
@@ -443,6 +435,51 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     }
   }, [externalDemoTrigger, startSimulation, stopSimulation]);
 
+  const setupPoseInstanceIfNeeded = useCallback(() => {
+    if (
+      !poseInstanceRef.current &&
+      typeof window !== "undefined" &&
+      window.Pose
+    ) {
+      const pose = new window.Pose({
+        locateFile: (file: string) => `/mediapipe/pose/${file}`,
+      });
+
+      pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        minDetectionConfidence: 0.55,
+        minTrackingConfidence: 0.55,
+      });
+
+      pose.onResults((results: any) => {
+        if (demoModeRef.current) return;
+        if (isPausedRef.current) return;
+
+        frameCountRef.current++;
+        const now = Date.now();
+        if (now - lastFpsCheckRef.current >= 1000) {
+          setFps(frameCountRef.current);
+          frameCountRef.current = 0;
+          lastFpsCheckRef.current = now;
+        }
+
+        if (results.poseLandmarks) {
+          if (onPoseDetectedRef.current) {
+            onPoseDetectedRef.current(results.poseLandmarks);
+          }
+          const canvas = canvasRef.current;
+          if (canvas) {
+            drawPose(results.poseLandmarks, canvas.width, canvas.height);
+          }
+        }
+      });
+
+      poseInstanceRef.current = pose;
+    }
+  }, [drawPose]);
+
   const startCamera = async (
     targetFacingMode: "user" | "environment" = facingMode,
   ) => {
@@ -450,29 +487,24 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     setCameraFailureReason("none");
     if (!videoRef.current) return;
 
+    // Próba zgłoszenia uprawnienia środowiskowego (np. Cordova/Android TV),
+    // lecz nie blokujemy przeglądarki internetowej, gdzie jedynym wyzwalaczem okna zgody jest getUserMedia.
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const hasVideoInput = devices.some((d) => d.kind === "videoinput");
-        if (!hasVideoInput) {
-          setCameraFailureReason("no-device");
-          setHasCameraError(true);
-          if (tvEnv.isTvLike && !demoModeRef.current) {
-            startSimulation();
-          }
-          return;
+      const permissionGranted = await requestCameraRuntimePermission();
+      if (
+        !permissionGranted &&
+        typeof window !== "undefined" &&
+        (window as any).cordova
+      ) {
+        setCameraFailureReason("denied");
+        setHasCameraError(true);
+        if (tvEnv.isTvLike && !demoModeRef.current) {
+          startSimulation();
         }
+        return;
       }
-    } catch {}
-
-    const permissionGranted = await requestCameraRuntimePermission();
-    if (!permissionGranted) {
-      setCameraFailureReason("denied");
-      setHasCameraError(true);
-      if (tvEnv.isTvLike && !demoModeRef.current) {
-        startSimulation();
-      }
-      return;
+    } catch {
+      // Ignorujemy błędy weryfikatora uprawnień i przechodzimy do natywnego getUserMedia
     }
 
     try {
@@ -494,24 +526,57 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         const name = (err as DOMException)?.name;
         if (name === "NotAllowedError" || name === "SecurityError") {
           setCameraFailureReason("denied");
+          setHasCameraError(true);
+          setCameraActive(false);
+          if (tvEnv.isTvLike && !demoModeRef.current) {
+            startSimulation();
+          }
+          return;
         } else if (
           name === "NotFoundError" ||
-          name === "OverconstrainedError" ||
-          name === "NotReadableError"
+          name === "DevicesNotFoundError"
         ) {
           setCameraFailureReason("no-device");
+          setHasCameraError(true);
+          setCameraActive(false);
+          if (tvEnv.isTvLike && !demoModeRef.current) {
+            startSimulation();
+          }
+          return;
         } else {
-          setCameraFailureReason("generic");
+          // Błąd dopasowania ograniczeń (OverconstrainedError) lub zajęte urządzenie — próba z bazowymi ograniczeniami
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: false,
+            });
+          } catch (fallbackErr) {
+            const fbName = (fallbackErr as DOMException)?.name;
+            if (fbName === "NotAllowedError" || fbName === "SecurityError") {
+              setCameraFailureReason("denied");
+            } else if (
+              fbName === "NotFoundError" ||
+              fbName === "DevicesNotFoundError"
+            ) {
+              setCameraFailureReason("no-device");
+            } else {
+              setCameraFailureReason("generic");
+            }
+            setHasCameraError(true);
+            setCameraActive(false);
+            if (tvEnv.isTvLike && !demoModeRef.current) {
+              startSimulation();
+            }
+            return;
+          }
         }
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
       }
 
       if (!stream || !videoRef.current) {
         throw new Error("Camera stream unavailable");
       }
+
+      setupPoseInstanceIfNeeded();
 
       const video = videoRef.current;
       video.srcObject = stream;
@@ -601,23 +666,9 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
     async function initMediaPipe() {
       if (typeof window === "undefined") return;
 
-      if (tvEnv.isTvLike) {
-        try {
-          const devices = await navigator.mediaDevices?.enumerateDevices();
-          const hasCam = devices?.some((d) => d.kind === "videoinput");
-          if (!hasCam) {
-            if (isMounted) {
-              setHasCameraError(true);
-              setCameraFailureReason("no-device");
-              startSimulation();
-            }
-            return;
-          }
-        } catch {}
-      }
-
+      // Zwiększono limit ponowień do 50 (10 sekund), aby sieć zewnętrzna zdążyła pobrać skrypty CDN
       let retries = 0;
-      while (!window.Pose && retries < 25) {
+      while (!window.Pose && retries < 50) {
         await new Promise((res) => setTimeout(res, 200));
         retries++;
       }
@@ -630,44 +681,10 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
       }
 
       try {
-        const pose = new window.Pose({
-          locateFile: (file: string) => `/mediapipe/pose/${file}`,
-        });
-
-        pose.setOptions({
-          modelComplexity: 1,
-          smoothLandmarks: true,
-          enableSegmentation: false,
-          minDetectionConfidence: 0.55,
-          minTrackingConfidence: 0.55,
-        });
-
-        pose.onResults((results: any) => {
-          if (!isMounted) return;
-          if (demoModeRef.current) return;
-          if (isPausedRef.current) return;
-
-          frameCountRef.current++;
-          const now = Date.now();
-          if (now - lastFpsCheckRef.current >= 1000) {
-            setFps(frameCountRef.current);
-            frameCountRef.current = 0;
-            lastFpsCheckRef.current = now;
-          }
-
-          if (results.poseLandmarks) {
-            if (onPoseDetectedRef.current) {
-              onPoseDetectedRef.current(results.poseLandmarks);
-            }
-            const canvas = canvasRef.current;
-            if (canvas) {
-              drawPose(results.poseLandmarks, canvas.width, canvas.height);
-            }
-          }
-        });
-
-        poseInstanceRef.current = pose;
-        startCamera();
+        setupPoseInstanceIfNeeded();
+        if (isMounted) {
+          startCamera();
+        }
       } catch {
         if (isMounted) {
           setHasCameraError(true);
@@ -687,7 +704,7 @@ export const PoseCamera: React.FC<PoseCameraProps> = ({
         cancelAnimationFrame(simulationFrameRef.current);
       }
     };
-  }, [drawPose, startSimulation, tvEnv.isTvLike]);
+  }, [setupPoseInstanceIfNeeded]);
 
   const handleNavKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     const currentTarget = e.currentTarget;
