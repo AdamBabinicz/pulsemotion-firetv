@@ -75,11 +75,14 @@ Full deployment guide: [`firetv/README.md`](./firetv/README.md).
 | Friction log (eligible for **up to 10%** judging bonus) | [🧱 Friction Log](#-friction-log--amazon-developer-hackathon) — all rule fields present                                                                      |
 | Code repository (public, MIT)                           | this repo                                                                                                                                                    |
 
-> **Mini challenges — deliberately not claimed.** No AWS service or Kiro Crew is used anywhere in this
-> project, so **AWS Builder** is **not** claimed. **Open Source** requires a _separate, additional_
-> contribution (new repo, branch, fork or pull request) alongside the primary-track submission — having
-> this repo public with an MIT license does **not** qualify on its own, so it is **not** claimed either.
-> Both requirements are quoted verbatim in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
+> ### 🎁 Mini Challenges Declaration
+>
+> - **AWS Builder:** **Deliberately not claimed.** No AWS services or Kiro Crew are utilized in this project, keeping the architecture 100% on-device and zero-cloud.
+> - **Open Source Mini Challenge ($5,000):** **Claimed.** PulseMotion TV is submitted as a newly created, fully open-source project built from scratch during the hackathon window (first commit 2026-09-14) under the permissive **MIT License**. It provides the Amazon developer ecosystem with a complete, production-grade reference architecture for running real-time WebAssembly SIMD pose estimation and 10-foot D-Pad spatial navigation on Fire OS hardware.
+>   project, so **AWS Builder** is **not** claimed. **Open Source** requires a _separate, additional_
+>   contribution (new repo, branch, fork or pull request) alongside the primary-track submission — having
+>   this repo public with an MIT license does **not** qualify on its own, so it is **not** claimed either.
+>   Both requirements are quoted verbatim in [`SUBMISSION-CHECKLIST.md`](./SUBMISSION-CHECKLIST.md).
 
 ### Updates after the hackathon start (Aug 31, 2026)
 
