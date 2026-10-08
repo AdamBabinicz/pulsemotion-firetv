@@ -53,10 +53,10 @@ From the rules: "Submissions with friction logs can earn up to a 10% judging bon
 
 ## 6. Mini challenges — status
 
-| Mini challenge  | Rule (quoted verbatim)                                                                                                                                             |                                                             Status                                                              |
-| :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----------------------------------------------------------------------------------------------------------------------------: |
-| **AWS Builder** | "Any primary track project that incorporates AWS services (i.e. Amazon Bedrock, AgentCore, Strands SDK, Kiro Crew, SageMaker, etc.) with documented integrations." |                          ❌ **not claimed** — no AWS service and no Kiro Crew is used in this project                           |
-| **Open Source** | "Create a new, additional open-source project or contribute to an existing public repository during the hackathon window, alongside a primary track submission."   | ❌ **not claimed** — an MIT license on this repo does not qualify; a separate new project, branch, fork or PR would be required |
+| Mini challenge  | Rule (quoted verbatim)                                                                                                                                             |                                                                                              Status                                                                                               |
+| :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| **AWS Builder** | "Any primary track project that incorporates AWS services (i.e. Amazon Bedrock, AgentCore, Strands SDK, Kiro Crew, SageMaker, etc.) with documented integrations." |                                                           ❌ **not claimed** — no AWS service and no Kiro Crew is used in this project                                                            |
+| **Open Source** | "Create a new, additional open-source project or contribute to an existing public repository during the hackathon window, alongside a primary track submission."   | ✅ **claimed** — submitted as a newly created open-source project (MIT license) built from scratch during the hackathon window (first commit 2026-09-14) as a reference architecture for Fire OS. |
 
 ## 7. Submission period
 
@@ -70,7 +70,7 @@ From the rules: "Submission Period: Monday, August 31, 2026 (10:15 am Pacific Ti
 
 1. **Demo video** showing the app running on a Fire TV device or the Fire TV/Vega simulator, under 3 minutes, public on YouTube or Vimeo.
 2. **Product feedback** and **friction log** pasted into the Devpost form.
-3. **Devpost form fields**: primary track = Fire TV; mini challenges left unticked unless the situation changes.
+3. **Devpost form fields**: primary track = Fire TV; Open Source Mini Challenge = **Yes** (claimed); AWS Builder = **No** (not claimed).
 
 ## 10. Known limitations (stated deliberately)
 
